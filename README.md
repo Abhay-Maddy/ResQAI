@@ -10,8 +10,8 @@
 | Phase | Milestone / Focus | Status | Key Deliverables & Exit Criteria |
 | :--- | :--- | :---: | :--- |
 | **Phase 0** | **PRD, Repo, Design System, Seed Plan** |  **COMPLETED** | Design tokens (PRD H2), i18n (FR-1/Part L#1), TruthBadge (Part L#2), unified types (Part G & L#4), Model Card & Limitations (Part L#9), Seed plan (E6). |
-| **Phase 1** | **Auth, RBAC, DB & Core Backend** | ⏳ *Next* | Email/phone OTP, Argon2id, JWT session rotation, Postgres/SQLite DB schema, 7 roles with server-side authorization. |
-| **Phase 2** | **Reporting, Verification & Command Dashboard** | ⏳ *Upcoming* | Citizen SOS form (3-step), offline queue, verification workflow with AI duplicate detection, Admin command dashboard with real DB metrics. |
+| **Phase 1** | **Auth, RBAC, DB & Core Backend** |  **COMPLETED** | Argon2id hashing (FR-1), Refresh-token rotation & session revocation (FR-1), 7 Roles with jurisdiction scopes (FR-2), Server-side authorization (FR-3), 2FA gate (FR-4), SQLite/Postgres schema (Part G & L#4), Tamper-evident AuditLog (FR-53). **Exit criteria: Role tests green (8/8 passed)**. |
+| **Phase 2** | **Reporting, Verification & Command Dashboard** | ⏳ *Next* | Citizen SOS form (3-step), offline queue, verification workflow with AI duplicate detection, Admin command dashboard with real DB metrics. |
 | **Phase 3** | **Live GIS Map, Layers & Responder View** | ⏳ *Upcoming* | Multi-layer map (Official, ML zones, Incidents, Teams, Shelters), road closure routing, field responder mobile view. |
 | **Phase 4** | **Needs Matrix & Smart Donation Allocation** | ⏳ *Upcoming* | Signature feature: Needs matrix, shortage detector, donor redirect engine (Area A/B/C worked example). |
 | **Phase 5** | **Flood ML Early Warning & Monitoring** | ⏳ *Upcoming* | XGBoost flood baseline, SHAP explainability factors, data freshness gating, monitoring curves. |

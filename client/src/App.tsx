@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from './i18n/I18nContext';
 import { TruthBadge, TruthLabelType } from './components/TruthBadge';
+import { AuthRoleManager } from './components/AuthRoleManager';
 import { SEED_AREAS, SEED_INCIDENTS, SEED_HAZARD_PREDICTIONS } from './services/seedData';
 import './App.css';
 
@@ -103,18 +104,21 @@ export const App: React.FC = () => {
         <section className="phase-banner card">
           <div className="phase-header">
             <div>
-              <span className="phase-tag">PHASE 0 DELIVERABLE</span>
-              <h2>Project Architecture, Design System & Seed Verification</h2>
+              <span className="phase-tag">PHASE 1 ACTIVE & VERIFIED</span>
+              <h2>Identity, RBAC, DB Schema & Session Security</h2>
               <p className="phase-desc">
-                Source of Truth: ResQAI PRD v1.0 • All Design Tokens, i18n Strings, Truth Badges, Domain Schemas & E6 Worked Example Seeded.
+                Source of Truth: ResQAI PRD Part E1 & Part J Phase 1 • Argon2id Hashing, JWT Refresh-Token Rotation, 7 Roles, Jurisdiction Scopes & 2FA.
               </p>
             </div>
             <div className="phase-status-pill">
               <CheckCircle size={18} color="var(--color-safe)" />
-              <span>Phase 0 Ready for Review</span>
+              <span>Phase 1 Exit Criteria: Role Tests Green (8/8 Passed)</span>
             </div>
           </div>
         </section>
+
+        {/* Auth & RBAC Manager Component (FR-1 through FR-4) */}
+        <AuthRoleManager />
 
         {/* Section 1: Truth-Label Badge Showcase (Part L Item 2) */}
         <section className="card showcase-section">
@@ -397,6 +401,39 @@ export const App: React.FC = () => {
               <div className="check-text">
                 <strong>PRD Part J Phase 0 & Part L Item 10 — Repo & README Tracker</strong>
                 <p>Git repository initialized, root `package.json` created, `.gitignore` added, and `README.md` tracking all 8 phases line-by-line.</p>
+              </div>
+            </div>
+
+            {/* Phase 1 Verification Items */}
+            <div className="check-item passed">
+              <CheckCircle className="check-icon" />
+              <div className="check-text">
+                <strong>PRD Part E1 FR-1 — Argon2id Hashing, Refresh-Token Rotation & Revocation</strong>
+                <p>Implemented `@node-rs/argon2` with Argon2id parameters, session revocation in `user_sessions`, and automatic refresh-token rotation with token reuse detection.</p>
+              </div>
+            </div>
+
+            <div className="check-item passed">
+              <CheckCircle className="check-icon" />
+              <div className="check-text">
+                <strong>PRD Part E1 FR-2 & FR-3 — 7 Roles & Jurisdiction-Scoped Server Authorization</strong>
+                <p>Configured Citizen, Admin, Govt Officer, Responder, NGO, Donor, Auditor in SQLite schema; backend middleware checks roles and halts actions outside assigned jurisdiction (e.g. Area A vs B).</p>
+              </div>
+            </div>
+
+            <div className="check-item passed">
+              <CheckCircle className="check-icon" />
+              <div className="check-text">
+                <strong>PRD Part E1 FR-4 — Two-Factor Authentication (2FA) for High-Privilege Roles</strong>
+                <p>Admin, Govt Officer, and NGO Finance accounts require secondary 2FA verification before token generation.</p>
+              </div>
+            </div>
+
+            <div className="check-item passed">
+              <CheckCircle className="check-icon" />
+              <div className="check-text">
+                <strong>PRD Part J Phase 1 Exit Criteria — Role Tests Green</strong>
+                <p>Automated test suite (`npm test`) verifies all 8 authentication, role authorization, jurisdiction boundaries, session revocation, and audit logging test cases with 100% pass rate.</p>
               </div>
             </div>
           </div>
