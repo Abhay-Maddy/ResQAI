@@ -1,0 +1,141 @@
+{
+  "app": {
+    "title": "ResQAI",
+    "subtitle": "Predict · Verify · Coordinate · Relieve",
+    "emergencyBanner": "If life is in immediate danger, call 112 directly.",
+    "offlineNotice": "You are offline. Reports will be saved locally and submitted automatically when reconnected.",
+    "staleWarning": "Data was updated over 15 minutes ago. Refreshing...",
+    "demoWatermark": "SYNTHETIC DEMO DATA — FOR SIMULATION & TESTING ONLY"
+  },
+  "nav": {
+    "home": "Home",
+    "reports": "My Reports",
+    "alerts": "Alerts",
+    "map": "Live GIS Map",
+    "dashboard": "Control Room",
+    "dispatch": "Dispatch & Teams",
+    "resources": "Needs & Resources",
+    "predictions": "ML Early Warning",
+    "ngo": "NGO & Donations",
+    "cases": "Case Management",
+    "audit": "Audit Log",
+    "settings": "Settings",
+    "switchLang": "भाषा / Language",
+    "toggleTheme": "Toggle Theme"
+  },
+  "roles": {
+    "citizen": "Citizen",
+    "admin": "Control Room Admin",
+    "govt": "Govt Disaster Officer",
+    "responder": "Rescue Responder",
+    "ngo": "NGO Coordinator",
+    "donor": "Donor / Volunteer",
+    "auditor": "Post-Disaster Auditor"
+  },
+  "truthLabels": {
+    "OFFICIAL_WARNING": "OFFICIAL WARNING",
+    "ML_ASSESSMENT": "ML ASSESSMENT",
+    "VERIFIED_INCIDENT": "VERIFIED INCIDENT",
+    "UNVERIFIED_REPORT": "UNVERIFIED REPORT",
+    "DEMO_DATA": "DEMO DATA",
+    "STALE": "STALE DATA"
+  },
+  "citizen": {
+    "sosButton": "REPORT EMERGENCY",
+    "sharingLocation": "Sharing: Precise GPS Location",
+    "quickTiles": {
+      "rescue": "Need Rescue",
+      "food": "Need Food & Water",
+      "medicine": "Need Medical Help",
+      "shelter": "Need Shelter"
+    },
+    "nearestShelter": "Nearest Safe Shelter",
+    "latestAlert": "Latest Official Advisory",
+    "step1": "1. What Happened?",
+    "step2": "2. Where?",
+    "step3": "3. Details & Urgency",
+    "incidentType": "Disaster / Emergency Type",
+    "flood": "Urban Flood / Waterlogging",
+    "cyclone": "Cyclone / Severe Storm",
+    "landslide": "Landslide",
+    "heatwave": "Extreme Heatwave",
+    "fire": "Structural / Wildfire",
+    "medical": "Medical Crisis",
+    "other": "Other Emergency",
+    "description": "Describe what you see and what is needed",
+    "peopleCount": "Estimated People Affected / Trapped",
+    "urgency": "Urgency Level",
+    "urgencyCritical": "Life-Threatening (Immediate Rescue)",
+    "urgencyHigh": "High (Cut off / Vulnerable)",
+    "urgencyMedium": "Medium (Need supplies within hours)",
+    "urgencyLow": "Low (Advisory / Observation)",
+    "photoUpload": "Attach Photo Evidence (Optional)",
+    "contactChoice": "Contact Phone / WhatsApp",
+    "anonymousToggle": "Submit Anonymously",
+    "submitReport": "Submit Emergency Report",
+    "submitting": "Submitting...",
+    "reportSuccess": "Emergency Report Submitted Successfully",
+    "reportPendingOffline": "Queued locally. Not yet received by responders until connection is restored.",
+    "ticketId": "Reference Incident ID",
+    "whatHappensNext": "What happens next: Our verification team and AI will corroborate your report within 5 minutes. The nearest rescue team or supply dispatch will be notified."
+  },
+  "verification": {
+    "status": {
+      "RECEIVED": "Received",
+      "TRIAGE": "Triage",
+      "UNDER_REVIEW": "Under Review",
+      "VERIFIED": "Verified",
+      "UNVERIFIED": "Unverified",
+      "DUPLICATE": "Duplicate",
+      "RESPONSE_ASSIGNED": "Response Assigned",
+      "IN_PROGRESS": "In Progress",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed",
+      "ESCALATED": "Escalated"
+    },
+    "actions": {
+      "verify": "Verify Incident",
+      "markUnverified": "Mark Unverified",
+      "mergeDuplicate": "Merge as Duplicate",
+      "escalate": "Escalate to NDRF/SDRF",
+      "assignTeam": "Assign Rescue Team"
+    },
+    "aiSummaryTitle": "AI Assistance & Duplicate Analysis",
+    "aiDisclaimer": "AI suggestion only. Human operator retains final authority.",
+    "whyScore": "Why this priority score?",
+    "decisionModal": {
+      "title": "Verification Decision",
+      "reasonLabel": "Operational Reason",
+      "confidenceLabel": "Confidence (0-100%)",
+      "uncertaintyLabel": "Unresolved Uncertainty / Notes",
+      "confirm": "Confirm Decision",
+      "cancel": "Cancel"
+    }
+  },
+  "relief": {
+    "title": "Needs-Based Relief Allocation",
+    "matrixTitle": "Target Area vs Required Resources",
+    "area": "Affected Area",
+    "food": "Food Kits",
+    "water": "Clean Water (L)",
+    "medicine": "Medical Kits",
+    "shelterKits": "Temporary Tents / Tarps",
+    "covered": "100% Covered",
+    "shortage": "Short",
+    "redirectNotice": "Food is fully covered in this area. Donor offers redirected to urgently needed medicines.",
+    "reserve": "Reserve Supplies",
+    "approveAllocation": "Approve Allocation",
+    "reasonOverride": "Reason for Override"
+  },
+  "ml": {
+    "title": "Flood & Hazard Prediction Baseline",
+    "disclaimer": "Model assessment — not an official government warning. Decisions require human verification.",
+    "riskLevel": "Predicted Risk Level",
+    "calibratedProb": "Calibrated Probability",
+    "uncertainty": "Uncertainty Interval",
+    "topFactors": "Top Contributing SHAP Factors",
+    "freshness": "Data Freshness",
+    "modelVersion": "Model Version",
+    "unavailableReason": "Prediction unavailable: Rainfall sensor feed stale (>4h)"
+  }
+}

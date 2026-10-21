@@ -1,0 +1,115 @@
+/* TruthBadge CSS strictly matching PRD Part H2 */
+
+.truth-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  border-radius: var(--radius-badge);
+  white-space: nowrap;
+  vertical-align: middle;
+  line-height: 1;
+  transition: all var(--transition-fast);
+}
+
+.truth-badge-sm {
+  font-size: var(--font-size-xs);
+  padding: 3px 6px;
+}
+
+.truth-badge-sm .truth-badge-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.truth-badge-md {
+  font-size: var(--font-size-sm);
+  padding: 4px 10px;
+}
+
+.truth-badge-md .truth-badge-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.truth-badge-lg {
+  font-size: var(--font-size-base);
+  padding: 6px 14px;
+}
+
+.truth-badge-lg .truth-badge-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* 1. OFFICIAL WARNING (Shield-check, solid Navy + amber/red by severity) */
+.badge-official {
+  background-color: var(--color-navy-900);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.badge-official.severity-critical {
+  background-color: var(--color-critical);
+  color: #FFFFFF;
+  border: 1px solid #B91C1C;
+}
+
+.badge-official.severity-warn {
+  background-color: var(--color-warn);
+  color: #FFFFFF;
+  border: 1px solid #B45309;
+}
+
+/* 2. ML ASSESSMENT (Sparkle/chart, dashed outline, purple) */
+.badge-ml {
+  background-color: var(--color-ml-subtle);
+  color: var(--color-ml);
+  border: 1.5px dashed var(--color-ml);
+}
+
+/* 3. VERIFIED INCIDENT (Check-circle, solid teal/safe) */
+.badge-verified {
+  background-color: var(--color-safe);
+  color: #FFFFFF;
+  border: 1px solid #0D8272;
+}
+
+/* 4. UNVERIFIED REPORT (Question-circle, hollow/gray) */
+.badge-unverified {
+  background-color: var(--color-neutral-subtle);
+  color: var(--color-neutral);
+  border: 1.5px solid var(--color-neutral-border);
+}
+
+/* 5. DEMO DATA (Diagonal stripe tag, gray/yellow) */
+.badge-demo {
+  background-color: var(--color-warn-subtle);
+  color: #92400E;
+  border: 1px solid var(--color-warn-border);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(217, 119, 6, 0.12),
+    rgba(217, 119, 6, 0.12) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+/* 6. STALE (> threshold) (Clock-alert, amber) */
+.badge-stale {
+  background-color: var(--color-warn-subtle);
+  color: var(--color-warn);
+  border: 1px solid var(--color-warn);
+}
+
+.truth-badge-meta {
+  font-size: 0.85em;
+  opacity: 0.85;
+}
+
+.truth-badge-source {
+  font-size: 0.8em;
+  opacity: 0.75;
+  text-transform: uppercase;
+}
