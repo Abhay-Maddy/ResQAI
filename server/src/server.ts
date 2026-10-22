@@ -5,6 +5,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { initDatabase } from './db/database';
 import { authRouter } from './routes/authRoutes';
 import { rbacTestRouter } from './routes/rbacDemoRoutes';
+import { incidentRouter } from './routes/incidentRoutes';
 
 const app = express();
 const server = http.createServer(app);
@@ -21,6 +22,7 @@ app.use(express.json());
 // Mount API v1 Routes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/rbac', rbacTestRouter);
+app.use('/api/v1/incidents', incidentRouter);
 
 // FR-9 Persistent emergency status & system health
 app.get('/api/v1/health', (req: Request, res: Response) => {

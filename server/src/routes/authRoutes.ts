@@ -12,7 +12,7 @@ import {
   generateOtp,
   verifyOtp
 } from '../services/authService';
-import { authenticate } from '../middleware/rbacMiddleware';
+import { authenticate, requireRole } from '../middleware/rbacMiddleware';
 import { logAuditEvent } from '../services/auditService';
 
 export const authRouter = Router();
@@ -279,3 +279,92 @@ authRouter.get('/sessions', authenticate, (req: Request, res: Response) => {
 
   res.json({ sessions });
 });
+
+// Admin User Management: List all users & role positions (Admin Only)
+authRouter.get('/users', authenticate, requireRole('ADMIN'), (req: Request, res: Response) => {
+  const users = db.prepare(`
+    SELECT id, name, email, phone, role, jurisdiction_region_id, is_verified, two_factor_enabled, created_at, updated_at
+    FROM users
+    ORDER BY created_at ASC
+  `).all();
+  res.json({ users });
+});
+
+// Admin User Management: Change role & jurisdiction (Admin Only)
+authRouter.patch('/users/:id/role', authenticate, requireRole('ADMIN'), (req: Request, res: Response) => {
+  const { role, jurisdictionRegionId } = req.body;
+  const targetUserId = req.params.id as string;
+
+  const validRoles = ['CITIZEN', 'ADMIN', 'GOVT_OFFICER', 'RESPONDER', 'NGO', 'DONOR', 'AUDITOR'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ error: 'BAD_REQUEST', message: `Invalid role: ${role}` });
+  }
+
+  const existing = db.prepare('SELECT * FROM users WHERE id = ?').get(targetUserId) as any;
+  if (!existing) {
+    return res.status(404).json({ error: 'USER_NOT_FOUND', message: 'Target user not found' });
+  }
+
+  const twoFactorEnabled = (role === 'ADMIN' || role === 'GOVT_OFFICER' || role === 'NGO') ? 1 : 0;
+
+  db.prepare(`
+    UPDATE users 
+    SET role = ?, jurisdiction_region_id = ?, two_factor_enabled = ?, updated_at = datetime('now')
+    WHERE id = ?
+  `).run(role, jurisdictionRegionId || null, twoFactorEnabled, targetUserId);
+
+  logAuditEvent({
+    actionType: 'USER_ROLE_UPDATED',
+    actorId: req.user!.userId,
+    actorRole: req.user!.role,
+    entityId: targetUserId,
+    details: `Role updated from ${existing.role} to ${role} (Jurisdiction: ${jurisdictionRegionId || 'GLOBAL'}) by Main Admin`,
+    beforeState: { role: existing.role, jurisdiction: existing.jurisdiction_region_id },
+    afterState: { role, jurisdiction: jurisdictionRegionId },
+    ipAddress: req.ip
+  });
+
+  const updatedUser = db.prepare('SELECT id, name, email, phone, role, jurisdiction_region_id, is_verified, two_factor_enabled, updated_at FROM users WHERE id = ?').get(targetUserId);
+  res.json({ message: 'User role updated successfully', user: updatedUser });
+});
+
+// Admin User Management: Create new official position / account (Admin Only)
+authRouter.post('/users/create-position', authenticate, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  const { name, email, phone, role, jurisdictionRegionId, initialPassword = 'Password123!' } = req.body;
+
+  if (!name || (!email && !phone) || !role) {
+    return res.status(400).json({ error: 'BAD_REQUEST', message: 'Name, role, and email/phone are required' });
+  }
+
+  try {
+    const existing = db.prepare('SELECT id FROM users WHERE email = ? OR phone = ?').get(email || null, phone || null);
+    if (existing) {
+      return res.status(409).json({ error: 'USER_EXISTS', message: 'User with this email or phone already exists' });
+    }
+
+    const userId = `USR-${role}-${Date.now().toString().slice(-4)}`;
+    const passwordHash = await hashPassword(initialPassword);
+    const twoFactorEnabled = (role === 'ADMIN' || role === 'GOVT_OFFICER' || role === 'NGO') ? 1 : 0;
+    const twoFactorSecret = twoFactorEnabled ? `SECRET_2FA_${userId}` : null;
+
+    db.prepare(`
+      INSERT INTO users (id, name, email, phone, password_hash, role, jurisdiction_region_id, is_verified, two_factor_enabled, two_factor_secret)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+    `).run(userId, name, email || null, phone || null, passwordHash, role, jurisdictionRegionId || null, twoFactorEnabled, twoFactorSecret);
+
+    logAuditEvent({
+      actionType: 'OFFICIAL_POSITION_CREATED',
+      actorId: req.user!.userId,
+      actorRole: req.user!.role,
+      entityId: userId,
+      details: `Created new official position for ${name} as ${role} (Jurisdiction: ${jurisdictionRegionId || 'GLOBAL'})`,
+      ipAddress: req.ip
+    });
+
+    const newUser = db.prepare('SELECT id, name, email, phone, role, jurisdiction_region_id, is_verified, two_factor_enabled, created_at FROM users WHERE id = ?').get(userId);
+    res.status(201).json({ message: 'Official position created successfully', user: newUser });
+  } catch (err: any) {
+    res.status(500).json({ error: 'SERVER_ERROR', message: err.message });
+  }
+});
+
