@@ -6,6 +6,7 @@ import { initDatabase } from './db/database';
 import { authRouter } from './routes/authRoutes';
 import { rbacTestRouter } from './routes/rbacDemoRoutes';
 import { incidentRouter } from './routes/incidentRoutes';
+import { gisRouter, responderRouter } from './routes/gisRoutes';
 
 const app = express();
 const server = http.createServer(app);
@@ -23,6 +24,8 @@ app.use(express.json());
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/rbac', rbacTestRouter);
 app.use('/api/v1/incidents', incidentRouter);
+app.use('/api/v1/gis', gisRouter);
+app.use('/api/v1/responder', responderRouter);
 
 // FR-9 Persistent emergency status & system health
 app.get('/api/v1/health', (req: Request, res: Response) => {
