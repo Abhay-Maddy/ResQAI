@@ -1,32 +1,0 @@
-=== Line 31 ===
-GGGSECTIONGGG
-
-
-=== Line 33 ===
-FR-19(M)Ineverclaimsanexternalambulance/policedispatchoccurredunlesstheintegrationreturnedsuccess.ƦǿTapanDG8yFR-20(M)Layers,oØØicialwarnings;veriØiedincidents;unveriØiedreports;MLriskzones;aØØectedboundaries;teams;hospitals;shelters;relieØpoints;roadclosures;shortages;unmetneeds.FR-21(M)istinctmarkershapes | color | labelsoML;oØØicial;andcitizendatacanneverbeconØused:legendalwaysvisible.FR-22(M)Radiussearch;Øilters;timestampsandsourceoneverylayer.FR-23(S)Routingwithclosed-roadavoidance:saØe-accessØlags:volunteersnotroutedintorestrictedzones.FR-24(M)Riskshownaspolygons/gridcells;neverØalselyprecisepoints.ƧǿNËËDsȘ¾asËDĥËûiË×aûûoCationȯsignatĹĥË×ËatĹĥËȰFR-25(M)Perareaperresource,reĥuired;available;reserved;dispatched;delivered;pending;lastveriØied.FR-26(M)onØigurabletransparentpriorityscore,threattoliØe;severity;peopleaØØected;vulnerability;shortageratio;reĥuestage;alternatives;evidenceĥuality.FR-27(M)onationmatching,iØanarea'sØoodneedismet;show"Food,Fullycovered"andsuggestveriØiedalternatives(e.g.;medicinesinnearbyǧrea).FR-28(M)Reservationsystempreventsdouble-allocation:humanoverridereĥuiresareason.FR-29(M)Status"elivered"onlyaØterconØirmation(photo/OP/signatureØromrecipientorcamplead).FR-30(S)Shortageandexpiryalerts:needsheatmap.FR-31(M)Neverauto-spenddonormoneywithoutexplicitauthorization.orkedexamplereaFoodaterMedicinesSystemoutput100%covered80%20%onors,"Medicinesneededȅrea":ØoodoØØersredirected'LVDVWKM6KLKOG$G–3MRGNJWHKTNLMKPKQWV'RJNPKQW3H'N3DJKRI
-
-
-=== Line 35 ===
-GGGSECTIONGGG
-
-
-=== Line 37 ===
-ƨǿpĥËDiCtionanDËaĥûWŌaĥningFR-32(M)Separatemodelsperhazard:MP=Ølood/urbanØlood:thenheavyrain;heatwave;cycloneexposure;landslide.FR-33(M)Output,hazard;area;timewindow;risklevel;calibratedprobability;uncertainty;topcontributingØactors;dataØreshness;modelversion;sources;precautions.FR-34(M)learØour-waylabelling,MLassessment/OØØicialwarning/onØirmedevent/nveriØiedreport.FR-35(M)IØdataisstaleoroutoØvalidatedrange,show"Predictionunavailable"withreason.FR-36(M)arthĥuakes,hazardmaps;exposure;oØØicialalerts;post-eventimpactonly — nevertime/placeprediction.FR-37(S)Modelmonitoring,precision;recall;FNR/FPR;calibration;driØt;coverage;knownlimitations.Ʃǿ××ËCtËDȘpËĥsonCasËsFR-38(S)aseI;household;needs;vulnerabilityØlags;shelter;assistancelog;reØerrals;caseworker;Øollow-up.FR-39(S)onsentcapture;dataminimization;Øield-levelmasking;accesslogs;retentionpolicy.FR-40(S)uditableduplicatemerging:noonelosesentitlementduetomerge.FR-41()Missing-personregistryandsaØe-and-wellcheck-inwithchild-protectioncontrols.ƪǿNGOs/Campaigns/DonationsFR-42(S)NGOKY,registration;authorizedrepresentative;documents;expiry/renewal;suspension.FR-43(S)ampaigncannotbepublicuntildminapproval.reaFoodaterMedicinesSystemoutput40%0%60%atertankersprioritized:nearestsaØeteamsuggested95%90%90%Monitoronly'LVDVWKM6KLKOG$G–3MRGNJWHKTNLMKPKQWV'RJNPKQW3H'N3DJKRI
-
-
-=== Line 39 ===
-GGGSECTIONGGG
-
-
-=== Line 41 ===
-FR-44(S)Ledger,target;received;committed;spent;balance:receiptsandimpactreports.FR-45(S)PaymentsuccessonlyaØterserver-sidesignature | statusveriØication:duplicatewebhooksareidempotent.FR-46(S)Notax-beneØitclaimsunlessveriØied:Øoreign-contributionØlags(FR).FR-47(S)Norawcarddatastored.ƢơǿNoti×iCationsFR-48(S)In-app;email;SMS:assignment;status;shortage;receipt;reminder.FR-49(M)PublicalertsonlyØromauthorizedoØØicerswithgeo-targetingandratelimits:appneverimpersonatesgovernment.FR-50(S)eliverystatusandprovidererrorslogged:de-duplication.ƢƢǿO××ûinËanDûoŌ¾anDŌiDtáFR-51(S)P;cachedsaØetyguidancewithdate;compresseduploads;manuallocation;stale-databanner.FR-52(S)Nosensitivedatainpersistentbrowserstorageunlessencryptedandminimal.ƢƣǿQËpoĥtsanDaĹDitFR-53(M)ppend-only;tamper-evidentauditlogØorveriØication;assignment;allocation;closure;approvals;exports.FR-54(S)Situationreport(PF/S/GeoJSON)withaccesschecks.paĥt*)NonȘ*ĹnCtionaûQËĤĹiĥËmËntsreaReĥuirementPerØormanceReportsubmitp95<2son3G:maprender<3sØor5;000markers(clustered)vailabilityorereportingpath99.9%:staticemergencypageonN:graceØuldegradationiØML/maps/paymentsØail'LVDVWKM6KLKOG$G–3MRGNJWHKTNLMKPKQWV'RJNPKQW3H'N3DJKRI
-
-
-=== Line 43 ===
-GGGSECTIONGGG
-
-
-=== Line 45 ===
-paĥtG)yWstËmĥCáitËCtĹĥËreaReĥuirementScalabilityStatelessPI;horizontalscaling;ĥueueØornotiØicationsandmediaprocessing;readreplicasSecurityOSPSSL2target:ratelimits:SP:uploadscanning:secretsmanager:encryptionintransitandatrestPrivacyPPct2023alignment;purposelimitation;consentlogs;deletionworkØlow;noad/proØilinguseccessibilityG2.2:colorneversolesignal:screen-readerlabels:keyboardnav:largetouchtargets(>48px)Localizationi18nØromdayone:RL-readyØorrduObservabilityStructuredlogs;healthchecks;tracing;alerting;backupswithtestedrestoreataintegrityransactionsØorallocationandpayments:moneyasintegerpaiseHonestySyntheticdatawatermarkedMO:noØabricatedØeeds;accuracy;orpaymentsLayeromponentslientsitizenP;ontrol-roomwebapp;Respondermobileweb;NGO/onorportal;SMSgatewayPINode.js/xpress(ypeScript)ǐ±ĥéǐŏƄ;Socket.IO;OpenPIdocs;RmiddlewareataPostgreSQL | PostGIS;Redis(cache;ĥueues;ratelimit);objectstorage(evidence)MLPythonFastPIservice;scikit-learn/¡Goost;MLØlowregistry;scheduleddataingestion'LVDVWKM6KLKOG$G–3MRGNJWHKTNLMKPKQWV'RJNPKQW3H'N3DJKRI
-
-
