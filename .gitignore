@@ -35,3 +35,13 @@ lerna-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.iml
+.idea/
+.vscode/

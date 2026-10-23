@@ -5,10 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix server run dev",
-    "client": "npm --prefix client run dev",
     "server": "npm --prefix server run dev",
-    "build": "npm --prefix server run build && npm --prefix client run build",
-    "test": "npm --prefix server test && npm --prefix client test"
+    "build": "npm --prefix server run build",
+    "test": "npm --prefix server test"
   },
   "keywords": [
     "disaster-management",
