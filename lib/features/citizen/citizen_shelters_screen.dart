@@ -52,54 +52,49 @@ class _CitizenSheltersScreenState extends ConsumerState<CitizenSheltersScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header summary
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.successGreen.withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.night_shelter, color: AppColors.successGreen, size: 26),
+            // Open Header (No decorative box)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Verified Relief Shelters',
+                        style: TextStyle(
+                          fontSize: isMobile ? 20 : 24,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppColors.deepNavy,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Live bed availability & medical supplies across Ghaziabad & Delhi-NCR evacuation hubs',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Verified Emergency Shelters & Safe Havens',
-                          style: TextStyle(
-                            fontSize: isMobile ? 15 : 18,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppColors.deepNavy,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Government & NGO coordinated evacuation centers equipped with food, water, sanitation, and medical units.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
-                          ),
-                        ),
-                      ],
+                ),
+                if (!isMobile)
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenMap),
+                    icon: const Icon(Icons.map_outlined, size: 18),
+                    label: const Text('View on Map'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primaryBlue,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                   ),
-                ],
-              ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // Search and filter chips
+            // Search bar (full width on mobile with map shortcut)
             Row(
               children: [
                 Expanded(
@@ -107,26 +102,35 @@ class _CitizenSheltersScreenState extends ConsumerState<CitizenSheltersScreen> {
                     controller: _searchController,
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
-                      hintText: 'Search by shelter name or sector...',
+                      hintText: 'Search shelter name, sector, or landmark...',
                       prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: isMobile
+                          ? IconButton(
+                              icon: const Icon(Icons.map_outlined, color: AppColors.primaryBlue),
+                              tooltip: 'Open in Map',
+                              onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenMap),
+                            )
+                          : (_searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 18),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {});
+                                  },
+                                )
+                              : null),
                       filled: true,
                       fillColor: isDark ? AppColors.darkSurface : Colors.white,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenMap),
-                  icon: const Icon(Icons.map_outlined, size: 18),
-                  label: const Text('View on Map'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primaryBlue,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
                 ),
               ],
@@ -293,8 +297,10 @@ class _CitizenSheltersScreenState extends ConsumerState<CitizenSheltersScreen> {
                         const SizedBox(height: 14),
 
                         // Action Buttons
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                        Wrap(
+                          alignment: WrapAlignment.end,
+                          spacing: 10,
+                          runSpacing: 8,
                           children: [
                             OutlinedButton.icon(
                               onPressed: () {
@@ -313,7 +319,6 @@ class _CitizenSheltersScreenState extends ConsumerState<CitizenSheltersScreen> {
                                 visualDensity: VisualDensity.compact,
                               ),
                             ),
-                            const SizedBox(width: 10),
                             ElevatedButton.icon(
                               onPressed: () {
                                 showDialog(
