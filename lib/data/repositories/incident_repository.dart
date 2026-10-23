@@ -21,9 +21,55 @@ class IncidentsNotifier extends StateNotifier<List<IncidentModel>> {
   void updateStatus(String id, IncidentStatus newStatus, {String? team}) {
     state = state.map((item) {
       if (item.id == id) {
+        final historyEntry = '${DateTime.now().toIso8601String().substring(0, 16)}: Status changed to ${newStatus.label}${team != null ? " (Team: $team)" : ""}';
         return item.copyWith(
           status: newStatus,
           assignedTeam: team ?? item.assignedTeam,
+          verificationHistory: [historyEntry, ...item.verificationHistory],
+        );
+      }
+      return item;
+    }).toList();
+  }
+
+  void recordVerificationDecision(
+    String id, {
+    required IncidentStatus newStatus,
+    required String reviewerId,
+    required String reviewerName,
+    required String reviewerRole,
+    required String notes,
+    required String reason,
+    String? departmentAssigned,
+  }) {
+    state = state.map((item) {
+      if (item.id == id) {
+        final timestamp = DateTime.now().toIso8601String().substring(0, 16);
+        final log = '$timestamp: [${reviewerRole.toUpperCase()}] $reviewerName designated as ${newStatus.label}. Reason: $reason. Notes: $notes';
+        return item.copyWith(
+          status: newStatus,
+          reviewerId: reviewerId,
+          reviewerName: reviewerName,
+          reviewerRole: reviewerRole,
+          reviewerNotes: notes,
+          decisionReason: reason,
+          departmentAssigned: departmentAssigned ?? item.departmentAssigned,
+          verificationHistory: [log, ...item.verificationHistory],
+        );
+      }
+      return item;
+    }).toList();
+  }
+
+  void reopenIncident(String id, String reason, String requesterName) {
+    state = state.map((item) {
+      if (item.id == id) {
+        final timestamp = DateTime.now().toIso8601String().substring(0, 16);
+        final log = '$timestamp: Reopened by $requesterName. Reason: $reason';
+        return item.copyWith(
+          status: IncidentStatus.underReview,
+          escalatedTo: 'District Disaster Magistrate Review Desk',
+          verificationHistory: [log, ...item.verificationHistory],
         );
       }
       return item;
@@ -36,7 +82,11 @@ class IncidentsNotifier extends StateNotifier<List<IncidentModel>> {
         return item.copyWith(
           duplicateOfId: masterId,
           duplicateConfirmedByHuman: true,
-          status: IncidentStatus.verified,
+          status: IncidentStatus.duplicate,
+          verificationHistory: [
+            '${DateTime.now().toIso8601String().substring(0, 16)}: Confirmed as duplicate of incident $masterId',
+            ...item.verificationHistory,
+          ],
         );
       }
       return item;
@@ -50,6 +100,10 @@ class IncidentsNotifier extends StateNotifier<List<IncidentModel>> {
           isPossibleDuplicate: false,
           duplicateOfId: null,
           duplicateConfidence: 0.0,
+          verificationHistory: [
+            '${DateTime.now().toIso8601String().substring(0, 16)}: Marked as independent unique incident (AI duplicate candidate rejected)',
+            ...item.verificationHistory,
+          ],
         );
       }
       return item;

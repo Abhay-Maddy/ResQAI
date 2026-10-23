@@ -47,11 +47,20 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
     }
   }
 
-  // 1. CITIZEN SPECIFIC DASHBOARD
+  // 1. CITIZEN SPECIFIC DASHBOARD (Part 5)
   Widget _buildCitizenDashboard(BuildContext context, WidgetRef ref, dynamic currentUser) {
     final incidents = ref.watch(incidentsProvider);
-    final myIncidents = incidents.where((i) => i.source == 'CITIZEN_WEB' || i.source == 'ONE_TAP_SOS').toList();
+    final alerts = ref.watch(alertsProvider);
+    final myIncidents = incidents.where((i) => i.source == 'CITIZEN_WEB' || i.source == 'ONE_TAP_SOS' || i.source == 'DAMAGE_REPORT').toList();
     final shelters = ref.watch(sheltersProvider);
+
+    // Location-based filtering (Part 5): Match user's district/state
+    final userDistrict = currentUser?.district ?? 'East Delhi';
+    final locationMatchedAlerts = alerts.where((a) {
+      final reg = a.affectedRegion.toLowerCase();
+      final dist = userDistrict.toLowerCase();
+      return reg.contains('delhi') || reg.contains('yamuna') || reg.contains(dist);
+    }).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -104,7 +113,7 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Citizen Disaster ID: ${currentUser?.citizenId ?? "RQ-CIT-2026-1042"} • Ward: ${currentUser?.badgeOrJurisdiction ?? "Yamuna Khadar Ward 4"}',
+                        'Citizen Disaster ID: ${currentUser?.citizenId ?? "RQ-CIT-2026-1042"} • District: ${currentUser?.district ?? "East Delhi"} (${currentUser?.badgeOrJurisdiction ?? "Yamuna Khadar Ward 4"})',
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                       const SizedBox(height: 4),
@@ -139,16 +148,105 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // Quick Action Cards
-          Row(
+          // LOCATION-MATCHED OFFICIAL ALERTS (Part 5)
+          if (locationMatchedAlerts.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.criticalRed.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.criticalRed.withOpacity(0.5)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.campaign, color: AppColors.criticalRed, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'OFFICIAL STATUTORY WARNING (Location-Matched to $userDistrict)',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.criticalRed, letterSpacing: 0.5),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: AppColors.criticalRed, borderRadius: BorderRadius.circular(4)),
+                        child: Text(locationMatchedAlerts.first.agency.code, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(locationMatchedAlerts.first.headline, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 4),
+                  Text(locationMatchedAlerts.first.description, style: const TextStyle(fontSize: 12, color: Colors.white70, height: 1.3)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, size: 13, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Text('Target Region: ${locationMatchedAlerts.first.affectedRegion}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      const Spacer(),
+                      const Text('Recommended Action: Avoid low-lying riverbanks', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.warningAmber)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // AI-GENERATED DISASTER RISK PREDICTION (Clearly Separated from Official Warning - Part 5 & 13)
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.infoBlue.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.infoBlue.withOpacity(0.4)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.psychology, color: AppColors.infoBlue, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'AI DECISION SUPPORT: 24-Hour Predictive Flood Exposure Risk',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.infoBlue),
+                    ),
+                    Spacer(),
+                    Text('Confidence: 86.4% (±4.2%)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Predictive Model (Hydrological Gradient v2.4): Heavy precipitation upstream (142mm/24h) combined with Hathnikund barrage discharge (3.52 lakh cusecs) indicates elevated flood risk in low-lying Yamuna plains over the next 18 hours.',
+                  style: TextStyle(fontSize: 12, color: Colors.white70, height: 1.35),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Notice: ML prediction is advisory. Consequential decisions must rely on official IMD/NDMA declarations.',
+                  style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // Quick Action Cards (4 Grid)
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
             children: [
-              Expanded(
+              SizedBox(
+                width: 260,
                 child: InkWell(
                   onTap: () => ref.read(currentTabProvider.notifier).state = MainNavigationTab.citizenSos,
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: AppColors.criticalRed.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -156,26 +254,57 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.touch_app, color: AppColors.criticalRed, size: 28),
-                        SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('1-Tap Emergency SOS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.criticalRed)),
-                            Text('Broadcast live GPS to rescue teams', style: TextStyle(fontSize: 11, color: Colors.white70)),
-                          ],
+                        Icon(Icons.touch_app, color: AppColors.criticalRed, size: 26),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('1-Tap Emergency SOS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.criticalRed)),
+                              Text('Broadcast live GPS to rescue units', style: TextStyle(fontSize: 10, color: Colors.white70)),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
+              SizedBox(
+                width: 260,
+                child: InkWell(
+                  onTap: () => ref.read(currentTabProvider.notifier).state = MainNavigationTab.citizenSos,
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.verifiedGreen.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.verifiedGreen),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.assignment, color: AppColors.verifiedGreen, size: 26),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Report Damage & Relief', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.verifiedGreen)),
+                              Text('Apply for govt relief and assistance', style: TextStyle(fontSize: 10, color: Colors.white70)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 260,
                 child: InkWell(
                   onTap: () => ref.read(currentTabProvider.notifier).state = MainNavigationTab.statusTracker,
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -183,14 +312,16 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.track_changes, color: AppColors.primaryLight, size: 28),
-                        SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Track Incident Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primaryLight)),
-                            Text('Check rescue status by Reference ID', style: TextStyle(fontSize: 11, color: Colors.white70)),
-                          ],
+                        Icon(Icons.track_changes, color: AppColors.primaryLight, size: 26),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Track Incident / Claim', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryLight)),
+                              Text('Check live verification status', style: TextStyle(fontSize: 10, color: Colors.white70)),
+                            ],
+                          ),
                         ),
                       ],
                     ),

@@ -17,7 +17,7 @@ class IncidentModel {
   final List<String> vulnerableGroups; // Children, Elderly, Pregnant, Disability, Hospital
   final bool hasVoiceNote;
   final String? voiceNoteUrl;
-  final String source; // CITIZEN_WEB, SMS_GATEWAY, WHATSAPP, 112_DISPATCH
+  final String source; // CITIZEN_WEB, ONE_TAP_SOS, DAMAGE_REPORT, SMS_GATEWAY, WHATSAPP, 112_DISPATCH
   final String reporterPhoneMasked;
   final DateTime reportedAt;
   final String? assignedTeam;
@@ -26,6 +26,25 @@ class IncidentModel {
   final double duplicateConfidence;
   final bool duplicateConfirmedByHuman;
   final Map<String, dynamic>? whatIfSimulation;
+
+  // Detailed Disaster Damage & Assistance Fields (Part 6)
+  final List<String> affectedProperties; // Home, Agricultural Land, Livestock, Business, Assets
+  final double? estimatedLossInr;
+  final int? householdMembersCount;
+  final String? urgentMedicalNeeds;
+  final List<String> reliefRequirements; // Food, Water, Shelter, Clothing, Medicine
+  final List<String> evidencePhotos;
+  final String? preferredFollowUp; // SMS, Phone, Field Visit
+
+  // Traceable Incident Verification Fields (Part 7)
+  final String? reviewerId;
+  final String? reviewerName;
+  final String? reviewerRole;
+  final String? reviewerNotes;
+  final String? decisionReason;
+  final List<String> verificationHistory;
+  final String? departmentAssigned;
+  final String? escalatedTo;
 
   IncidentModel({
     required this.id,
@@ -53,6 +72,21 @@ class IncidentModel {
     this.duplicateConfidence = 0.0,
     this.duplicateConfirmedByHuman = false,
     this.whatIfSimulation,
+    this.affectedProperties = const [],
+    this.estimatedLossInr,
+    this.householdMembersCount,
+    this.urgentMedicalNeeds,
+    this.reliefRequirements = const [],
+    this.evidencePhotos = const [],
+    this.preferredFollowUp,
+    this.reviewerId,
+    this.reviewerName,
+    this.reviewerRole,
+    this.reviewerNotes,
+    this.decisionReason,
+    this.verificationHistory = const [],
+    this.departmentAssigned,
+    this.escalatedTo,
   });
 
   IncidentModel copyWith({
@@ -81,6 +115,21 @@ class IncidentModel {
     double? duplicateConfidence,
     bool? duplicateConfirmedByHuman,
     Map<String, dynamic>? whatIfSimulation,
+    List<String>? affectedProperties,
+    double? estimatedLossInr,
+    int? householdMembersCount,
+    String? urgentMedicalNeeds,
+    List<String>? reliefRequirements,
+    List<String>? evidencePhotos,
+    String? preferredFollowUp,
+    String? reviewerId,
+    String? reviewerName,
+    String? reviewerRole,
+    String? reviewerNotes,
+    String? decisionReason,
+    List<String>? verificationHistory,
+    String? departmentAssigned,
+    String? escalatedTo,
   }) {
     return IncidentModel(
       id: id ?? this.id,
@@ -108,6 +157,21 @@ class IncidentModel {
       duplicateConfidence: duplicateConfidence ?? this.duplicateConfidence,
       duplicateConfirmedByHuman: duplicateConfirmedByHuman ?? this.duplicateConfirmedByHuman,
       whatIfSimulation: whatIfSimulation ?? this.whatIfSimulation,
+      affectedProperties: affectedProperties ?? this.affectedProperties,
+      estimatedLossInr: estimatedLossInr ?? this.estimatedLossInr,
+      householdMembersCount: householdMembersCount ?? this.householdMembersCount,
+      urgentMedicalNeeds: urgentMedicalNeeds ?? this.urgentMedicalNeeds,
+      reliefRequirements: reliefRequirements ?? this.reliefRequirements,
+      evidencePhotos: evidencePhotos ?? this.evidencePhotos,
+      preferredFollowUp: preferredFollowUp ?? this.preferredFollowUp,
+      reviewerId: reviewerId ?? this.reviewerId,
+      reviewerName: reviewerName ?? this.reviewerName,
+      reviewerRole: reviewerRole ?? this.reviewerRole,
+      reviewerNotes: reviewerNotes ?? this.reviewerNotes,
+      decisionReason: decisionReason ?? this.decisionReason,
+      verificationHistory: verificationHistory ?? this.verificationHistory,
+      departmentAssigned: departmentAssigned ?? this.departmentAssigned,
+      escalatedTo: escalatedTo ?? this.escalatedTo,
     );
   }
 

@@ -202,6 +202,91 @@ void main() {
       expect(approvedApplicant.verificationStatus, equals('APPROVED'));
       expect(approvedApplicant.isVerified, isTrue);
     });
+
+    test('Disaster Damage & Relief Claim Model test with economic loss and property claims', () {
+      final damageClaim = IncidentModel(
+        id: 'RQ-CASE-2026-1001',
+        title: 'Severe Inundation & Crop Damage at Yamuna Ward 4',
+        descriptionOriginal: 'Ground floor submerged in 1.8m flood water. Lost standing paddy crops and poultry.',
+        descriptionTranslated: 'Ground floor submerged in 1.8m flood water. Lost standing paddy crops and poultry.',
+        category: IncidentCategory.flood,
+        latitude: 28.6139,
+        longitude: 77.2090,
+        address: 'Yamuna Khadar Sector 4, East Delhi',
+        status: IncidentStatus.received,
+        priorityScore: 85.0,
+        priorityExplanation: 'High economic loss and family displacement',
+        source: 'DAMAGE_REPORT',
+        reporterPhoneMasked: '+91 98*** **412',
+        reportedAt: DateTime.now(),
+        affectedProperties: ['Home / Housing', 'Agricultural Land & Standing Crops', 'Livestock & Cattle'],
+        estimatedLossInr: 250000.0,
+        householdMembersCount: 6,
+        urgentMedicalNeeds: 'Insulin for elderly grandfather',
+        reliefRequirements: ['Drinking Water', 'Food / Dry Rations', 'Waterproof Tarpaulins'],
+        preferredFollowUp: 'SMS Notification',
+      );
+
+      expect(damageClaim.source, equals('DAMAGE_REPORT'));
+      expect(damageClaim.estimatedLossInr, equals(250000.0));
+      expect(damageClaim.householdMembersCount, equals(6));
+      expect(damageClaim.affectedProperties.length, equals(3));
+      expect(damageClaim.reliefRequirements.contains('Waterproof Tarpaulins'), isTrue);
+    });
+
+    test('Traceable Incident Verification Lifecycle & Government Decision Decision Reason logging test', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final incident = IncidentModel(
+        id: 'RQ-VERIFY-TEST',
+        title: 'Reported Riverbank Breach',
+        descriptionOriginal: 'Water entering settlement.',
+        descriptionTranslated: 'Water entering settlement.',
+        category: IncidentCategory.flood,
+        latitude: 28.62,
+        longitude: 77.21,
+        address: 'Mayur Vihar Phase 1 lowlands',
+        status: IncidentStatus.received,
+        priorityScore: 70.0,
+        priorityExplanation: 'Initial citizen report',
+        reporterPhoneMasked: '+91 99*** **123',
+        reportedAt: DateTime.now(),
+      );
+
+      container.read(incidentsProvider.notifier).addIncident(incident);
+
+      // Official Magistrate Review
+      container.read(incidentsProvider.notifier).recordVerificationDecision(
+        'RQ-VERIFY-TEST',
+        newStatus: IncidentStatus.verified,
+        reviewerId: 'GOV-IAS-2026',
+        reviewerName: 'Dr. Sunita Rao (IAS)',
+        reviewerRole: 'District Disaster Magistrate',
+        notes: 'Ground drone survey confirmed breach at 28.62 N. Immediate deployment ordered.',
+        reason: 'Physical breach confirmed by SDRF reconnaissance unit.',
+        departmentAssigned: 'NDRF 8th Battalion Flood Unit',
+      );
+
+      final verified = container.read(incidentsProvider).firstWhere((i) => i.id == 'RQ-VERIFY-TEST');
+      expect(verified.status, equals(IncidentStatus.verified));
+      expect(verified.reviewerName, equals('Dr. Sunita Rao (IAS)'));
+      expect(verified.departmentAssigned, equals('NDRF 8th Battalion Flood Unit'));
+      expect(verified.verificationHistory.isNotEmpty, isTrue);
+      expect(verified.verificationHistory.first.contains('SDRF reconnaissance unit'), isTrue);
+
+      // Reopening and Escalation by Citizen
+      container.read(incidentsProvider.notifier).reopenIncident(
+        'RQ-VERIFY-TEST',
+        'Water level rose by 1 foot overnight; need additional rescue boats',
+        'Rohan Verma',
+      );
+
+      final reopened = container.read(incidentsProvider).firstWhere((i) => i.id == 'RQ-VERIFY-TEST');
+      expect(reopened.status, equals(IncidentStatus.underReview));
+      expect(reopened.escalatedTo, equals('District Disaster Magistrate Review Desk'));
+      expect(reopened.verificationHistory.first.contains('Reopened by Rohan Verma'), isTrue);
+    });
   });
 
   group('ResQAI Widget Smoke Tests', () {

@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/models/incident_model.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../../shared/widgets/truth_badge_widget.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../ai/what_if_analysis_tool.dart';
 import '../ai/ai_feedback_widget.dart';
 
@@ -167,34 +168,38 @@ class _ResponderDashboardState extends ConsumerState<ResponderDashboard> {
           ),
           const SizedBox(height: 12),
 
-          // Action Status Toolbar (Feature 4, 11: Field updates)
+          // Action Status Toolbar (Part 7: Shared Incident Verification)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(color: AppColors.darkSurfaceCard, borderRadius: BorderRadius.circular(8)),
             child: Row(
               children: [
-                const Text('Dispatch Status:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 12),
-                DropdownButton<IncidentStatus>(
-                  value: inc.status,
-                  underline: const SizedBox(),
-                  items: IncidentStatus.values.map((st) {
-                    return DropdownMenuItem(value: st, child: Text(st.label, style: const TextStyle(fontSize: 13)));
-                  }).toList(),
-                  onChanged: (newSt) {
-                    if (newSt != null) {
-                      ref.read(incidentsProvider.notifier).updateStatus(inc.id, newSt);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${inc.id} status updated to ${newSt.label}')),
-                      );
-                    }
-                  },
+                const Text('Lifecycle:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: AppColors.primaryLight),
+                  ),
+                  child: Text(inc.status.label, style: const TextStyle(color: AppColors.primaryLight, fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
                 const Spacer(),
                 ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                  icon: const Icon(Icons.group_add, size: 16, color: Colors.white),
-                  label: Text(inc.assignedTeam ?? 'Assign Rescue Team', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.verifiedGreen),
+                  icon: const Icon(Icons.verified, size: 16, color: Colors.white),
+                  label: const Text('Official Verification Decision', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                  onPressed: () => _showVerificationDecisionDialog(context, inc),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryLight,
+                    side: const BorderSide(color: AppColors.primary),
+                  ),
+                  icon: const Icon(Icons.group_add, size: 16),
+                  label: Text(inc.assignedTeam ?? 'Assign Team', style: const TextStyle(fontSize: 12)),
                   onPressed: () {
                     ref.read(incidentsProvider.notifier).updateStatus(inc.id, IncidentStatus.helpAssigned, team: 'NDRF Fast Response Team Alpha-1');
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -205,6 +210,119 @@ class _ResponderDashboardState extends ConsumerState<ResponderDashboard> {
               ],
             ),
           ),
+
+          // Official Reviewer Decision & Notes Banner (Part 7)
+          if (inc.reviewerName != null || inc.decisionReason != null) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.verifiedGreen.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.verifiedGreen),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.gavel, color: AppColors.verifiedGreen, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Official Decision: ${inc.status.label.toUpperCase()} (${inc.reviewerRole ?? "Magistrate"})',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.verifiedGreen),
+                      ),
+                      const Spacer(),
+                      if (inc.departmentAssigned != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(4)),
+                          child: Text(inc.departmentAssigned!, style: const TextStyle(fontSize: 10, color: Colors.white70)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text('Signed by: ${inc.reviewerName ?? "State Inspector"}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  if (inc.decisionReason != null)
+                    Text('Decision Reason: ${inc.decisionReason}', style: const TextStyle(fontSize: 12, color: Colors.white)),
+                  if (inc.reviewerNotes != null && inc.reviewerNotes!.isNotEmpty)
+                    Text('Field Notes: ${inc.reviewerNotes}', style: const TextStyle(fontSize: 11, color: Colors.white70)),
+                ],
+              ),
+            ),
+          ],
+
+          // Damage Particulars Box if present (Part 6)
+          if (inc.affectedProperties.isNotEmpty || inc.estimatedLossInr != null) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.darkSurfaceCard,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.darkBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Citizen Damage & Relief Claim Particulars:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryLight)),
+                      if (inc.estimatedLossInr != null)
+                        Text('Claimed Loss: ₹${inc.estimatedLossInr!.toStringAsFixed(0)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.warningAmber)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  if (inc.affectedProperties.isNotEmpty) ...[
+                    const Text('Damaged Property Categories:', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 6,
+                      children: inc.affectedProperties.map((p) => Chip(label: Text(p, style: const TextStyle(fontSize: 10)), padding: EdgeInsets.zero)).toList(),
+                    ),
+                  ],
+                  if (inc.reliefRequirements.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    const Text('Relief Supplies Requested:', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 6,
+                      children: inc.reliefRequirements.map((r) => Chip(
+                        label: Text(r, style: const TextStyle(fontSize: 10)),
+                        padding: EdgeInsets.zero,
+                        backgroundColor: AppColors.verifiedGreen.withOpacity(0.15),
+                      )).toList(),
+                    ),
+                  ],
+                  if (inc.householdMembersCount != null) ...[
+                    const SizedBox(height: 6),
+                    Text('Affected Family Members: ${inc.householdMembersCount} persons • Preferred Follow-Up: ${inc.preferredFollowUp ?? "SMS"}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ],
+              ),
+            ),
+          ],
+
+          // Traceable Verification History / Audit Log (Part 7 & 15)
+          if (inc.verificationHistory.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(8)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Traceable Lifecycle & Audit Trail:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 6),
+                  ...inc.verificationHistory.map((h) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text('• $h', style: const TextStyle(fontSize: 11, color: Colors.white70)),
+                  )),
+                ],
+              ),
+            ),
+          ],
 
           // Duplicate Detection Human Confirmation Modal / Banner (Feature 15)
           if (inc.isPossibleDuplicate && !inc.duplicateConfirmedByHuman) ...[
@@ -320,6 +438,131 @@ class _ResponderDashboardState extends ConsumerState<ResponderDashboard> {
           ),
         Expanded(child: _buildIncidentList(list, selected)),
       ],
+    );
+  }
+
+  void _showVerificationDecisionDialog(BuildContext context, IncidentModel inc) {
+    IncidentStatus selectedStatus = inc.status;
+    String selectedDept = inc.departmentAssigned ?? 'NDRF 8th Battalion Flood Unit';
+    final reasonController = TextEditingController(text: inc.decisionReason ?? '');
+    final notesController = TextEditingController(text: inc.reviewerNotes ?? '');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.darkSurface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: AppColors.primary),
+            ),
+            title: Row(
+              children: [
+                const Icon(Icons.verified, color: AppColors.verifiedGreen, size: 22),
+                const SizedBox(width: 8),
+                Text('Verification Decision: ${inc.id}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Lifecycle Verification Status *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<IncidentStatus>(
+                    value: selectedStatus,
+                    decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                    items: IncidentStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(s.label, style: const TextStyle(fontSize: 12)))).toList(),
+                    onChanged: (v) {
+                      if (v != null) setDialogState(() => selectedStatus = v);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  const Text('Assign Response Department *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    value: selectedDept,
+                    decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                    items: const [
+                      DropdownMenuItem(value: 'NDRF 8th Battalion Flood Unit', child: Text('NDRF 8th Battalion Flood Unit', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'Delhi Civil Defense Quick Response', child: Text('Delhi Civil Defense Quick Response', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'State Health Emergency Trauma Corps', child: Text('State Health Emergency Trauma Corps', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'DDMA District Relief Logistics Cell', child: Text('DDMA District Relief Logistics Cell', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'PWD Infrastructure & Clearance Unit', child: Text('PWD Infrastructure & Clearance Unit', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'Fire Services Special Rescue Wing', child: Text('Fire Services Special Rescue Wing', style: TextStyle(fontSize: 12))),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) setDialogState(() => selectedDept = v);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  const Text('Official Decision Reason (Mandatory for Audit) *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: reasonController,
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. Ground drone survey confirmed water depth > 2m; immediate boat required.',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  const Text('Field Inspection Directives & Action Notes:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: notesController,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      hintText: 'Directives for field teams, staging areas, or relief deliveries.',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.verifiedGreen, foregroundColor: Colors.white),
+                icon: const Icon(Icons.check, size: 16),
+                label: const Text('Record & Sign Decision', style: TextStyle(fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  final reason = reasonController.text.trim();
+                  if (reason.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please specify an official reason for this verification decision.')),
+                    );
+                    return;
+                  }
+                  final currentUser = ref.read(authProvider);
+                  ref.read(incidentsProvider.notifier).recordVerificationDecision(
+                        inc.id,
+                        newStatus: selectedStatus,
+                        reviewerId: currentUser?.citizenId ?? 'GOV-IAS-2026',
+                        reviewerName: currentUser?.name ?? 'Dr. Sunita Rao (IAS)',
+                        reviewerRole: currentUser?.role.title ?? 'District Magistrate',
+                        notes: notesController.text.trim(),
+                        reason: reason,
+                        departmentAssigned: selectedDept,
+                      );
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: AppColors.verifiedGreen,
+                      content: Text('✓ Incident ${inc.id} recorded as ${selectedStatus.label} by ${currentUser?.name ?? "Magistrate"}.'),
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
