@@ -668,9 +668,9 @@ class _AppShellState extends ConsumerState<AppShell> {
       case UserRole.citizen:
         return [
           _NavItem('Home', Icons.home, AppRoutes.citizenDashboard, ''),
-          _NavItem('Map', Icons.map, AppRoutes.citizenMap, ''),
-          _NavItem('SOS', Icons.emergency, AppRoutes.citizenSos, ''),
-          _NavItem('Reports', Icons.assignment, AppRoutes.citizenReports, ''),
+          _NavItem('Map', Icons.map_outlined, AppRoutes.citizenMap, ''),
+          _NavItem('Help', Icons.add_box_rounded, AppRoutes.citizenSos, ''),
+          _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
         ];
       case UserRole.volunteer:
         return [

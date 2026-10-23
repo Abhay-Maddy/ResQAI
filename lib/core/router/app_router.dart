@@ -6,6 +6,8 @@ import '../../features/citizen/citizen_sos_screen.dart';
 import '../../features/citizen/citizen_reports_screen.dart';
 import '../../features/citizen/citizen_new_report_screen.dart';
 import '../../features/citizen/citizen_report_detail_screen.dart';
+import '../../features/citizen/citizen_shelters_screen.dart';
+import '../../features/citizen/citizen_alerts_screen.dart';
 import '../../features/map/disaster_map_screen.dart';
 import '../../features/transparency/transparency_overview_screen.dart';
 import '../../features/transparency/transparency_organizations_screen.dart';
@@ -196,7 +198,11 @@ class AppRouter {
         break;
       case AppRoutes.citizenAlerts:
       case AppRoutes.citizenNotifications:
+        page = const CitizenAlertsScreen();
+        break;
       case AppRoutes.citizenShelters:
+        page = const CitizenSheltersScreen();
+        break;
       case AppRoutes.citizenProfile:
       case AppRoutes.citizenEmergencyContacts:
         page = const CitizenDashboardScreen();
