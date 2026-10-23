@@ -7,6 +7,7 @@ import 'core/utils/i18n.dart';
 import 'data/repositories/incident_repository.dart';
 import 'data/repositories/auth_repository.dart';
 import 'features/auth/login_modal.dart';
+import 'features/auth/admin_verification_modal.dart';
 
 import 'features/home/home_screen.dart';
 import 'features/dashboard/role_based_dashboard_screen.dart';
@@ -76,8 +77,10 @@ class MainLayoutScreen extends ConsumerWidget {
     final currentLang = ref.watch(languageProvider);
     final isDark = ref.watch(isDarkThemeProvider);
     final currentUser = ref.watch(authProvider);
+    final scaffoldKey = GlobalKey<ScaffoldState>();
 
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         title: InkWell(
           borderRadius: BorderRadius.circular(8),
@@ -98,6 +101,26 @@ class MainLayoutScreen extends ConsumerWidget {
           ),
         ),
         actions: [
+          // DDMA Admin Authorization Queue Shortcut (Part 4-D)
+          if (currentUser?.role == UserRole.admin) ...[
+            Builder(
+              builder: (context) {
+                final pendingCount = ref.watch(pendingApprovalsProvider).where((u) => u.verificationStatus == 'PENDING').length;
+                return IconButton(
+                  icon: Badge(
+                    isLabelVisible: pendingCount > 0,
+                    label: Text('$pendingCount', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10)),
+                    backgroundColor: AppColors.criticalRed,
+                    child: const Icon(Icons.admin_panel_settings, color: Colors.purpleAccent, size: 20),
+                  ),
+                  tooltip: 'DDMA Authorization Queue ($pendingCount pending)',
+                  onPressed: () => AdminVerificationModal.show(context),
+                );
+              },
+            ),
+            const SizedBox(width: 4),
+          ],
+
           // Login / Profile Button for Every User
           if (currentUser == null)
             ElevatedButton.icon(
@@ -119,17 +142,21 @@ class MainLayoutScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: AppColors.darkSurfaceCard,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.5)),
+                  border: Border.all(
+                    color: currentUser.verificationStatus == 'APPROVED' 
+                        ? AppColors.primary.withOpacity(0.5)
+                        : AppColors.warningAmber,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CircleAvatar(
                       radius: 10,
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: currentUser.verificationStatus == 'APPROVED' ? AppColors.primary : AppColors.warningAmber,
                       child: Text(
                         currentUser.name.isNotEmpty ? currentUser.name[0].toUpperCase() : 'U',
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: currentUser.verificationStatus == 'APPROVED' ? Colors.white : Colors.black),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -138,7 +165,11 @@ class MainLayoutScreen extends ConsumerWidget {
                       style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.arrow_drop_down, size: 16, color: Colors.grey),
+                    Icon(
+                      currentUser.verificationStatus == 'APPROVED' ? Icons.arrow_drop_down : Icons.hourglass_top,
+                      size: 16,
+                      color: currentUser.verificationStatus == 'APPROVED' ? Colors.grey : AppColors.warningAmber,
+                    ),
                   ],
                 ),
               ),
@@ -200,31 +231,145 @@ class MainLayoutScreen extends ConsumerWidget {
         ],
       ),
       drawer: _buildAppDrawer(context, ref, currentTab),
-      body: _buildCurrentView(currentTab),
-      bottomNavigationBar: Container(
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        color: AppColors.darkSurfaceCard,
-        child: Row(
-          children: [
-            const Icon(Icons.wifi, size: 14, color: AppColors.verifiedGreen),
-            const SizedBox(width: 6),
-            const Expanded(
-              child: Text(
-                'Connected to Command Network',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11, color: Colors.grey),
+      body: Column(
+        children: [
+          // Persistent Pending Verification Alert Banner (Part 4-D)
+          if (currentUser?.verificationStatus == 'PENDING')
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: AppColors.warningAmber.withOpacity(0.92),
+              child: Row(
+                children: [
+                  const Icon(Icons.hourglass_top, color: Colors.black, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Account Verification Pending: Your credentials as ${currentUser!.role.title} (${currentUser.organization ?? currentUser.badgeOrJurisdiction}) are awaiting DDMA review. Read-only preview enabled.',
+                      style: const TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => LoginModal.show(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text('Review Slip', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 8),
-            Text(
-              '${activeRole.title} • 25/25 Features',
-              style: const TextStyle(fontSize: 11, color: AppColors.primaryLight, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
+          Expanded(child: _buildCurrentView(currentTab)),
+        ],
+      ),
+      bottomNavigationBar: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = MediaQuery.of(context).size.width < 768;
+          if (!isMobile) {
+            return Container(
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              color: AppColors.darkSurfaceCard,
+              child: Row(
+                children: [
+                  const Icon(Icons.wifi, size: 14, color: AppColors.verifiedGreen),
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      'Connected to Secure Emergency Command Network',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${activeRole.title} Console • All Systems Operational',
+                    style: const TextStyle(fontSize: 11, color: AppColors.primaryLight, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Mobile App-Like Bottom Navigation Bar
+          return NavigationBar(
+            height: 64,
+            backgroundColor: AppColors.darkSurfaceCard,
+            indicatorColor: AppColors.primary.withOpacity(0.3),
+            selectedIndex: _getMobileNavIndex(currentTab),
+            onDestinationSelected: (index) {
+              _handleMobileNavSelection(context, ref, scaffoldKey, index);
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home, color: AppColors.primaryLight),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.emergency_outlined, color: AppColors.criticalRed),
+                selectedIcon: Icon(Icons.emergency, color: AppColors.criticalRed),
+                label: 'SOS Report',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.track_changes_outlined),
+                selectedIcon: Icon(Icons.track_changes, color: AppColors.primaryLight),
+                label: 'Track',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.dashboard_customize_outlined),
+                selectedIcon: Icon(Icons.dashboard_customize, color: AppColors.primaryLight),
+                label: 'Role Hub',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.menu),
+                selectedIcon: Icon(Icons.menu_open, color: AppColors.primaryLight),
+                label: 'More',
+              ),
+            ],
+          );
+        },
       ),
     );
+  }
+
+  int _getMobileNavIndex(MainNavigationTab tab) {
+    switch (tab) {
+      case MainNavigationTab.home:
+        return 0;
+      case MainNavigationTab.citizenSos:
+        return 1;
+      case MainNavigationTab.statusTracker:
+        return 2;
+      case MainNavigationTab.roleDashboard:
+        return 3;
+      default:
+        return 4; // 'More'
+    }
+  }
+
+  void _handleMobileNavSelection(BuildContext context, WidgetRef ref, GlobalKey<ScaffoldState> scaffoldKey, int index) {
+    switch (index) {
+      case 0:
+        ref.read(currentTabProvider.notifier).state = MainNavigationTab.home;
+        break;
+      case 1:
+        ref.read(currentTabProvider.notifier).state = MainNavigationTab.citizenSos;
+        break;
+      case 2:
+        ref.read(currentTabProvider.notifier).state = MainNavigationTab.statusTracker;
+        break;
+      case 3:
+        ref.read(currentTabProvider.notifier).state = MainNavigationTab.roleDashboard;
+        break;
+      case 4:
+        scaffoldKey.currentState?.openDrawer();
+        break;
+    }
   }
 
   Widget _buildAppDrawer(BuildContext context, WidgetRef ref, MainNavigationTab currentTab) {

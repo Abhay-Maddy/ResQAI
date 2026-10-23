@@ -7,6 +7,7 @@ import '../../data/repositories/incident_repository.dart';
 import '../../features/auth/login_modal.dart';
 import '../../features/responder/responder_dashboard.dart';
 import '../../features/resources/shelter_board_screen.dart';
+import '../../features/resources/volunteer_matcher_screen.dart';
 import '../../features/settings/system_health_screen.dart';
 import '../../app.dart';
 
@@ -27,13 +28,19 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
     switch (role) {
       case UserRole.citizen:
         return _buildCitizenDashboard(context, ref, currentUser);
-      case UserRole.fieldResponder:
-        return _buildResponderDashboard(context, ref, currentUser);
-      case UserRole.incidentCommander:
-        return const ResponderDashboard(); // Full triage, What-If and duplicates
+      case UserRole.volunteer:
+        return const VolunteerMatcherScreen();
       case UserRole.ngoLead:
       case UserRole.reliefStaff:
         return const ShelterBoardScreen(); // Shelter capacity and supply matrix
+      case UserRole.govtOfficial:
+      case UserRole.incidentCommander:
+        return const ResponderDashboard(); // Full district command, triage, What-If and duplicates
+      case UserRole.fieldResponder:
+      case UserRole.rescueTeam:
+        return _buildResponderDashboard(context, ref, currentUser);
+      case UserRole.doctor:
+        return const VolunteerMatcherScreen(); // Medical triage and assignments
       case UserRole.admin:
       case UserRole.analyst:
         return const SystemHealthScreen(); // Admin governance & audit
@@ -434,17 +441,32 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
       case IncidentStatus.received:
         color = Colors.blue;
         break;
+      case IncidentStatus.pendingReview:
+        color = Colors.indigoAccent;
+        break;
       case IncidentStatus.underReview:
         color = Colors.orange;
         break;
       case IncidentStatus.verified:
         color = AppColors.verifiedGreen;
         break;
+      case IncidentStatus.unverified:
+        color = Colors.grey;
+        break;
+      case IncidentStatus.duplicate:
+        color = Colors.deepPurple;
+        break;
       case IncidentStatus.helpAssigned:
         color = AppColors.criticalRed;
         break;
+      case IncidentStatus.inProgress:
+        color = Colors.teal;
+        break;
       case IncidentStatus.resolved:
-        color = Colors.grey;
+        color = Colors.green;
+        break;
+      case IncidentStatus.closed:
+        color = Colors.blueGrey;
         break;
     }
 

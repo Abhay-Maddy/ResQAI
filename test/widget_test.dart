@@ -7,6 +7,7 @@ import 'package:resqai/core/utils/i18n.dart';
 import 'package:resqai/shared/models/incident_model.dart';
 import 'package:resqai/shared/models/user_model.dart';
 import 'package:resqai/data/repositories/incident_repository.dart';
+import 'package:resqai/data/repositories/auth_repository.dart';
 
 void main() {
   group('ResQAI Unit & Logic Tests', () {
@@ -124,6 +125,82 @@ void main() {
       expect(citizen.emergencyContactPhone, equals('+91 98111 22334'));
       expect(citizen.bloodGroup, equals('O+'));
       expect(citizen.citizenId.startsWith('RQ-CIT-'), isTrue);
+    });
+
+    test('UserModel JSON serialization & persistent login roundtrip test', () {
+      final doctor = UserModel(
+        id: 'USR-DOC-TEST',
+        citizenId: 'RQ-MED-2026-9901',
+        name: 'Dr. Test Physician',
+        email: 'doc.test@aiims.gov.in',
+        role: UserRole.doctor,
+        badgeOrJurisdiction: 'AIIMS Emergency',
+        phoneMasked: '+91 98*** **888',
+        emergencyContactName: 'Hospital Supt',
+        emergencyContactPhone: '+91 11 2616 5000',
+        bloodGroup: 'A+',
+        isVerified: false,
+        verificationStatus: 'PENDING',
+        organization: 'AIIMS Trauma Relief',
+        regNumber: 'MCI-88992',
+        serviceArea: 'Delhi East',
+        skills: ['Triage', 'Emergency Medicine'],
+        preferredLanguage: 'hi',
+        notificationPreferences: 'CRITICAL_ONLY',
+        specialAssistance: 'NONE',
+        stateName: 'Delhi',
+        district: 'East Delhi',
+        isLocationPermissionGranted: true,
+        loggedInAt: DateTime(2026, 10, 23, 12, 0),
+      );
+
+      final json = doctor.toJson();
+      final restored = UserModel.fromJson(json);
+
+      expect(restored.id, equals(doctor.id));
+      expect(restored.name, equals(doctor.name));
+      expect(restored.role, equals(UserRole.doctor));
+      expect(restored.verificationStatus, equals('PENDING'));
+      expect(restored.isVerified, isFalse);
+      expect(restored.regNumber, equals('MCI-88992'));
+      expect(restored.preferredLanguage, equals('hi'));
+      expect(restored.notificationPreferences, equals('CRITICAL_ONLY'));
+    });
+
+    test('PendingApprovalsNotifier privileged role authorization workflow test', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final applicant = UserModel(
+        id: 'USR-APPLICANT-01',
+        citizenId: 'RQ-NGO-2026-TEST',
+        name: 'Relief Foundation NGO',
+        email: 'ngo@relief.org',
+        role: UserRole.ngoLead,
+        badgeOrJurisdiction: 'Yamuna Flood Basin',
+        phoneMasked: '+91 99*** **777',
+        isVerified: false,
+        verificationStatus: 'PENDING',
+        organization: 'Relief Foundation',
+        regNumber: 'DARPAN-DL-2024-999',
+        loggedInAt: DateTime.now(),
+      );
+
+      // Add to pending queue
+      container.read(pendingApprovalsProvider.notifier).addPending(applicant);
+      final queue = container.read(pendingApprovalsProvider);
+      expect(queue.any((u) => u.id == 'USR-APPLICANT-01'), isTrue);
+
+      // Verify pending status
+      final queuedApplicant = queue.firstWhere((u) => u.id == 'USR-APPLICANT-01');
+      expect(queuedApplicant.verificationStatus, equals('PENDING'));
+      expect(queuedApplicant.isVerified, isFalse);
+
+      // Administrator authorizes the account
+      container.read(pendingApprovalsProvider.notifier).approveUser('USR-APPLICANT-01');
+      final approvedApplicant = container.read(pendingApprovalsProvider).firstWhere((u) => u.id == 'USR-APPLICANT-01');
+      expect(approvedApplicant.verificationStatus, equals('APPROVED'));
+      expect(approvedApplicant.isVerified, isTrue);
     });
   });
 

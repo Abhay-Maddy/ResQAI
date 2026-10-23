@@ -19,12 +19,16 @@ class AppConstants {
 }
 
 enum UserRole {
-  citizen('Citizen', 'Public reporter & aid tracker'),
-  fieldResponder('Field Responder', 'Rescue team on the ground'),
-  ngoLead('NGO Coordinator', 'Relief material & camp manager'),
+  citizen('Citizen', 'Public reporter & assistance seeker'),
+  volunteer('Volunteer', 'Community helper & field assistance'),
+  ngoLead('NGO / Relief Org', 'Relief coordinator & campaign manager'),
+  govtOfficial('Govt Official', 'District administration & magistrate'),
+  doctor('Doctor / Medical', 'Medical volunteer & healthcare referral'),
+  rescueTeam('Rescue Team', 'NDRF / SDRF / Emergency responder'),
+  incidentCommander('Incident Commander', 'District disaster command authority'),
+  fieldResponder('Field Responder', 'Rescue unit operator on the ground'),
   reliefStaff('Relief Staff', 'Shelter & supplies allocator'),
   analyst('Data Analyst', 'Early warning & AI monitoring'),
-  incidentCommander('Incident Commander', 'District disaster manager'),
   admin('System Admin', 'Super-user with full governance & audit rights');
 
   final String title;
@@ -33,11 +37,16 @@ enum UserRole {
 }
 
 enum IncidentStatus {
-  received('Received', 'Report logged into triage queue'),
-  underReview('Under Review', 'AI & human verification in progress'),
-  verified('Verified', 'Confirmed genuine by responder'),
-  helpAssigned('Help Assigned', 'Rescue team or relief unit en route'),
-  resolved('Resolved', 'Assistance delivered & case closed');
+  received('Submitted', 'Report logged into intake queue'),
+  pendingReview('Pending Review', 'Awaiting triage and assignment'),
+  underReview('Under Verification', 'Field or officer verification in progress'),
+  verified('Verified', 'Confirmed genuine emergency'),
+  unverified('Unverified', 'Insufficient evidence or unsubstantiated'),
+  duplicate('Duplicate', 'Merged with existing primary incident'),
+  helpAssigned('Response Assigned', 'Rescue team or relief unit dispatched'),
+  inProgress('In Progress', 'Active operations on scene'),
+  resolved('Resolved', 'Assistance delivered & life stabilized'),
+  closed('Closed', 'Incident closed with post-action report');
 
   final String label;
   final String description;
@@ -57,3 +66,4 @@ enum IncidentCategory {
   final double baseWeight;
   const IncidentCategory(this.label, this.baseWeight);
 }
+
