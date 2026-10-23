@@ -5,7 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../../features/auth/login_modal.dart';
-import '../../features/resources/shelter_board_screen.dart';
+import '../../features/ngo/ngo_management_screen.dart';
 import '../../features/settings/system_health_screen.dart';
 import '../../features/volunteer/volunteer_portal_screen.dart';
 import '../../features/government/government_operations_screen.dart';
@@ -34,7 +34,7 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
         return const VolunteerPortalScreen();
       case UserRole.ngoLead:
       case UserRole.reliefStaff:
-        return const ShelterBoardScreen(); // Shelter capacity and supply matrix (upgraded in Phase 5)
+        return const NgoManagementScreen();
       case UserRole.govtOfficial:
       case UserRole.incidentCommander:
         return const GovernmentOperationsScreen();
@@ -322,6 +322,35 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
                             children: [
                               Text('Track Incident / Claim', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryLight)),
                               Text('Check live verification status', style: TextStyle(fontSize: 10, color: Colors.white70)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 260,
+                child: InkWell(
+                  onTap: () => ref.read(currentTabProvider.notifier).state = MainNavigationTab.publicTransparency,
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.infoBlue.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.infoBlue),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.account_balance, color: AppColors.infoBlue, size: 26),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Public Transparency', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.infoBlue)),
+                              Text('Audit NGO & SDRF relief spend', style: TextStyle(fontSize: 10, color: Colors.white70)),
                             ],
                           ),
                         ),

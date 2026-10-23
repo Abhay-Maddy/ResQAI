@@ -24,6 +24,7 @@ import 'features/ai/silent_zone_detector.dart';
 import 'features/preparedness/preparedness_screen.dart';
 import 'features/analytics/situation_summary_generator.dart';
 import 'features/settings/system_health_screen.dart';
+import 'features/transparency/public_transparency_portal_screen.dart';
 
 enum MainNavigationTab {
   home('Home Portal', Icons.home, 'Overview'),
@@ -40,6 +41,7 @@ enum MainNavigationTab {
   volunteerMatching('Volunteer Match', Icons.handshake, 'Volunteers'),
   preparedness('Preparedness Mode', Icons.shield, 'Checklists'),
   sitrepAnalytics('SitRep & Review', Icons.analytics, 'Analytics'),
+  publicTransparency('Public Transparency', Icons.account_balance, 'Public'),
   systemHealth('System Health', Icons.monitor_heart, 'Admin');
 
   final String label;
@@ -524,6 +526,8 @@ class MainLayoutScreen extends ConsumerWidget {
         return const PreparednessScreen();
       case MainNavigationTab.sitrepAnalytics:
         return const SituationSummaryGenerator();
+      case MainNavigationTab.publicTransparency:
+        return const PublicTransparencyPortalScreen();
       case MainNavigationTab.systemHealth:
         return const SystemHealthScreen();
     }

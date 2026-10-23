@@ -46,6 +46,11 @@ class IncidentModel {
   final String? departmentAssigned;
   final String? escalatedTo;
 
+  // Government Relief Sanction Fields (Part 10 & 11)
+  final bool? governmentAssistanceApproved;
+  final double? sanctionedAmountInr;
+  final String? reliefAssistanceCategory;
+
   IncidentModel({
     required this.id,
     required this.title,
@@ -87,6 +92,9 @@ class IncidentModel {
     this.verificationHistory = const [],
     this.departmentAssigned,
     this.escalatedTo,
+    this.governmentAssistanceApproved,
+    this.sanctionedAmountInr,
+    this.reliefAssistanceCategory,
   });
 
   IncidentModel copyWith({
@@ -130,6 +138,9 @@ class IncidentModel {
     List<String>? verificationHistory,
     String? departmentAssigned,
     String? escalatedTo,
+    bool? governmentAssistanceApproved,
+    double? sanctionedAmountInr,
+    String? reliefAssistanceCategory,
   }) {
     return IncidentModel(
       id: id ?? this.id,
@@ -172,6 +183,9 @@ class IncidentModel {
       verificationHistory: verificationHistory ?? this.verificationHistory,
       departmentAssigned: departmentAssigned ?? this.departmentAssigned,
       escalatedTo: escalatedTo ?? this.escalatedTo,
+      governmentAssistanceApproved: governmentAssistanceApproved ?? this.governmentAssistanceApproved,
+      sanctionedAmountInr: sanctionedAmountInr ?? this.sanctionedAmountInr,
+      reliefAssistanceCategory: reliefAssistanceCategory ?? this.reliefAssistanceCategory,
     );
   }
 

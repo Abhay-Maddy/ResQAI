@@ -11,6 +11,8 @@ import 'package:resqai/data/repositories/auth_repository.dart';
 import 'package:resqai/features/volunteer/volunteer_portal_screen.dart';
 import 'package:resqai/features/medical/medical_doctor_portal_screen.dart';
 import 'package:resqai/features/rescue/rescue_team_operations_screen.dart';
+import 'package:resqai/features/ngo/ngo_management_screen.dart';
+import 'package:resqai/features/transparency/public_transparency_portal_screen.dart';
 
 void main() {
   group('ResQAI Unit & Logic Tests', () {
@@ -378,6 +380,88 @@ void main() {
       expect(updated.stage, equals(RescueMissionStage.resolved));
       expect(updated.victimsEvacuated, equals(5));
       expect(updated.evacuationShelter, equals('Kashmere Gate Safe Camp'));
+    });
+
+    test('Phase 5 NGO Campaign creation, expenditure logging with invoice audit and beneficiary distribution', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final initialCampaigns = container.read(ngoCampaignsProvider);
+      expect(initialCampaigns.isNotEmpty, isTrue);
+
+      final initialCount = initialCampaigns.length;
+      final newCampaign = NgoCampaign(
+        id: 'CMP-TEST-99',
+        title: 'Emergency Winter Blankets & Tents Drive',
+        objective: 'Distribute 1,000 thermal blankets to displaced families along Yamuna bank.',
+        targetSector: 'East Delhi Sector 4',
+        targetAmount: 500000.0,
+        raisedAmount: 300000.0,
+        committedAmount: 50000.0,
+        spentAmount: 100000.0,
+        targetBeneficiaries: 1000,
+        verifiedBeneficiariesReached: 200,
+        inKindNeeds: ['Woolen Blankets', 'Ground Tarps'],
+      );
+
+      // Add Campaign
+      container.read(ngoCampaignsProvider.notifier).addCampaign(newCampaign);
+      var campaigns = container.read(ngoCampaignsProvider);
+      expect(campaigns.length, equals(initialCount + 1));
+      expect(campaigns.first.id, equals('CMP-TEST-99'));
+
+      // Record Audited Expense
+      container.read(ngoCampaignsProvider.notifier).recordExpense('CMP-TEST-99', 40000.0, 'Thermal Blankets');
+      var updated = container.read(ngoCampaignsProvider).firstWhere((c) => c.id == 'CMP-TEST-99');
+      expect(updated.spentAmount, equals(140000.0));
+
+      // Record Additional Beneficiary Distribution
+      container.read(ngoCampaignsProvider.notifier).recordDistribution('CMP-TEST-99', 150);
+      updated = container.read(ngoCampaignsProvider).firstWhere((c) => c.id == 'CMP-TEST-99');
+      expect(updated.verifiedBeneficiariesReached, equals(350));
+
+      // Check Financial Ledger Transaction Addition
+      final initialTxCount = container.read(ngoTransactionsProvider).length;
+      final newTx = NgoFinancialTransaction(
+        id: 'TX-TEST-01',
+        campaignId: 'CMP-TEST-99',
+        transactionRef: 'NEFT-DR-9921',
+        amount: 40000.0,
+        transactionType: 'EXPENSE_SPENT',
+        category: 'Thermal Blankets',
+        entityName: 'Delhi Woolen Mills Cooperative',
+        invoiceNumber: 'INV-WOOL-001',
+        timestamp: DateTime.now(),
+        approvalStatus: 'AUDIT_VERIFIED',
+        invoiceDocumentProof: 'receipt_invoice_wool_signed.pdf',
+      );
+
+      container.read(ngoTransactionsProvider.notifier).addTransaction(newTx);
+      expect(container.read(ngoTransactionsProvider).length, equals(initialTxCount + 1));
+    });
+
+    test('Phase 5 Smart Resource Allocation and Anti-Duplication Locking Matrix', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final allocations = container.read(areaAllocationsProvider);
+      expect(allocations.isNotEmpty, isTrue);
+
+      final ward4 = allocations.firstWhere((a) => a.areaName.contains('Ward 4'));
+      expect(ward4.foodCoveragePercent, greaterThan(100.0)); // Food surplus flagged
+      expect(ward4.waterCoveragePercent, lessThan(50.0));    // Water deficit flagged
+      expect(ward4.primarySurplus, contains('Food'));
+      expect(ward4.primaryShortage, contains('Water'));
+      expect(ward4.isAllocationLocked, isTrue);
+
+      // Toggle lock to prevent double dispatch
+      container.read(areaAllocationsProvider.notifier).toggleLock(ward4.areaName);
+      final unlocked = container.read(areaAllocationsProvider).firstWhere((a) => a.areaName == ward4.areaName);
+      expect(unlocked.isAllocationLocked, isFalse);
+
+      container.read(areaAllocationsProvider.notifier).toggleLock(ward4.areaName);
+      final relocked = container.read(areaAllocationsProvider).firstWhere((a) => a.areaName == ward4.areaName);
+      expect(relocked.isAllocationLocked, isTrue);
     });
   });
 
