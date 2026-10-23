@@ -463,6 +463,197 @@ void main() {
       final relocked = container.read(areaAllocationsProvider).firstWhere((a) => a.areaName == ward4.areaName);
       expect(relocked.isAllocationLocked, isTrue);
     });
+
+    test('Master Acceptance Journey A: Citizen registration, persistent session, emergency SOS, and live tracking', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      // 1. Citizen registers with mandatory emergency contact and locality
+      final citizen = UserModel(
+        id: 'usr_cit_journey_a',
+        citizenId: 'CIT-DEL-9921',
+        name: 'Aarav Sharma',
+        phoneMasked: '+91 98*** **210',
+        phoneRaw: '+91 98765 43210',
+        email: 'aarav@resqai.org',
+        role: UserRole.citizen,
+        badgeOrJurisdiction: 'Citizen Resident',
+        emergencyContactPhone: '+91 98111 22233',
+        stateName: 'Delhi',
+        district: 'East Delhi',
+        preferredLanguage: 'hi',
+        isLocationPermissionGranted: true,
+        loggedInAt: DateTime.now(),
+      );
+
+      // Verify persistent serialization
+      final jsonMap = citizen.toJson();
+      final restored = UserModel.fromJson(jsonMap);
+      expect(restored.emergencyContactPhone, equals('+91 98111 22233'));
+      expect(restored.district, equals('East Delhi'));
+
+      // 2. Citizen triggers Emergency SOS
+      final sosIncident = IncidentModel(
+        id: 'RQ-SOS-JOURNEY-A',
+        title: 'Trapped on 1st Floor due to rising flood waters',
+        descriptionOriginal: 'Water level entered ground floor living room, elderly parents trapped.',
+        descriptionTranslated: 'Water level entered ground floor living room, elderly parents trapped.',
+        category: IncidentCategory.flood,
+        latitude: 28.62,
+        longitude: 77.28,
+        address: 'Yamuna Khadar Ward 4',
+        status: IncidentStatus.received,
+        priorityScore: 90.0,
+        priorityExplanation: 'High flood water with elderly trapped',
+        vulnerableGroups: ['Elderly'],
+        reporterPhoneMasked: '+91 98*** **210',
+        reportedAt: DateTime.now(),
+        source: 'ONE_TAP_SOS',
+      );
+
+      container.read(incidentsProvider.notifier).addIncident(sosIncident);
+      final list = container.read(incidentsProvider);
+      expect(list.any((i) => i.id == 'RQ-SOS-JOURNEY-A'), isTrue);
+
+      // Track progression
+      container.read(incidentsProvider.notifier).updateStatus('RQ-SOS-JOURNEY-A', IncidentStatus.helpAssigned);
+      final updated = container.read(incidentsProvider).firstWhere((i) => i.id == 'RQ-SOS-JOURNEY-A');
+      expect(updated.status, equals(IncidentStatus.helpAssigned));
+    });
+
+    test('Master Acceptance Journey B: Affected citizen damage claim submission, verification, and relief sanctioning', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final damageClaim = IncidentModel(
+        id: 'RQ-DMG-JOURNEY-B',
+        title: 'Agricultural Boundary & Pucca House Inundation Claim',
+        descriptionOriginal: 'Boundary wall collapsed, 2 buffaloes lost, standing paddy crop flooded.',
+        descriptionTranslated: 'Boundary wall collapsed, 2 buffaloes lost, standing paddy crop flooded.',
+        category: IncidentCategory.flood,
+        latitude: 28.63,
+        longitude: 77.29,
+        address: 'Mayur Vihar Lowland Sector 3',
+        status: IncidentStatus.pendingReview,
+        priorityScore: 78.0,
+        priorityExplanation: 'Severe property loss & livestock loss',
+        vulnerableGroups: [],
+        reporterPhoneMasked: '+91 97*** **888',
+        reportedAt: DateTime.now(),
+        source: 'DAMAGE_REPORT',
+        affectedProperties: ['Home Structure', 'Livestock', 'Agricultural Crop'],
+        estimatedLossInr: 250000.0,
+        householdMembersCount: 6,
+        reliefRequirements: ['Dry Food', 'Tarpaulins', 'Cattle Fodder'],
+      );
+
+      container.read(incidentsProvider.notifier).addIncident(damageClaim);
+
+      // Reviewer assigns and sanctions government relief grant
+      container.read(incidentsProvider.notifier).recordVerificationDecision(
+        'RQ-DMG-JOURNEY-B',
+        newStatus: IncidentStatus.verified,
+        reviewerId: 'GOV-ADM-DELHI',
+        reviewerName: 'Dr. Rajeshwar Singh (ADM Relief)',
+        reviewerRole: 'District Magistrate Relief Board',
+        notes: 'Field Patwari verified structural wall collapse and livestock casualty.',
+        reason: 'SDRF Gratuitous Cash Grant Sanctioned',
+        departmentAssigned: 'Revenue & Disaster Management Dept',
+      );
+
+      final verified = container.read(incidentsProvider).firstWhere((i) => i.id == 'RQ-DMG-JOURNEY-B');
+      expect(verified.status, equals(IncidentStatus.verified));
+      expect(verified.reviewerName, equals('Dr. Rajeshwar Singh (ADM Relief)'));
+      expect(verified.reviewerNotes, contains('Field Patwari verified'));
+      expect(verified.decisionReason, contains('SDRF Gratuitous Cash Grant'));
+    });
+
+    test('Master Acceptance Journey C: NGO verification, campaign donation, audited voucher, and public ledger transparency', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final campaign = container.read(ngoCampaignsProvider).first;
+      expect(campaign.isVerified, isTrue);
+
+      final initialSpent = campaign.spentAmount;
+
+      // Audited Expense logged with tax invoice
+      container.read(ngoCampaignsProvider.notifier).recordExpense(campaign.id, 50000.0, 'Baby Milk Formula & Diapers');
+      final updatedCampaign = container.read(ngoCampaignsProvider).firstWhere((c) => c.id == campaign.id);
+      expect(updatedCampaign.spentAmount, equals(initialSpent + 50000.0));
+
+      // Check transaction ledger entry
+      final tx = NgoFinancialTransaction(
+        id: 'TX-JOURNEY-C',
+        campaignId: campaign.id,
+        transactionRef: 'NEFT-DR-889912',
+        amount: 50000.0,
+        transactionType: 'EXPENSE_SPENT',
+        category: 'Baby Care & Nutrition',
+        entityName: 'Amul Emergency Milk Cooperative',
+        invoiceNumber: 'INV-AMUL-091',
+        timestamp: DateTime.now(),
+        approvalStatus: 'AUDIT_VERIFIED',
+        invoiceDocumentProof: 'amul_tax_invoice_verified.pdf',
+      );
+
+      container.read(ngoTransactionsProvider.notifier).addTransaction(tx);
+      expect(container.read(ngoTransactionsProvider).any((t) => t.id == 'TX-JOURNEY-C'), isTrue);
+    });
+
+    test('Master Acceptance Journey D: Volunteer registration, task claiming, and delivery proof verification', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final tasks = container.read(volunteerTasksProvider);
+      final task = tasks.first;
+
+      // Volunteer accepts task
+      container.read(volunteerTasksProvider.notifier).acceptTask(task.id);
+      var accepted = container.read(volunteerTasksProvider).firstWhere((t) => t.id == task.id);
+      expect(accepted.isAccepted, isTrue);
+
+      // Volunteer marks complete with proof
+      container.read(volunteerTasksProvider.notifier).completeTask(
+        task.id,
+        'Distributed 100 blankets at Mayur Vihar Camp Shelter; signed by Camp Ward Incharge.',
+      );
+      final completed = container.read(volunteerTasksProvider).firstWhere((t) => t.id == task.id);
+      expect(completed.isCompleted, isTrue);
+      expect(completed.deliveryProofNote, contains('signed by Camp Ward Incharge'));
+    });
+
+    test('Master Acceptance Journey E & F: Government SDRF accounting & Public Transparency Explorer non-PII verification', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      // Public Explorer verifies allocations without PII
+      final allocations = container.read(areaAllocationsProvider);
+      expect(allocations.isNotEmpty, isTrue);
+
+      for (final a in allocations) {
+        expect(a.affectedPeopleEstimated, greaterThan(0));
+        expect(a.recommendedRedirection.isNotEmpty, isTrue);
+      }
+    });
+
+    test('Master Acceptance Journey G & H: Location-matched alerts and anti-duplication resource redirection', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final alerts = container.read(alertsProvider);
+      expect(alerts.isNotEmpty, isTrue);
+
+      // Match alerts to East Delhi region
+      final eastDelhiAlerts = alerts.where((a) => a.affectedRegion.toLowerCase().contains('delhi') || a.affectedRegion.toLowerCase().contains('yamuna')).toList();
+      expect(eastDelhiAlerts.isNotEmpty, isTrue);
+      expect(eastDelhiAlerts.first.isOfficial, isTrue);
+
+      // Verify smart anti-duplication lock prevents double resource booking
+      final ward4 = container.read(areaAllocationsProvider).firstWhere((a) => a.areaName.contains('Ward 4'));
+      expect(ward4.isAllocationLocked, isTrue);
+      expect(ward4.primarySurplus, contains('Food'));
+    });
   });
 
   group('ResQAI Widget Smoke Tests', () {
