@@ -5,10 +5,12 @@ import '../../core/theme/app_colors.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../../features/auth/login_modal.dart';
-import '../../features/responder/responder_dashboard.dart';
 import '../../features/resources/shelter_board_screen.dart';
-import '../../features/resources/volunteer_matcher_screen.dart';
 import '../../features/settings/system_health_screen.dart';
+import '../../features/volunteer/volunteer_portal_screen.dart';
+import '../../features/government/government_operations_screen.dart';
+import '../../features/medical/medical_doctor_portal_screen.dart';
+import '../../features/rescue/rescue_team_operations_screen.dart';
 import '../../app.dart';
 
 class RoleBasedDashboardScreen extends ConsumerWidget {
@@ -29,18 +31,18 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
       case UserRole.citizen:
         return _buildCitizenDashboard(context, ref, currentUser);
       case UserRole.volunteer:
-        return const VolunteerMatcherScreen();
+        return const VolunteerPortalScreen();
       case UserRole.ngoLead:
       case UserRole.reliefStaff:
-        return const ShelterBoardScreen(); // Shelter capacity and supply matrix
+        return const ShelterBoardScreen(); // Shelter capacity and supply matrix (upgraded in Phase 5)
       case UserRole.govtOfficial:
       case UserRole.incidentCommander:
-        return const ResponderDashboard(); // Full district command, triage, What-If and duplicates
+        return const GovernmentOperationsScreen();
       case UserRole.fieldResponder:
       case UserRole.rescueTeam:
-        return _buildResponderDashboard(context, ref, currentUser);
+        return const RescueTeamOperationsScreen();
       case UserRole.doctor:
-        return const VolunteerMatcherScreen(); // Medical triage and assignments
+        return const MedicalDoctorPortalScreen();
       case UserRole.admin:
       case UserRole.analyst:
         return const SystemHealthScreen(); // Admin governance & audit
@@ -431,6 +433,7 @@ class RoleBasedDashboardScreen extends ConsumerWidget {
   }
 
   // 2. FIELD RESPONDER DASHBOARD
+  // ignore: unused_element
   Widget _buildResponderDashboard(BuildContext context, WidgetRef ref, dynamic currentUser) {
     final incidents = ref.watch(incidentsProvider);
     final activeMissions = incidents.where((i) => i.status == IncidentStatus.verified || i.status == IncidentStatus.helpAssigned).toList();

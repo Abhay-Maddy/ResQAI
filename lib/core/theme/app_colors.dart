@@ -16,6 +16,8 @@ class AppColors {
 
   // Neutral Colors (Dark Theme)
   static const Color darkBg = Color(0xFF0B132B);
+  static const Color darkBackground = Color(0xFF0B132B);
+  static const Color navyBlue = Color(0xFF1E3A8A);
   static const Color darkSurface = Color(0xFF1C2541);
   static const Color darkSurfaceCard = Color(0xFF243254);
   static const Color darkBorder = Color(0xFF3A506B);

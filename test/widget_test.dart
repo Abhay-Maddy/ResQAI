@@ -8,6 +8,9 @@ import 'package:resqai/shared/models/incident_model.dart';
 import 'package:resqai/shared/models/user_model.dart';
 import 'package:resqai/data/repositories/incident_repository.dart';
 import 'package:resqai/data/repositories/auth_repository.dart';
+import 'package:resqai/features/volunteer/volunteer_portal_screen.dart';
+import 'package:resqai/features/medical/medical_doctor_portal_screen.dart';
+import 'package:resqai/features/rescue/rescue_team_operations_screen.dart';
 
 void main() {
   group('ResQAI Unit & Logic Tests', () {
@@ -286,6 +289,95 @@ void main() {
       expect(reopened.status, equals(IncidentStatus.underReview));
       expect(reopened.escalatedTo, equals('District Disaster Magistrate Review Desk'));
       expect(reopened.verificationHistory.first.contains('Reopened by Rohan Verma'), isTrue);
+    });
+
+    test('Phase 4 Volunteer Portal task acceptance and completion lifecycle', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final initialTasks = container.read(volunteerTasksProvider);
+      expect(initialTasks.isNotEmpty, isTrue);
+
+      final firstTask = initialTasks.first;
+      expect(firstTask.isAccepted, isFalse);
+      expect(firstTask.isCompleted, isFalse);
+
+      // Volunteer accepts task
+      container.read(volunteerTasksProvider.notifier).acceptTask(firstTask.id);
+      var updated = container.read(volunteerTasksProvider).firstWhere((t) => t.id == firstTask.id);
+      expect(updated.isAccepted, isTrue);
+
+      // Volunteer marks complete with delivery proof
+      container.read(volunteerTasksProvider.notifier).completeTask(
+        firstTask.id,
+        'Delivered 250 food packets to Camp Ward 4; verified by camp incharge.',
+      );
+      updated = container.read(volunteerTasksProvider).firstWhere((t) => t.id == firstTask.id);
+      expect(updated.isCompleted, isTrue);
+      expect(updated.deliveryProofNote, contains('Delivered 250 food packets'));
+    });
+
+    test('Phase 4 Medical Doctor triage and hospital referral workflow', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final initialCases = container.read(medicalCasesProvider);
+      expect(initialCases.isNotEmpty, isTrue);
+
+      final urgentCase = initialCases.first;
+      expect(urgentCase.status, equals('PENDING_TRIAGE'));
+
+      // Doctor accepts case
+      container.read(medicalCasesProvider.notifier).acceptCase(urgentCase.id);
+      var updated = container.read(medicalCasesProvider).firstWhere((c) => c.id == urgentCase.id);
+      expect(updated.isAccepted, isTrue);
+      expect(updated.status, equals('ATTENDING'));
+
+      // Doctor provides clinical notes and hospital referral
+      container.read(medicalCasesProvider.notifier).updateTreatmentOutcome(
+        urgentCase.id,
+        'REFERRED',
+        'Stabilized wound; transferred for tertiary surgical intervention.',
+        referredHospital: 'AIIMS Trauma Center & Emergency',
+      );
+      updated = container.read(medicalCasesProvider).firstWhere((c) => c.id == urgentCase.id);
+      expect(updated.status, equals('REFERRED'));
+      expect(updated.referredHospital, equals('AIIMS Trauma Center & Emergency'));
+      expect(updated.attendingDoctorNotes, contains('Stabilized wound'));
+    });
+
+    test('Phase 4 Rescue Team 4-stage mission dispatch progression', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final missions = container.read(rescueMissionsProvider);
+      expect(missions.isNotEmpty, isTrue);
+
+      final testMission = missions.firstWhere((m) => m.id == 'MISSION-NDRF-02');
+      expect(testMission.stage, equals(RescueMissionStage.dispatched));
+
+      // Advance to EN ROUTE
+      container.read(rescueMissionsProvider.notifier).advanceStage(testMission.id, RescueMissionStage.enRoute);
+      var updated = container.read(rescueMissionsProvider).firstWhere((m) => m.id == testMission.id);
+      expect(updated.stage, equals(RescueMissionStage.enRoute));
+
+      // Advance to ON SCENE
+      container.read(rescueMissionsProvider.notifier).advanceStage(testMission.id, RescueMissionStage.onScene);
+      updated = container.read(rescueMissionsProvider).firstWhere((m) => m.id == testMission.id);
+      expect(updated.stage, equals(RescueMissionStage.onScene));
+
+      // Resolve mission with evacuated count and safe shelter
+      container.read(rescueMissionsProvider.notifier).advanceStage(
+        testMission.id,
+        RescueMissionStage.resolved,
+        evacuated: 5,
+        shelter: 'Kashmere Gate Safe Camp',
+        notes: 'Wheelchair patients lifted with safety harness into rescue boat.',
+      );
+      updated = container.read(rescueMissionsProvider).firstWhere((m) => m.id == testMission.id);
+      expect(updated.stage, equals(RescueMissionStage.resolved));
+      expect(updated.victimsEvacuated, equals(5));
+      expect(updated.evacuationShelter, equals('Kashmere Gate Safe Camp'));
     });
   });
 
