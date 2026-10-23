@@ -84,6 +84,49 @@ CREATE TABLE IF NOT EXISTS area_needs (
   UNIQUE(area_id, resource_type)
 );
 
+-- 6b. Resource Allocations & Reservations (PRD E6, FR-26, FR-28, FR-29)
+CREATE TABLE IF NOT EXISTS resource_allocations (
+  id TEXT PRIMARY KEY,
+  area_id TEXT NOT NULL REFERENCES affected_areas(id),
+  resource_type TEXT NOT NULL CHECK(resource_type IN ('FOOD', 'WATER', 'MEDICINE', 'SHELTER_KITS', 'BOATS', 'PERSONNEL')),
+  allocated_units INTEGER NOT NULL,
+  source_type TEXT NOT NULL CHECK(source_type IN ('NGO_STOCK', 'DONOR_PLEDGE', 'CENTRAL_DEPOT', 'GOVT_BUFFER')),
+  source_name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'RESERVED' CHECK(status IN ('RESERVED', 'DISPATCHED', 'DELIVERED', 'CANCELLED')),
+  priority_score REAL NOT NULL DEFAULT 50.0,
+  score_factors_json TEXT DEFAULT '{}',
+  allocated_by_user_id TEXT REFERENCES users(id),
+  override_reason TEXT,
+  delivery_confirmation_type TEXT CHECK(delivery_confirmation_type IN ('PHOTO', 'OTP', 'SIGNATURE')),
+  delivery_confirmation_ref TEXT,
+  delivered_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- 6c. Donor Pledges & Smart Matching (PRD E6, FR-27, FR-31)
+CREATE TABLE IF NOT EXISTS donor_pledges (
+  id TEXT PRIMARY KEY,
+  donor_name TEXT NOT NULL,
+  donor_contact TEXT NOT NULL,
+  resource_type TEXT NOT NULL,
+  offered_units INTEGER NOT NULL,
+  target_area_id TEXT NOT NULL REFERENCES affected_areas(id),
+  redirected_from_area_id TEXT REFERENCES affected_areas(id),
+  redirect_reason TEXT,
+  status TEXT NOT NULL DEFAULT 'PLEDGED' CHECK(status IN ('PLEDGED', 'ALLOCATED', 'FULFILLED', 'REJECTED')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- 6d. Resource Shortage & Expiry Alerts (PRD E6, FR-30)
+CREATE TABLE IF NOT EXISTS resource_alerts (
+  id TEXT PRIMARY KEY,
+  area_id TEXT NOT NULL REFERENCES affected_areas(id),
+  resource_type TEXT NOT NULL,
+  alert_type TEXT NOT NULL CHECK(alert_type IN ('CRITICAL_SHORTAGE', 'EXPIRY_WARNING', 'OVER_SUPPLY_WARNING')),
+  message TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- 7. Incidents & Reports (PRD E2, E3, FR-5, FR-10)
 CREATE TABLE IF NOT EXISTS incidents (
   id TEXT PRIMARY KEY,
@@ -269,3 +312,142 @@ CREATE TABLE IF NOT EXISTS consent_records (
   ip_hash TEXT,
   timestamp TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- 13. Phase 6: NGOs & KYC (FR-42, FR-46)
+CREATE TABLE IF NOT EXISTS ngos (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  darpan_id TEXT,
+  fcra_number TEXT,
+  fcra_valid_until TEXT,
+  fcra_verified INTEGER DEFAULT 0,
+  tax_80g_number TEXT,
+  tax_80g_valid_until TEXT,
+  tax_80g_verified INTEGER DEFAULT 0,
+  authorized_rep_name TEXT NOT NULL,
+  authorized_rep_email TEXT NOT NULL,
+  authorized_rep_phone TEXT NOT NULL,
+  kyc_status TEXT NOT NULL DEFAULT 'PENDING_VERIFICATION' CHECK(kyc_status IN ('PENDING_VERIFICATION', 'APPROVED', 'REJECTED', 'SUSPENDED')),
+  kyc_notes TEXT,
+  documents_json TEXT DEFAULT '[]',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- 14. Phase 6: Campaigns & Approval Gate (FR-43, FR-44)
+CREATE TABLE IF NOT EXISTS campaigns (
+  id TEXT PRIMARY KEY,
+  ngo_id TEXT NOT NULL REFERENCES ngos(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  category TEXT NOT NULL CHECK(category IN ('FLOOD', 'MEDICAL', 'SHELTER', 'FOOD', 'RECOVERY', 'GENERAL')),
+  area_id TEXT NOT NULL REFERENCES affected_areas(id),
+  target_amount_paise INTEGER NOT NULL,
+  received_amount_paise INTEGER NOT NULL DEFAULT 0,
+  committed_amount_paise INTEGER NOT NULL DEFAULT 0,
+  spent_amount_paise INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'DRAFT' CHECK(status IN ('DRAFT', 'PENDING_APPROVAL', 'ACTIVE', 'PAUSED', 'COMPLETED', 'REJECTED')),
+  approved_by TEXT REFERENCES users(id),
+  approved_at TEXT,
+  beneficiary_count INTEGER DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- 15. Phase 6: Donations & Razorpay Integration (FR-44, FR-45, FR-46, FR-47)
+CREATE TABLE IF NOT EXISTS donations (
+  id TEXT PRIMARY KEY,
+  campaign_id TEXT NOT NULL REFERENCES campaigns(id),
+  donor_name TEXT NOT NULL,
+  donor_email TEXT NOT NULL,
+  donor_phone TEXT,
+  donor_pan TEXT,
+  is_indian_citizen INTEGER NOT NULL DEFAULT 1,
+  is_fcra_contribution INTEGER NOT NULL DEFAULT 0,
+  amount_paise INTEGER NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'INR',
+  razorpay_order_id TEXT UNIQUE,
+  razorpay_payment_id TEXT UNIQUE,
+  razorpay_signature TEXT,
+  status TEXT NOT NULL DEFAULT 'CREATED' CHECK(status IN ('CREATED', 'PAID', 'FAILED', 'REFUNDED')),
+  tax_80g_issued INTEGER DEFAULT 0,
+  tax_80g_receipt_no TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- 16. Phase 6: Campaign Disbursements & Transparent Ledger (FR-44, FR-53)
+CREATE TABLE IF NOT EXISTS campaign_disbursements (
+  id TEXT PRIMARY KEY,
+  campaign_id TEXT NOT NULL REFERENCES campaigns(id),
+  purpose TEXT NOT NULL,
+  amount_paise INTEGER NOT NULL,
+  vendor_or_beneficiary TEXT NOT NULL,
+  proof_receipt_url TEXT,
+  disbursed_at TEXT NOT NULL DEFAULT (datetime('now')),
+  audited_by TEXT REFERENCES users(id)
+);
+
+-- 17. Phase 6: Webhook Idempotency Registry (FR-45)
+CREATE TABLE IF NOT EXISTS processed_webhooks (
+  event_id TEXT PRIMARY KEY,
+  event_type TEXT NOT NULL,
+  payment_id TEXT,
+  processed_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- 18. Phase 7: Affected-Person Case Management (FR-38, FR-39, FR-40)
+CREATE TABLE IF NOT EXISTS person_cases (
+  id TEXT PRIMARY KEY,
+  household_head_name TEXT NOT NULL,
+  contact_phone TEXT,
+  area_id TEXT NOT NULL REFERENCES affected_areas(id),
+  shelter_id TEXT,
+  household_size INTEGER NOT NULL DEFAULT 1,
+  vulnerability_flags_json TEXT DEFAULT '[]',
+  needs_summary TEXT,
+  entitlement_ration_kits INTEGER NOT NULL DEFAULT 1,
+  entitlement_water_litres INTEGER NOT NULL DEFAULT 20,
+  entitlement_medical_kits INTEGER NOT NULL DEFAULT 0,
+  received_ration_kits INTEGER NOT NULL DEFAULT 0,
+  received_water_litres INTEGER NOT NULL DEFAULT 0,
+  received_medical_kits INTEGER NOT NULL DEFAULT 0,
+  caseworker_id TEXT REFERENCES users(id),
+  caseworker_notes TEXT,
+  dpdp_consent_captured INTEGER DEFAULT 1,
+  is_merged INTEGER DEFAULT 0,
+  merged_into_case_id TEXT,
+  status TEXT NOT NULL DEFAULT 'OPEN' CHECK(status IN ('OPEN', 'IN_ASSISTANCE', 'REHABILITATED', 'CLOSED')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- 19. Phase 7: Case Assistance Logs (FR-38, FR-53)
+CREATE TABLE IF NOT EXISTS case_assistance_logs (
+  id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL REFERENCES person_cases(id) ON DELETE CASCADE,
+  assistance_type TEXT NOT NULL CHECK(assistance_type IN ('RATION_KIT', 'WATER_SUPPLY', 'MEDICAL_AID', 'TEMPORARY_SHELTER', 'CASH_ASSISTANCE')),
+  quantity INTEGER NOT NULL,
+  distribution_point TEXT NOT NULL,
+  distributed_by_user_id TEXT REFERENCES users(id),
+  recipient_signature_or_otp TEXT,
+  timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- 20. Phase 7: SMS Gateway Inbound Messages & Parser Logs (FR-48, FR-50)
+CREATE TABLE IF NOT EXISTS inbound_sms_messages (
+  id TEXT PRIMARY KEY,
+  sender_phone TEXT NOT NULL,
+  raw_message TEXT NOT NULL,
+  parsed_category TEXT,
+  parsed_location TEXT,
+  parsed_urgency TEXT,
+  parsed_people_count INTEGER,
+  parsed_needs TEXT,
+  generated_incident_id TEXT REFERENCES incidents(id),
+  delivery_status TEXT NOT NULL DEFAULT 'PROCESSED' CHECK(delivery_status IN ('RECEIVED', 'PROCESSED', 'PARSE_FAILED', 'DUPLICATE_IGNORED')),
+  provider_error TEXT,
+  received_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+

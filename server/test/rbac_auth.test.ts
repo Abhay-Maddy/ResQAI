@@ -141,7 +141,7 @@ describe('Phase 1: Auth, RBAC & DB Exit Criteria Test Suite', () => {
 
     assert.ok(eventId.startsWith('AUD-'), 'Audit event ID must be generated');
 
-    const logs = getAuditLogs(10) as any[];
+    const logs = getAuditLogs(100) as any[];
     const found = logs.find(l => l.id === eventId);
     assert.ok(found, 'Audit event must be saved in append-only audit log');
     assert.equal(found.action_type, 'EMERGENCY_DISPATCH_AUTHORIZED');

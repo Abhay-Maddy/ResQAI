@@ -7,6 +7,19 @@ import { authRouter } from './routes/authRoutes';
 import { rbacTestRouter } from './routes/rbacDemoRoutes';
 import { incidentRouter } from './routes/incidentRoutes';
 import { gisRouter, responderRouter } from './routes/gisRoutes';
+import { reliefRouter } from './routes/reliefRoutes';
+import { mlRouter } from './routes/mlRoutes';
+import ngoRouter from './routes/ngoRoutes';
+import campaignRouter from './routes/campaignRoutes';
+import donationRouter from './routes/donationRoutes';
+import caseRouter from './routes/caseRoutes';
+import missingPersonRouter from './routes/missingPersonRoutes';
+import smsRouter from './routes/smsRoutes';
+import drillRouter from './routes/drillRoutes';
+import { sitrepRouter } from './routes/sitrepRoutes';
+import { alertRouter } from './routes/alertRoutes';
+import { rumourRouter } from './routes/rumourRoutes';
+import { evacuationRouter } from './routes/evacuationRoutes';
 
 const app = express();
 const server = http.createServer(app);
@@ -26,6 +39,19 @@ app.use('/api/v1/rbac', rbacTestRouter);
 app.use('/api/v1/incidents', incidentRouter);
 app.use('/api/v1/gis', gisRouter);
 app.use('/api/v1/responder', responderRouter);
+app.use('/api/v1/relief', reliefRouter);
+app.use('/api/v1/ml', mlRouter);
+app.use('/api/v1/ngos', ngoRouter);
+app.use('/api/v1/campaigns', campaignRouter);
+app.use('/api/v1/donations', donationRouter);
+app.use('/api/v1/cases', caseRouter);
+app.use('/api/v1/missing-persons', missingPersonRouter);
+app.use('/api/v1/sms', smsRouter);
+app.use('/api/v1/drills', drillRouter);
+app.use('/api/v1/sitrep', sitrepRouter);
+app.use('/api/v1/alerts', alertRouter);
+app.use('/api/v1/rumours', rumourRouter);
+app.use('/api/v1/evacuation', evacuationRouter);
 
 // FR-9 Persistent emergency status & system health
 app.get('/api/v1/health', (req: Request, res: Response) => {
