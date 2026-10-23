@@ -62,6 +62,46 @@ final medicalCasesProvider = StateNotifierProvider<MedicalCasesNotifier, List<Me
   return MedicalCasesNotifier();
 });
 
+final triageCasesProvider = medicalCasesProvider;
+
+final hospitalsProvider = Provider<List<HospitalCapacity>>((ref) {
+  return [
+    HospitalCapacity(
+      name: 'AIIMS Trauma Center & Emergency',
+      location: 'Ring Road, Ansari Nagar (8.2 km)',
+      totalBeds: 240,
+      occupiedBeds: 218,
+      icuBedsAvailable: 6,
+      oxygenBedsAvailable: 16,
+      bloodBankStatus: 'Adequate (O+, B+, AB+ available)',
+      emergencyPhone: '+91 11 2658 8700',
+      lastUpdated: '12 mins ago (Real-time sync)',
+    ),
+    HospitalCapacity(
+      name: 'LNJP Hospital & Disaster Ward',
+      location: 'Delhi Gate, New Delhi (5.4 km)',
+      totalBeds: 180,
+      occupiedBeds: 154,
+      icuBedsAvailable: 4,
+      oxygenBedsAvailable: 22,
+      bloodBankStatus: 'Moderate (O- and A- in high demand)',
+      emergencyPhone: '+91 11 2323 3000',
+      lastUpdated: '25 mins ago',
+    ),
+    HospitalCapacity(
+      name: 'Lal Bahadur Shastri District Hospital',
+      location: 'Khichripur, Mayur Vihar (2.1 km)',
+      totalBeds: 110,
+      occupiedBeds: 92,
+      icuBedsAvailable: 2,
+      oxygenBedsAvailable: 16,
+      bloodBankStatus: 'Urgent donor call requested for B-',
+      emergencyPhone: '+91 11 2277 4145',
+      lastUpdated: '40 mins ago',
+    ),
+  ];
+});
+
 class MedicalCasesNotifier extends StateNotifier<List<MedicalTriageCase>> {
   MedicalCasesNotifier() : super(_initialCases());
 

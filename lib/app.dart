@@ -4,6 +4,7 @@ import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'core/utils/i18n.dart';
+import 'core/router/app_router.dart';
 import 'data/repositories/incident_repository.dart';
 import 'data/repositories/auth_repository.dart';
 import 'features/auth/login_modal.dart';
@@ -64,7 +65,9 @@ class ResQAIApp extends ConsumerWidget {
       title: 'ResQAI — Disaster Response System',
       debugShowCheckedModeBanner: false,
       theme: isDark ? AppTheme.darkTheme : AppTheme.lightTheme,
-      home: const MainLayoutScreen(),
+      navigatorKey: AppRouter.navigatorKey,
+      initialRoute: AppRoutes.home,
+      onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }
 }

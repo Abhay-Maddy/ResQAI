@@ -25,10 +25,21 @@ class AppColors {
   static const Color darkTextSecondary = Color(0xFF94A3B8);
 
   // Neutral Colors (Light Theme)
-  static const Color lightBg = Color(0xFFF8FAFC);
+  static const Color lightBg = Color(0xFFF5F7FA);
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightSurfaceCard = Color(0xFFF1F5F9);
   static const Color lightBorder = Color(0xFFE2E8F0);
-  static const Color lightTextPrimary = Color(0xFF0F172A);
-  static const Color lightTextSecondary = Color(0xFF64748B);
+  static const Color lightTextPrimary = Color(0xFF172B3A);
+  static const Color lightTextSecondary = Color(0xFF637487);
+
+  // Master Prompt Brand Identity Specification
+  static const Color deepNavy = Color(0xFF10243A);
+  static const Color primaryBlue = Color(0xFF246BCE);
+  static const Color emergencyRed = Color(0xFFD92D20);
+  static const Color successGreen = Color(0xFF16835D);
+  static const Color warningOrange = Color(0xFFE9A23B);
+  static const Color lightBackground = Color(0xFFF5F7FA);
+  static const Color surfaceWhite = Color(0xFFFFFFFF);
+  static const Color primaryText = Color(0xFF172B3A);
+  static const Color mutedText = Color(0xFF637487);
 }
