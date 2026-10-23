@@ -68,22 +68,37 @@ class NgoDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 22),
 
             // Metrics
-            Row(
-              children: [
-                Expanded(child: _buildKpiCard('TOTAL DONATIONS', '₹${totalRaised.toStringAsFixed(0)}', AppColors.primaryBlue, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildKpiCard('AUDITED EXPENDITURE', '₹${totalSpent.toStringAsFixed(0)}', AppColors.successGreen, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildKpiCard('ACTIVE CAMPAIGNS', '${campaigns.length}', Colors.purple, isDark)),
-              ],
-            ),
+            if (isMobile)
+              Column(
+                children: [
+                  _buildKpiCard('TOTAL DONATIONS', '₹${totalRaised.toStringAsFixed(0)}', AppColors.primaryBlue, isDark),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: _buildKpiCard('AUDITED EXPENDITURE', '₹${totalSpent.toStringAsFixed(0)}', AppColors.successGreen, isDark)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildKpiCard('ACTIVE CAMPAIGNS', '${campaigns.length}', Colors.purple, isDark)),
+                    ],
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(child: _buildKpiCard('TOTAL DONATIONS', '₹${totalRaised.toStringAsFixed(0)}', AppColors.primaryBlue, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildKpiCard('AUDITED EXPENDITURE', '₹${totalSpent.toStringAsFixed(0)}', AppColors.successGreen, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildKpiCard('ACTIVE CAMPAIGNS', '${campaigns.length}', Colors.purple, isDark)),
+                ],
+              ),
             const SizedBox(height: 24),
 
             // Quick Operations Navigation
-            Row(
-              children: [
-                Expanded(
-                  child: _buildNavCard(
+            if (isMobile)
+              Column(
+                children: [
+                  _buildNavCard(
                     context,
                     title: 'Active Campaigns',
                     subtitle: 'Manage fundraising & target relief packets',
@@ -91,10 +106,8 @@ class NgoDashboardScreen extends ConsumerWidget {
                     route: AppRoutes.ngoCampaigns,
                     isDark: isDark,
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: _buildNavCard(
+                  const SizedBox(height: 10),
+                  _buildNavCard(
                     context,
                     title: 'Financial Ledger & Invoices',
                     subtitle: 'Log tax invoices, vendor receipts & GSTIN proof',
@@ -102,10 +115,8 @@ class NgoDashboardScreen extends ConsumerWidget {
                     route: AppRoutes.ngoFinances,
                     isDark: isDark,
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: _buildNavCard(
+                  const SizedBox(height: 10),
+                  _buildNavCard(
                     context,
                     title: 'Supply Warehouse',
                     subtitle: 'Inventory counts, rations & medical reserves',
@@ -113,9 +124,45 @@ class NgoDashboardScreen extends ConsumerWidget {
                     route: AppRoutes.ngoResources,
                     isDark: isDark,
                   ),
-                ),
-              ],
-            ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildNavCard(
+                      context,
+                      title: 'Active Campaigns',
+                      subtitle: 'Manage fundraising & target relief packets',
+                      icon: Icons.volunteer_activism,
+                      route: AppRoutes.ngoCampaigns,
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _buildNavCard(
+                      context,
+                      title: 'Financial Ledger & Invoices',
+                      subtitle: 'Log tax invoices, vendor receipts & GSTIN proof',
+                      icon: Icons.receipt_long,
+                      route: AppRoutes.ngoFinances,
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _buildNavCard(
+                      context,
+                      title: 'Supply Warehouse',
+                      subtitle: 'Inventory counts, rations & medical reserves',
+                      icon: Icons.inventory_2,
+                      route: AppRoutes.ngoResources,
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

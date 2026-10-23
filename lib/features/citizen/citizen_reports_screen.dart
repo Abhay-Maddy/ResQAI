@@ -65,18 +65,20 @@ class _CitizenReportsScreenState extends ConsumerState<CitizenReportsScreen> {
                     onChanged: (v) => setState(() => _searchQuery = v),
                   ),
                 ),
-                const SizedBox(width: 14),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                if (!isMobile) ...[
+                  const SizedBox(width: 14),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('File Claim', style: TextStyle(fontWeight: FontWeight.bold)),
+                    onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenNewReport),
                   ),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('File Claim', style: TextStyle(fontWeight: FontWeight.bold)),
-                  onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenNewReport),
-                ),
+                ],
               ],
             ),
             const SizedBox(height: 16),

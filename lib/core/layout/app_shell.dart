@@ -13,6 +13,7 @@ class AppShell extends ConsumerStatefulWidget {
   final String? title;
   final List<String>? breadcrumbs;
   final Widget? floatingActionButton;
+  final bool hideMobileAppBar;
 
   const AppShell({
     super.key,
@@ -21,6 +22,7 @@ class AppShell extends ConsumerStatefulWidget {
     this.title,
     this.breadcrumbs,
     this.floatingActionButton,
+    this.hideMobileAppBar = false,
   });
 
   @override
@@ -45,7 +47,9 @@ class _AppShellState extends ConsumerState<AppShell> {
     return Scaffold(
       key: _scaffoldKey,
       drawer: isDesktop ? null : _buildDrawer(context, navItems, activeRole, currentUser),
-      appBar: _buildAppBar(context, isDesktop, isTablet, isMobile, currentUser, activeRole),
+      appBar: (isMobile && widget.hideMobileAppBar)
+          ? null
+          : _buildAppBar(context, isDesktop, isTablet, isMobile, currentUser, activeRole),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -60,7 +64,7 @@ class _AppShellState extends ConsumerState<AppShell> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (widget.breadcrumbs != null && widget.breadcrumbs!.isNotEmpty)
+                  if (!isMobile && widget.breadcrumbs != null && widget.breadcrumbs!.isNotEmpty)
                     _buildBreadcrumbBar(isDark),
                   Expanded(
                     child: widget.child,
@@ -87,6 +91,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark ? AppColors.darkSurface : Colors.white;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final canPop = Navigator.canPop(context);
 
     return AppBar(
       backgroundColor: surfaceColor,
@@ -94,73 +99,95 @@ class _AppShellState extends ConsumerState<AppShell> {
       elevation: 0,
       leading: isDesktop
           ? null
-          : IconButton(
-              icon: const Icon(Icons.menu, size: 22),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-              tooltip: 'Navigation Menu',
-            ),
-      titleSpacing: isDesktop ? 20 : 0,
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          InkWell(
-            onTap: () => Navigator.pushNamed(context, AppRoutes.home),
-            borderRadius: BorderRadius.circular(8),
-            child: Row(
+          : (canPop
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back, size: 22),
+                  onPressed: () => Navigator.pop(context),
+                  tooltip: 'Back',
+                )
+              : IconButton(
+                  icon: const Icon(Icons.menu, size: 22),
+                  onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                  tooltip: 'Navigation Menu',
+                )),
+      titleSpacing: isDesktop ? 20 : (canPop ? 0 : 8),
+      title: (isMobile && canPop)
+          ? Text(
+              widget.title ?? AppConstants.appName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: isDark ? Colors.white : AppColors.deepNavy,
+              ),
+            )
+          : Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(8),
+                InkWell(
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.home),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.shield_outlined, color: AppColors.primaryBlue, size: 18),
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            AppConstants.appName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 17,
+                              letterSpacing: 0.3,
+                              color: isDark ? Colors.white : AppColors.deepNavy,
+                            ),
+                          ),
+                          if (!isMobile)
+                            Text(
+                              'DISASTER MANAGEMENT & RELIEF',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.6,
+                                color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.shield_outlined, color: AppColors.primaryBlue, size: 20),
                 ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      AppConstants.appName,
+                if (widget.title != null && !isMobile) ...[
+                  const SizedBox(width: 14),
+                  Container(height: 18, width: 1, color: borderColor),
+                  const SizedBox(width: 14),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 160),
+                    child: Text(
+                      widget.title!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
-                        letterSpacing: 0.5,
-                        color: isDark ? Colors.white : AppColors.deepNavy,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : AppColors.primaryText,
                       ),
                     ),
-                    if (!isMobile)
-                      Text(
-                        'DISASTER MANAGEMENT & RELIEF',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.6,
-                          color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
-                        ),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ],
             ),
-          ),
-          if (widget.title != null && !isMobile) ...[
-            const SizedBox(width: 16),
-            Container(height: 20, width: 1, color: borderColor),
-            const SizedBox(width: 16),
-            Text(
-              widget.title!,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : AppColors.primaryText,
-              ),
-            ),
-          ],
-        ],
-      ),
       actions: [
         // Live IMD / NDRF status indicator
         if (!isMobile)
@@ -185,34 +212,40 @@ class _AppShellState extends ConsumerState<AppShell> {
             ),
           ),
 
-        // Quick SOS Button
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.emergencyRed,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        // Quick SOS Button (Desktop only; on mobile SOS is in BottomBar or floating map)
+        if (!isMobile)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.emergencyRed,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              icon: const Icon(Icons.emergency, size: 16),
+              label: const Text('SOS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenSos),
             ),
-            icon: const Icon(Icons.emergency, size: 16),
-            label: const Text('SOS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenSos),
           ),
-        ),
 
         // Language Selector
         Consumer(
           builder: (context, ref, _) {
             final lang = ref.watch(languageProvider);
             return TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: isMobile ? 6 : 10),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               onPressed: () {
                 final next = lang == 'en' ? 'hi' : 'en';
                 ref.read(languageProvider.notifier).state = next;
               },
               child: Text(
-                lang == 'en' ? 'हिन्दी' : 'English',
+                lang == 'en' ? 'हि' : 'EN',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               ),
             );
@@ -222,31 +255,46 @@ class _AppShellState extends ConsumerState<AppShell> {
         // User Login / Profile
         if (currentUser == null)
           Padding(
-            padding: const EdgeInsets.only(right: 12, left: 4),
-            child: TextButton.icon(
-              icon: const Icon(Icons.login, size: 16),
-              label: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
-            ),
+            padding: EdgeInsets.only(right: isMobile ? 6 : 12, left: 4),
+            child: isMobile
+                ? IconButton(
+                    icon: const Icon(Icons.login, size: 20),
+                    tooltip: 'Sign In',
+                    onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
+                  )
+                : TextButton.icon(
+                    icon: const Icon(Icons.login, size: 16),
+                    label: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
+                  ),
           )
         else
           Padding(
-            padding: const EdgeInsets.only(right: 12, left: 4),
+            padding: EdgeInsets.only(right: isMobile ? 8 : 12, left: 4),
             child: PopupMenuButton<String>(
               tooltip: 'Account Options',
-              child: Chip(
-                avatar: CircleAvatar(
-                  backgroundColor: AppColors.primaryBlue,
-                  child: Text(
-                    currentUser.name.isNotEmpty ? currentUser.name[0].toUpperCase() : 'U',
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                label: Text(
-                  currentUser.name,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-              ),
+              child: isMobile
+                  ? CircleAvatar(
+                      radius: 14,
+                      backgroundColor: AppColors.primaryBlue,
+                      child: Text(
+                        currentUser.name.isNotEmpty ? currentUser.name[0].toUpperCase() : 'U',
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  : Chip(
+                      avatar: CircleAvatar(
+                        backgroundColor: AppColors.primaryBlue,
+                        child: Text(
+                          currentUser.name.isNotEmpty ? currentUser.name[0].toUpperCase() : 'U',
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      label: Text(
+                        currentUser.name,
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ),
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 'profile',

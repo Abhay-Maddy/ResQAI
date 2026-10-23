@@ -335,6 +335,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
+  bool _isLegendExpanded = false;
+
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(authProvider);
@@ -350,10 +352,11 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
       currentRoute: AppRoutes.citizenDashboard,
       title: 'Citizen Emergency Portal',
       breadcrumbs: const ['Citizen', 'Dashboard'],
+      hideMobileAppBar: true,
       child: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 16 : 28,
-          vertical: isMobile ? 12 : 20,
+          horizontal: isMobile ? 12 : 28,
+          vertical: isMobile ? 8 : 20,
         ),
         child: isMobile
             ? _buildMobileLayout(context, currentUser, shelters, myReports, isDark)
@@ -362,7 +365,7 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-  // MOBILE VERTICAL LAYOUT (EXACTLY MATCHING SMARTPHONE MOCKUP)
+  // MOBILE VERTICAL LAYOUT (EXACTLY MATCHING SMARTPHONE MOCKUP & DESIGN PRINCIPLES)
   Widget _buildMobileLayout(
     BuildContext context,
     dynamic currentUser,
@@ -373,29 +376,148 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 1. COMPACT BRAND HEADER
-        _buildHeader(context, currentUser, isDark),
+        // 1. UNIFIED COMPACT BRAND & LOCATION HEADER (NO STACKED BANNERS)
+        _buildMobileHeader(context, currentUser, isDark),
+        const SizedBox(height: 10),
+
+        // 2. LARGE REALISTIC DISASTER MAP WITH INTEGRATED CIRCULAR SOS
+        _buildDisasterMapCard(context, shelters, isDark, height: 450),
+        const SizedBox(height: 14),
+
+        // 3. ACTION SHORTCUTS (Report Damage & Find Shelter)
+        _buildShortcutsRow(context, isDark),
         const SizedBox(height: 12),
 
-        // 2. LOCALITY SELECTOR & WEATHER BAR
-        _buildLocalityWeatherBar(context, isDark),
-        const SizedBox(height: 14),
-
-        // 3. LARGE REALISTIC DISASTER MAP WITH INTEGRATED CIRCULAR SOS
-        _buildDisasterMapCard(context, shelters, isDark, height: 430),
-        const SizedBox(height: 16),
-
-        // 4. ACTION SHORTCUTS (Report Damage & Find Shelter)
-        _buildShortcutsRow(context, isDark),
-        const SizedBox(height: 14),
-
-        // 5. CONTEXTUAL DISASTER ALERT (Flood Watch 2.4 km away)
+        // 4. CONTEXTUAL DISASTER ALERT (Flood Watch 2.4 km away)
         _buildContextualAlertCard(context, isDark),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
 
-        // 6. MY OPEN REPORTS & ASSISTANCE TRACKER
-        _buildMyReportsCard(context, myReports, isDark),
-        const SizedBox(height: 20),
+  // UNIFIED COMPACT MOBILE HEADER
+  Widget _buildMobileHeader(BuildContext context, dynamic currentUser, bool isDark) {
+    return Row(
+      children: [
+        // Brand & Sector
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: AppColors.primaryBlue,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryBlue.withOpacity(0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.health_and_safety, color: Colors.white, size: 20),
+        ),
+        const SizedBox(width: 8),
+        InkWell(
+          onTap: () => _showLocalitySelector(context),
+          borderRadius: BorderRadius.circular(8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'ResQAI',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.4,
+                  color: isDark ? Colors.white : AppColors.deepNavy,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.location_on, size: 12, color: AppColors.primaryBlue),
+                    const SizedBox(width: 2),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 88),
+                      child: Text(
+                        _selectedLocality,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white70 : AppColors.deepNavy,
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.keyboard_arrow_down, size: 14, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Spacer(),
+        // Weather
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('🌧️', style: TextStyle(fontSize: 11)),
+              SizedBox(width: 4),
+              Text(
+                '28°C',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 4),
+        // Alert Bell with Badge
+        Stack(
+          children: [
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              icon: Icon(Icons.notifications_outlined, size: 22, color: isDark ? Colors.white70 : AppColors.deepNavy),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenAlerts),
+              tooltip: 'Disaster Alerts',
+            ),
+            Positioned(
+              right: 4,
+              top: 4,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(color: AppColors.emergencyRed, shape: BoxShape.circle),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 4),
+        // Profile Avatar
+        InkWell(
+          onTap: () => Navigator.pushNamed(context, AppRoutes.citizenProfile),
+          borderRadius: BorderRadius.circular(16),
+          child: CircleAvatar(
+            radius: 14,
+            backgroundColor: AppColors.primaryBlue.withOpacity(0.12),
+            child: const Icon(Icons.person_outline, size: 16, color: AppColors.primaryBlue),
+          ),
+        ),
       ],
     );
   }
@@ -411,8 +533,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(context, currentUser, isDark),
-        const SizedBox(height: 16),
         _buildLocalityWeatherBar(context, isDark),
         const SizedBox(height: 18),
         Row(
@@ -878,12 +998,39 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-  // MAP LEGEND OVERLAY
+  // MAP LEGEND OVERLAY (COLLAPSIBLE FOR MOBILE CLARITY)
   Widget _buildMapLegend(bool isDark) {
+    if (!_isLegendExpanded) {
+      return InkWell(
+        onTap: () => setState(() => _isLegendExpanded = true),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.92),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.layers, size: 12, color: AppColors.primaryBlue),
+              SizedBox(width: 4),
+              Text(
+                'Legend ▾',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.deepNavy),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
+        color: Colors.white.withOpacity(0.95),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
@@ -892,6 +1039,18 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Map Legend', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.deepNavy)),
+              const SizedBox(width: 14),
+              InkWell(
+                onTap: () => setState(() => _isLegendExpanded = false),
+                child: const Icon(Icons.close, size: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
           _buildLegendRow(const Color(0xFFF04438), 'High Flood Risk', isBox: true),
           _buildLegendRow(const Color(0xFFF79009), 'Moderate Risk', isBox: true),
           _buildLegendRow(const Color(0xFF12B76A), 'Safe Zone', isBox: true),
@@ -1330,12 +1489,14 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Flood Watch • 2.4 km away',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFFB42318),
+                      const Expanded(
+                        child: Text(
+                          'Flood Watch • 2.4 km away',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFB42318),
+                          ),
                         ),
                       ),
                       Container(
@@ -1389,12 +1550,14 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'My Filed Reports & Claims',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : AppColors.deepNavy,
+              Expanded(
+                child: Text(
+                  'My Filed Reports & Claims',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : AppColors.deepNavy,
+                  ),
                 ),
               ),
               TextButton(
@@ -1488,9 +1651,11 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Nearby Safe Havens',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.deepNavy),
+              Expanded(
+                child: Text(
+                  'Nearby Safe Havens',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.deepNavy),
+                ),
               ),
               TextButton(
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenShelters),

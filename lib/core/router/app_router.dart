@@ -151,7 +151,7 @@ class AppRouter {
     switch (path) {
       // Public
       case AppRoutes.home:
-        page = const HomePortalScreen();
+        page = const CitizenDashboardScreen();
         break;
       case AppRoutes.login:
         page = const AuthScreen(isRegisterMode: false);

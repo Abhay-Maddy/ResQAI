@@ -70,26 +70,42 @@ class GovernmentCommandCentreScreen extends ConsumerWidget {
             const SizedBox(height: 22),
 
             // Command Metrics
-            Row(
-              children: [
-                Expanded(child: _buildKpiCard('CRITICAL EMERGENCIES', '${criticalQueue.length}', AppColors.criticalRed, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildKpiCard('PENDING VERIFICATIONS', '${pendingVerifications.length}', AppColors.warningOrange, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildKpiCard('ACTIVE DISPATCH TEAMS', '12 Units', AppColors.primaryBlue, isDark)),
-              ],
-            ),
+            if (isMobile)
+              Column(
+                children: [
+                  _buildKpiCard('CRITICAL EMERGENCIES', '${criticalQueue.length}', AppColors.criticalRed, isDark),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: _buildKpiCard('PENDING REVIEWS', '${pendingVerifications.length}', AppColors.warningOrange, isDark)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildKpiCard('ACTIVE TEAMS', '12 Units', AppColors.primaryBlue, isDark)),
+                    ],
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(child: _buildKpiCard('CRITICAL EMERGENCIES', '${criticalQueue.length}', AppColors.criticalRed, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildKpiCard('PENDING VERIFICATIONS', '${pendingVerifications.length}', AppColors.warningOrange, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildKpiCard('ACTIVE DISPATCH TEAMS', '12 Units', AppColors.primaryBlue, isDark)),
+                ],
+              ),
             const SizedBox(height: 24),
 
             // Quick Actions & Navigation
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
+            if (isMobile)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.criticalRed,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     icon: const Icon(Icons.campaign),
@@ -101,37 +117,87 @@ class GovernmentCommandCentreScreen extends ConsumerWidget {
                       );
                     },
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    icon: const Icon(Icons.account_balance),
-                    label: const Text('SDRF Financial Ledger', style: TextStyle(fontWeight: FontWeight.bold)),
-                    onPressed: () => Navigator.pushNamed(context, AppRoutes.governmentFinancialTransparency),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          icon: const Icon(Icons.account_balance, size: 16),
+                          label: const Text('SDRF Ledger', style: TextStyle(fontSize: 12)),
+                          onPressed: () => Navigator.pushNamed(context, AppRoutes.governmentFinancialTransparency),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          icon: const Icon(Icons.radar, size: 16),
+                          label: const Text('Tactical Map', style: TextStyle(fontSize: 12)),
+                          onPressed: () => Navigator.pushNamed(context, AppRoutes.disasterMap),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.criticalRed,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      icon: const Icon(Icons.campaign),
+                      label: const Text('Issue Official Alert', style: TextStyle(fontWeight: FontWeight.bold)),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const GovernmentOperationsScreen()),
+                        );
+                      },
                     ),
-                    icon: const Icon(Icons.radar),
-                    label: const Text('Live Tactical Map', style: TextStyle(fontWeight: FontWeight.bold)),
-                    onPressed: () => Navigator.pushNamed(context, AppRoutes.disasterMap),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryBlue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      icon: const Icon(Icons.account_balance),
+                      label: const Text('SDRF Financial Ledger', style: TextStyle(fontWeight: FontWeight.bold)),
+                      onPressed: () => Navigator.pushNamed(context, AppRoutes.governmentFinancialTransparency),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      icon: const Icon(Icons.radar),
+                      label: const Text('Live Tactical Map', style: TextStyle(fontWeight: FontWeight.bold)),
+                      onPressed: () => Navigator.pushNamed(context, AppRoutes.disasterMap),
+                    ),
+                  ),
+                ],
+              ),
             const SizedBox(height: 24),
 
             // Live Priority Incident Queue
@@ -150,41 +216,86 @@ class GovernmentCommandCentreScreen extends ConsumerWidget {
                   for (final item in incidents) ...[
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: item.priorityScore >= 80 ? AppColors.criticalRed.withOpacity(0.12) : AppColors.primaryBlue.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              '${item.priorityScore.toStringAsFixed(0)} PTS',
-                              style: TextStyle(
-                                color: item.priorityScore >= 80 ? AppColors.criticalRed : AppColors.primaryBlue,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
+                      child: isMobile
+                          ? InkWell(
+                              onTap: () {
+                                Navigator.pushNamed(context, '${AppRoutes.citizenReports}/${item.id}');
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: item.priorityScore >= 80 ? AppColors.criticalRed.withOpacity(0.12) : AppColors.primaryBlue.withOpacity(0.12),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          '${item.priorityScore.toStringAsFixed(0)} PTS',
+                                          style: TextStyle(
+                                            color: item.priorityScore >= 80 ? AppColors.criticalRed : AppColors.primaryBlue,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text('ID: ${item.id}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                      const Spacer(),
+                                      const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    item.title,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    item.address,
+                                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            )
+                          : Row(
                               children: [
-                                Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                Text('ID: ${item.id} • ${item.address}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: item.priorityScore >= 80 ? AppColors.criticalRed.withOpacity(0.12) : AppColors.primaryBlue.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    '${item.priorityScore.toStringAsFixed(0)} PTS',
+                                    style: TextStyle(
+                                      color: item.priorityScore >= 80 ? AppColors.criticalRed : AppColors.primaryBlue,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                      Text('ID: ${item.id} • ${item.address}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                                OutlinedButton(
+                                  onPressed: () {
+                                    Navigator.pushNamed(context, '${AppRoutes.citizenReports}/${item.id}');
+                                  },
+                                  child: const Text('Review & Sanction Grant'),
+                                ),
                               ],
                             ),
-                          ),
-                          OutlinedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '${AppRoutes.citizenReports}/${item.id}');
-                            },
-                            child: const Text('Review & Sanction Grant'),
-                          ),
-                        ],
-                      ),
                     ),
                     const Divider(height: 12),
                   ],

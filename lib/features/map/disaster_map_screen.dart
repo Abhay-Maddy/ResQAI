@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../../shared/models/incident_model.dart';
+import '../../shared/models/shelter_model.dart';
 import '../../core/router/app_router.dart';
 import '../../core/layout/app_shell.dart';
 
@@ -19,18 +20,63 @@ class DisasterMapScreen extends ConsumerStatefulWidget {
 
 class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
   final MapController _mapController = MapController();
+  final TextEditingController _searchController = TextEditingController();
+
   IncidentModel? _selectedIncident;
+  ShelterModel? _selectedShelter;
+
+  // Layer switches
   bool _showShelters = true;
   bool _showHazards = true;
   bool _showRoadBlockage = true;
-  String _severityFilter = 'ALL'; // 'ALL', 'CRITICAL', 'MODERATE'
+  bool _showHospitals = true;
 
-  // Delhi Yamuna Hazard Blockage Polyline
-  final List<LatLng> _blockedRoute = const [
-    LatLng(28.6200, 77.2150),
-    LatLng(28.6250, 77.2200),
-    LatLng(28.6300, 77.2280),
+  // Filter & Search
+  String _severityFilter = 'ALL'; // 'ALL', 'CRITICAL', 'MODERATE'
+  String _searchQuery = '';
+  bool _isLegendExpanded = false;
+
+  // Real geographic coordinates: Ghaziabad / Hindon River & Yamuna Corridor
+  final LatLng _initialCenter = const LatLng(28.6480, 77.3450);
+
+  // Hindon River High Risk Polygon
+  final List<LatLng> _highRiskPolygon = const [
+    LatLng(28.7100, 77.3100),
+    LatLng(28.6900, 77.3400),
+    LatLng(28.6700, 77.3600),
+    LatLng(28.6500, 77.3500),
+    LatLng(28.6600, 77.3200),
+    LatLng(28.6900, 77.3000),
   ];
+
+  // Blocked NH-9 crossing polyline
+  final List<LatLng> _blockedRoute = const [
+    LatLng(28.6250, 77.2900),
+    LatLng(28.6350, 77.3200),
+    LatLng(28.6420, 77.3500),
+  ];
+
+  // Hospitals in Ghaziabad sector
+  final List<Map<String, dynamic>> _hospitals = const [
+    {
+      'name': 'Max Super Speciality Hospital Vaishali',
+      'point': LatLng(28.6440, 77.3350),
+      'beds': '18 ICU beds available',
+      'phone': '+91 120 418 8000',
+    },
+    {
+      'name': 'Shanti Gopal Hospital Indirapuram',
+      'point': LatLng(28.6380, 77.3700),
+      'beds': '12 Trauma beds available',
+      'phone': '+91 120 477 7000',
+    },
+  ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,28 +86,47 @@ class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 1024;
 
-    // Filter incidents by severity
+    // Filter incidents by severity and search
     final displayedIncidents = incidents.where((i) {
-      if (_severityFilter == 'CRITICAL') return i.priorityScore >= 80;
-      if (_severityFilter == 'MODERATE') return i.priorityScore >= 50 && i.priorityScore < 80;
+      if (_severityFilter == 'CRITICAL' && i.priorityScore < 80) return false;
+      if (_severityFilter == 'MODERATE' && (i.priorityScore < 50 || i.priorityScore >= 80)) return false;
+      if (_searchQuery.isNotEmpty) {
+        final q = _searchQuery.toLowerCase();
+        final match = i.title.toLowerCase().contains(q) ||
+            i.address.toLowerCase().contains(q) ||
+            i.id.toLowerCase().contains(q);
+        if (!match) return false;
+      }
+      return true;
+    }).toList();
+
+    // Filter shelters by search
+    final displayedShelters = shelters.where((s) {
+      if (_searchQuery.isNotEmpty) {
+        final q = _searchQuery.toLowerCase();
+        return s.name.toLowerCase().contains(q) || s.address.toLowerCase().contains(q);
+      }
       return true;
     }).toList();
 
     return AppShell(
       currentRoute: widget.routePath,
-      title: 'Tactical Disaster Map GIS',
-      breadcrumbs: const ['Disaster Map', 'Tactical GIS'],
+      title: 'Disaster Navigation Map',
+      breadcrumbs: const ['Disaster Map', 'Navigation'],
+      hideMobileAppBar: true,
       child: Stack(
         children: [
-          // 1. OPENSTREETMAP WORKSPACE
+          // 1. FULL-BLEED OPENSTREETMAP WORKSPACE
           Row(
             children: [
               Expanded(
                 child: FlutterMap(
                   mapController: _mapController,
-                  options: const MapOptions(
-                    initialCenter: LatLng(28.6200, 77.2150),
-                    initialZoom: 13.0,
+                  options: MapOptions(
+                    initialCenter: _initialCenter,
+                    initialZoom: 12.8,
+                    minZoom: 10.0,
+                    maxZoom: 18.0,
                   ),
                   children: [
                     TileLayer(
@@ -69,7 +134,21 @@ class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
                       userAgentPackageName: 'org.resqai.disaster',
                     ),
 
-                    // Road Hazard Blockage Line
+                    // Verified Hindon Hazard Polygon
+                    if (_showHazards)
+                      PolygonLayer(
+                        polygons: [
+                          Polygon(
+                            points: _highRiskPolygon,
+                            color: const Color(0x4AF04438),
+                            borderColor: const Color(0xCCF04438),
+                            borderStrokeWidth: 2.0,
+                            isFilled: true,
+                          ),
+                        ],
+                      ),
+
+                    // Blocked Road Hazard Line
                     if (_showRoadBlockage)
                       PolylineLayer(
                         polylines: [
@@ -85,21 +164,54 @@ class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
                     // Relief Shelters Markers
                     if (_showShelters)
                       MarkerLayer(
-                        markers: shelters.map((s) {
+                        markers: displayedShelters.map((s) {
+                          final isSelected = _selectedShelter?.id == s.id;
                           return Marker(
                             point: LatLng(s.latitude, s.longitude),
-                            width: 36,
-                            height: 36,
-                            child: Tooltip(
-                              message: 'Shelter: ${s.name}',
+                            width: isSelected ? 44 : 36,
+                            height: isSelected ? 44 : 36,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedShelter = s;
+                                  _selectedIncident = null;
+                                });
+                                if (!isDesktop) _showShelterDetailSheet(context, s);
+                              },
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.successGreen,
+                                  color: const Color(0xFF1570EF),
                                   shape: BoxShape.circle,
                                   border: Border.all(color: Colors.white, width: 2),
                                   boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
                                 ),
-                                child: const Icon(Icons.night_shelter, color: Colors.white, size: 20),
+                                child: const Icon(Icons.night_shelter, color: Colors.white, size: 19),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+
+                    // Hospital Markers
+                    if (_showHospitals)
+                      MarkerLayer(
+                        markers: _hospitals.map((h) {
+                          return Marker(
+                            point: h['point'] as LatLng,
+                            width: 34,
+                            height: 34,
+                            child: GestureDetector(
+                              onTap: () {
+                                if (!isDesktop) _showHospitalDetailSheet(context, h);
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.emergencyRed,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                                ),
+                                child: const Icon(Icons.add, color: Colors.white, size: 20),
                               ),
                             ),
                           );
@@ -115,12 +227,15 @@ class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
 
                           return Marker(
                             point: LatLng(inc.latitude, inc.longitude),
-                            width: isSelected ? 48 : 38,
-                            height: isSelected ? 48 : 38,
+                            width: isSelected ? 46 : 38,
+                            height: isSelected ? 46 : 38,
                             child: GestureDetector(
                               onTap: () {
-                                setState(() => _selectedIncident = inc);
-                                if (!isDesktop) _showMobileDetailSheet(context, inc);
+                                setState(() {
+                                  _selectedIncident = inc;
+                                  _selectedShelter = null;
+                                });
+                                if (!isDesktop) _showIncidentDetailSheet(context, inc);
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -140,7 +255,7 @@ class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
                                 child: Icon(
                                   inc.source == 'ONE_TAP_SOS' ? Icons.emergency : Icons.warning_amber_rounded,
                                   color: Colors.white,
-                                  size: isSelected ? 24 : 18,
+                                  size: isSelected ? 22 : 18,
                                 ),
                               ),
                             ),
@@ -164,71 +279,506 @@ class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
             ],
           ),
 
-          // 2. FLOATING MAP CONTROLS & FILTER BAR
+          // 2. FLOATING TOP SEARCH & FILTER BAR
           Positioned(
-            top: 16,
-            left: 16,
+            top: 14,
+            left: 14,
+            right: isDesktop ? (360 + 14) : 14,
+            child: Row(
+              children: [
+                // Back button if popped
+                if (Navigator.canPop(context))
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: AppColors.deepNavy, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                      tooltip: 'Back',
+                    ),
+                  ),
+
+                // Search Pill
+                Expanded(
+                  child: Container(
+                    height: 46,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.97),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.grey.shade300),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.search, size: 18, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: const InputDecoration(
+                              hintText: 'Search shelter, hospital, or locality...',
+                              hintStyle: TextStyle(fontSize: 12, color: Colors.black45),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              isDense: true,
+                            ),
+                            style: const TextStyle(fontSize: 13, color: Colors.black87),
+                            onChanged: (v) => setState(() => _searchQuery = v),
+                          ),
+                        ),
+                        if (_searchQuery.isNotEmpty)
+                          InkWell(
+                            onTap: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                            child: const Icon(Icons.close, size: 16, color: Colors.grey),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Layers Sheet Trigger
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.layers_outlined, color: AppColors.deepNavy, size: 20),
+                    tooltip: 'Map Layers',
+                    onPressed: () => _showLayersModal(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 3. FLOATING MAP CONTROLS (RIGHT-SIDE PILL)
+          Positioned(
+            bottom: 24,
             right: isDesktop ? (360 + 16) : 16,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.96),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildFilterChip('All Incidents', _severityFilter == 'ALL', () => setState(() => _severityFilter = 'ALL')),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Critical SOS (≥80)', _severityFilter == 'CRITICAL', () => setState(() => _severityFilter = 'CRITICAL'), color: AppColors.criticalRed),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Moderate (50-79)', _severityFilter == 'MODERATE', () => setState(() => _severityFilter = 'MODERATE'), color: AppColors.warningOrange),
-                  const SizedBox(width: 12),
-                  _buildToggleChip('Shelters', _showShelters, () => setState(() => _showShelters = !_showShelters), Icons.night_shelter),
-                  const SizedBox(width: 8),
-                  _buildToggleChip('Incident Pins', _showHazards, () => setState(() => _showHazards = !_showHazards), Icons.crisis_alert),
-                  const SizedBox(width: 8),
-                  _buildToggleChip('Road Hazards', _showRoadBlockage, () => setState(() => _showRoadBlockage = !_showRoadBlockage), Icons.warning),
+                  _buildFloatingAction(Icons.my_location, 'Locate', () {
+                    _mapController.move(_initialCenter, 14.0);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Centered to live GPS coordinates'), duration: Duration(seconds: 1)),
+                    );
+                  }),
+                  const Divider(height: 1, indent: 4, endIndent: 4),
+                  _buildFloatingAction(Icons.center_focus_strong, 'Overview', () {
+                    _mapController.move(_initialCenter, 12.8);
+                  }),
                 ],
               ),
             ),
           ),
 
-          // 3. FLOATING GEOLOCATION & RE-CENTER BUTTON
+          // 4. COLLAPSIBLE MAP LEGEND (BOTTOM-LEFT)
           Positioned(
             bottom: 24,
-            right: isDesktop ? (360 + 20) : 20,
-            child: FloatingActionButton(
-              mini: true,
-              backgroundColor: AppColors.primaryBlue,
-              foregroundColor: Colors.white,
-              tooltip: 'Re-center to GPS',
-              onPressed: () {
-                _mapController.move(const LatLng(28.6200, 77.2150), 13.0);
-              },
-              child: const Icon(Icons.my_location, size: 20),
-            ),
+            left: 14,
+            child: _buildCollapsibleLegend(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap, {Color? color}) {
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      selectedColor: (color ?? AppColors.primaryBlue).withOpacity(0.2),
-      labelStyle: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        color: isSelected ? (color ?? AppColors.primaryBlue) : Colors.black87,
+  Widget _buildFloatingAction(IconData icon, String tooltip, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Icon(icon, size: 20, color: AppColors.deepNavy),
       ),
-      onSelected: (_) => onTap(),
     );
   }
 
-  Widget _buildToggleChip(String label, bool isEnabled, VoidCallback onTap, IconData icon) {
-    return ActionChip(
-      avatar: Icon(icon, size: 14, color: isEnabled ? AppColors.primaryBlue : Colors.grey),
-      label: Text(label),
-      labelStyle: TextStyle(fontSize: 12, fontWeight: isEnabled ? FontWeight.bold : FontWeight.normal),
-      onPressed: onTap,
+  // COLLAPSIBLE LEGEND
+  Widget _buildCollapsibleLegend() {
+    if (!_isLegendExpanded) {
+      return InkWell(
+        onTap: () => setState(() => _isLegendExpanded = true),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.92),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.layers, size: 13, color: AppColors.primaryBlue),
+              SizedBox(width: 5),
+              Text(
+                'Legend ▾',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.deepNavy),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.96),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Map Legend', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.deepNavy)),
+              const SizedBox(width: 14),
+              InkWell(
+                onTap: () => setState(() => _isLegendExpanded = false),
+                child: const Icon(Icons.close, size: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          _buildLegendRow(const Color(0xFFF04438), 'High Flood Risk', isBox: true),
+          _buildLegendRow(const Color(0xFF1570EF), 'Relief Shelter', icon: Icons.night_shelter),
+          _buildLegendRow(AppColors.emergencyRed, 'Hospital', icon: Icons.add),
+          _buildLegendRow(const Color(0xFFD92D20), 'Blocked Route', isDashed: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegendRow(Color color, String text, {bool isBox = false, bool isDashed = false, IconData? icon}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isBox)
+            Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)))
+          else if (isDashed)
+            Row(
+              children: [
+                Container(width: 4, height: 2, color: color),
+                const SizedBox(width: 2),
+                Container(width: 4, height: 2, color: color),
+              ],
+            )
+          else if (icon != null)
+            Icon(icon, size: 12, color: color)
+          else
+            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          const SizedBox(width: 6),
+          Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black87)),
+        ],
+      ),
+    );
+  }
+
+  void _showLayersModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Tactical Map Layers & Filters', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                SwitchListTile(
+                  title: const Text('Flood Hazard Risk Zones'),
+                  value: _showHazards,
+                  onChanged: (v) {
+                    setState(() => _showHazards = v);
+                    setModalState(() {});
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('Relief Shelters'),
+                  value: _showShelters,
+                  onChanged: (v) {
+                    setState(() => _showShelters = v);
+                    setModalState(() {});
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('Hospitals & Trauma Centers'),
+                  value: _showHospitals,
+                  onChanged: (v) {
+                    setState(() => _showHospitals = v);
+                    setModalState(() {});
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('Blocked Road Hazards'),
+                  value: _showRoadBlockage,
+                  onChanged: (v) {
+                    setState(() => _showRoadBlockage = v);
+                    setModalState(() {});
+                  },
+                ),
+                const Divider(),
+                const Text('Severity Filter', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    ChoiceChip(
+                      label: const Text('All'),
+                      selected: _severityFilter == 'ALL',
+                      onSelected: (v) {
+                        setState(() => _severityFilter = 'ALL');
+                        setModalState(() {});
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Critical (≥80)'),
+                      selected: _severityFilter == 'CRITICAL',
+                      selectedColor: AppColors.criticalRed.withOpacity(0.2),
+                      onSelected: (v) {
+                        setState(() => _severityFilter = 'CRITICAL');
+                        setModalState(() {});
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Moderate (50-79)'),
+                      selected: _severityFilter == 'MODERATE',
+                      selectedColor: AppColors.warningOrange.withOpacity(0.2),
+                      onSelected: (v) {
+                        setState(() => _severityFilter = 'MODERATE');
+                        setModalState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showIncidentDetailSheet(BuildContext context, IncidentModel incident) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: incident.priorityScore >= 80 ? AppColors.criticalRed.withOpacity(0.12) : AppColors.warningOrange.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'PRIORITY: ${incident.priorityScore.toStringAsFixed(0)}/100',
+                        style: TextStyle(
+                          color: incident.priorityScore >= 80 ? AppColors.criticalRed : AppColors.warningOrange,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                    Text('ID: ${incident.id}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(incident.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 4),
+                Text('Location: ${incident.address}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                const SizedBox(height: 10),
+                Text(incident.descriptionOriginal, style: const TextStyle(fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 44),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pushNamed(context, '${AppRoutes.citizenReports}/${incident.id}');
+                  },
+                  child: const Text('Open Case Details & Verification'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showShelterDetailSheet(BuildContext context, ShelterModel shelter) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.successGreen.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text('VERIFIED SHELTER', style: TextStyle(color: AppColors.successGreen, fontWeight: FontWeight.bold, fontSize: 10)),
+                    ),
+                    Text('Available: ${shelter.remainingBeds}/${shelter.totalCapacity} Beds', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(shelter.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 4),
+                Text(shelter.address, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        icon: const Icon(Icons.navigation, size: 16),
+                        label: const Text('Get Directions'),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Route mapped to ${shelter.name}')),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Navigator.pushNamed(context, AppRoutes.citizenShelters);
+                        },
+                        child: const Text('Shelter Directory'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showHospitalDetailSheet(BuildContext context, Map<String, dynamic> hospital) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.emergencyRed.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text('TRAUMA & EMERGENCY HOSPITAL', style: TextStyle(color: AppColors.emergencyRed, fontWeight: FontWeight.bold, fontSize: 10)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(hospital['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 4),
+                Text(hospital['beds'] as String, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.successGreen)),
+                const SizedBox(height: 4),
+                Text('Emergency Contact: ${hospital['phone']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.emergencyRed,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 44),
+                  ),
+                  icon: const Icon(Icons.phone, size: 16),
+                  label: const Text('Call Emergency Department'),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Dialing ${hospital['phone']}...')),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -236,7 +786,6 @@ class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Panel Header
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -253,8 +802,6 @@ class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
             ],
           ),
         ),
-
-        // Panel Content
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(18),
@@ -323,38 +870,6 @@ class _DisasterMapScreenState extends ConsumerState<DisasterMapScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  void _showMobileDetailSheet(BuildContext context, IncidentModel incident) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(incident.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 6),
-              Text('Location: ${incident.address}', style: const TextStyle(fontSize: 12)),
-              const SizedBox(height: 12),
-              Text('Priority Score: ${incident.priorityScore.toStringAsFixed(0)}/100', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.criticalRed)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 44)),
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '${AppRoutes.citizenReports}/${incident.id}');
-                },
-                child: const Text('View Full Case & Verification'),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

@@ -70,15 +70,30 @@ class VolunteerDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 22),
 
             // Service Hours & Missions Stats
-            Row(
-              children: [
-                Expanded(child: _buildStatCard('ACCEPTED TASKS', '${acceptedTasks.length}', AppColors.primaryBlue, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildStatCard('COMPLETED MISSIONS', '${completedTasks.length}', AppColors.successGreen, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildStatCard('SERVICE HOURS', '${completedTasks.length * 4 + 12} hrs', Colors.purple, isDark)),
-              ],
-            ),
+            if (isMobile)
+              Column(
+                children: [
+                  _buildStatCard('ACCEPTED TASKS', '${acceptedTasks.length}', AppColors.primaryBlue, isDark),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: _buildStatCard('COMPLETED', '${completedTasks.length}', AppColors.successGreen, isDark)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildStatCard('SERVICE HOURS', '${completedTasks.length * 4 + 12} hrs', Colors.purple, isDark)),
+                    ],
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(child: _buildStatCard('ACCEPTED TASKS', '${acceptedTasks.length}', AppColors.primaryBlue, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildStatCard('COMPLETED MISSIONS', '${completedTasks.length}', AppColors.successGreen, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildStatCard('SERVICE HOURS', '${completedTasks.length * 4 + 12} hrs', Colors.purple, isDark)),
+                ],
+              ),
             const SizedBox(height: 24),
 
             // Next Immediate Assignment Card
@@ -98,7 +113,12 @@ class VolunteerDashboardScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(acceptedTasks.first.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        Expanded(
+                          child: Text(
+                            acceptedTasks.first.title,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                        ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(color: AppColors.primaryBlue.withOpacity(0.12), borderRadius: BorderRadius.circular(4)),
@@ -109,15 +129,15 @@ class VolunteerDashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Text('Location: ${acceptedTasks.first.location}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                     const SizedBox(height: 14),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
                       children: [
                         OutlinedButton.icon(
                           icon: const Icon(Icons.navigation, size: 16),
                           label: const Text('Navigate Route'),
                           onPressed: () => Navigator.pushNamed(context, AppRoutes.disasterMap),
                         ),
-                        const SizedBox(width: 10),
                         ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(backgroundColor: AppColors.successGreen, foregroundColor: Colors.white),
                           icon: const Icon(Icons.check, size: 16),
