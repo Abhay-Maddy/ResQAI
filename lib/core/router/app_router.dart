@@ -8,6 +8,11 @@ import '../../features/citizen/citizen_new_report_screen.dart';
 import '../../features/citizen/citizen_report_detail_screen.dart';
 import '../../features/citizen/citizen_shelters_screen.dart';
 import '../../features/citizen/citizen_alerts_screen.dart';
+import '../../features/citizen/citizen_campaigns_screen.dart';
+import '../../features/citizen/citizen_donations_screen.dart';
+import '../../features/citizen/citizen_help_screen.dart';
+import '../../features/citizen/citizen_help_request_screen.dart';
+import '../../features/citizen/citizen_missing_person_screen.dart';
 import '../../features/map/disaster_map_screen.dart';
 import '../../features/transparency/transparency_overview_screen.dart';
 import '../../features/transparency/transparency_organizations_screen.dart';
@@ -30,6 +35,7 @@ import '../../features/government/government_operations_screen.dart';
 import '../../features/medical/medical_dashboard_screen.dart';
 import '../../features/rescue/responder_dashboard_screen.dart';
 import '../../features/preparedness/preparedness_screen.dart';
+import '../../features/profile/user_profile_screen.dart';
 
 class AppRoutes {
   // Public
@@ -46,6 +52,9 @@ class AppRoutes {
 
   // Citizen
   static const String citizenDashboard = '/citizen/dashboard';
+  static const String citizenHelp = '/citizen/help';
+  static const String citizenHelpRequest = '/citizen/help/request';
+  static const String citizenMissingPerson = '/citizen/missing-person';
   static const String citizenMap = '/citizen/map';
   static const String citizenAlerts = '/citizen/alerts';
   static const String citizenSos = '/citizen/sos';
@@ -57,6 +66,8 @@ class AppRoutes {
   static const String citizenNotifications = '/citizen/notifications';
   static const String citizenProfile = '/citizen/profile';
   static const String citizenEmergencyContacts = '/citizen/emergency-contacts';
+  static const String citizenDonate = '/citizen/donate';
+  static const String citizenDonations = '/citizen/donations';
 
   // NGO
   static const String ngoDashboard = '/ngo/dashboard';
@@ -186,6 +197,15 @@ class AppRouter {
       case AppRoutes.citizenDashboard:
         page = const CitizenDashboardScreen();
         break;
+      case AppRoutes.citizenHelp:
+        page = const CitizenHelpScreen();
+        break;
+      case AppRoutes.citizenHelpRequest:
+        page = const CitizenHelpRequestScreen();
+        break;
+      case AppRoutes.citizenMissingPerson:
+        page = const CitizenMissingPersonScreen();
+        break;
       case AppRoutes.citizenSos:
         page = const CitizenSosScreen();
         break;
@@ -205,7 +225,13 @@ class AppRouter {
         break;
       case AppRoutes.citizenProfile:
       case AppRoutes.citizenEmergencyContacts:
-        page = const CitizenDashboardScreen();
+        page = const UserProfileScreen();
+        break;
+      case AppRoutes.citizenDonate:
+        page = const CitizenCampaignsScreen();
+        break;
+      case AppRoutes.citizenDonations:
+        page = const CitizenDonationsScreen();
         break;
 
       // NGO
@@ -229,11 +255,13 @@ class AppRouter {
       // Volunteer
       case AppRoutes.volunteerDashboard:
       case AppRoutes.volunteerHistory:
-      case AppRoutes.volunteerProfile:
       case AppRoutes.volunteerAvailability:
       case AppRoutes.volunteerTraining:
       case AppRoutes.volunteerDonations:
         page = const VolunteerDashboardScreen();
+        break;
+      case AppRoutes.volunteerProfile:
+        page = const UserProfileScreen();
         break;
       case AppRoutes.volunteerOpportunities:
       case AppRoutes.volunteerTasks:

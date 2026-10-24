@@ -61,6 +61,60 @@ class IncidentsNotifier extends StateNotifier<List<IncidentModel>> {
     }).toList();
   }
 
+  void recordAssistanceSanction(
+    String id, {
+    required double amount,
+    required String category,
+    required String reviewerName,
+    required String reviewerId,
+  }) {
+    state = state.map((item) {
+      if (item.id == id) {
+        final timestamp = DateTime.now().toIso8601String().substring(0, 16);
+        final log = '$timestamp: Statutory Relief Sanction of ₹${amount.toStringAsFixed(0)} approved under $category by $reviewerName (ID: $reviewerId).';
+        return item.copyWith(
+          governmentAssistanceApproved: true,
+          sanctionedAmountInr: amount,
+          reliefAssistanceCategory: category,
+          assistanceDeliveryStatus: 'SANCTIONED',
+          verificationHistory: [log, ...item.verificationHistory],
+        );
+      }
+      return item;
+    }).toList();
+  }
+
+  void recordAssistanceDisbursal(String id, double amount, {required String bankRef}) {
+    state = state.map((item) {
+      if (item.id == id) {
+        final timestamp = DateTime.now().toIso8601String().substring(0, 16);
+        final log = '$timestamp: Gratuitous relief benefit of ₹${amount.toStringAsFixed(0)} directly transferred via DBT to citizen account (Bank Ref: $bankRef).';
+        return item.copyWith(
+          assistanceDeliveredInr: amount,
+          assistanceDeliveryStatus: 'DISBURSED',
+          verificationHistory: [log, ...item.verificationHistory],
+        );
+      }
+      return item;
+    }).toList();
+  }
+
+  void recordAssistanceRejection(String id, {required String reason, required String reviewerName}) {
+    state = state.map((item) {
+      if (item.id == id) {
+        final timestamp = DateTime.now().toIso8601String().substring(0, 16);
+        final log = '$timestamp: Relief claim reviewed and not sanctioned. Reason: $reason by $reviewerName.';
+        return item.copyWith(
+          governmentAssistanceApproved: false,
+          assistanceDeliveryStatus: 'REJECTED',
+          assistanceRejectionReason: reason,
+          verificationHistory: [log, ...item.verificationHistory],
+        );
+      }
+      return item;
+    }).toList();
+  }
+
   void reopenIncident(String id, String reason, String requesterName) {
     state = state.map((item) {
       if (item.id == id) {

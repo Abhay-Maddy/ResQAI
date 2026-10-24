@@ -60,7 +60,9 @@ enum IncidentCategory {
   fire('Fire / Chemical Hazard', 0.9),
   landslide('Landslide / Road Blockage', 0.8),
   medical('Medical Emergency', 0.95),
-  foodWater('Food & Drinking Water Shortage', 0.7);
+  foodWater('Food & Drinking Water Shortage', 0.7),
+  missingPerson('Missing Person / Family Tracing', 0.95),
+  other('Other Disaster Emergency', 0.75);
 
   final String label;
   final double baseWeight;

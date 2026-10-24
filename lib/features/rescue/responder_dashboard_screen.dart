@@ -54,15 +54,30 @@ class ResponderDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 22),
 
             // Missions Status
-            Row(
-              children: [
-                Expanded(child: _buildMetricCard('ACTIVE MISSIONS', '${activeMissions.length}', AppColors.criticalRed, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildMetricCard('SURVIVORS RESCUED', '38 Persons', AppColors.successGreen, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildMetricCard('RESOLVED CALLS', '${resolvedMissions.length}', AppColors.primaryBlue, isDark)),
-              ],
-            ),
+            if (isMobile)
+              Column(
+                children: [
+                  _buildMetricCard('ACTIVE MISSIONS', '${activeMissions.length}', AppColors.criticalRed, isDark),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: _buildMetricCard('SURVIVORS RESCUED', '38 Persons', AppColors.successGreen, isDark)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildMetricCard('RESOLVED CALLS', '${resolvedMissions.length}', AppColors.primaryBlue, isDark)),
+                    ],
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(child: _buildMetricCard('ACTIVE MISSIONS', '${activeMissions.length}', AppColors.criticalRed, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildMetricCard('SURVIVORS RESCUED', '38 Persons', AppColors.successGreen, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildMetricCard('RESOLVED CALLS', '${resolvedMissions.length}', AppColors.primaryBlue, isDark)),
+                ],
+              ),
             const SizedBox(height: 24),
 
             // Active Missions Queue
@@ -81,37 +96,74 @@ class ResponderDashboardScreen extends ConsumerWidget {
                   for (final item in missions) ...[
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.criticalRed.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              item.stage.name.toUpperCase(),
-                              style: const TextStyle(color: AppColors.criticalRed, fontWeight: FontWeight.bold, fontSize: 10),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
+                      child: isMobile
+                          ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.criticalRed.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        item.stage.name.toUpperCase(),
+                                        style: const TextStyle(color: AppColors.criticalRed, fontWeight: FontWeight.bold, fontSize: 10),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
                                 Text('Location: ${item.location} • Stranded: ${item.strandedVictimsCount} persons', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
+                                    icon: const Icon(Icons.navigation, size: 14),
+                                    label: const Text('Open Mission Map'),
+                                    onPressed: () => Navigator.pushNamed(context, AppRoutes.disasterMap),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.criticalRed.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    item.stage.name.toUpperCase(),
+                                    style: const TextStyle(color: AppColors.criticalRed, fontWeight: FontWeight.bold, fontSize: 10),
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                      Text('Location: ${item.location} • Stranded: ${item.strandedVictimsCount} persons', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
+                                  icon: const Icon(Icons.navigation, size: 14),
+                                  label: const Text('Open Mission Map'),
+                                  onPressed: () => Navigator.pushNamed(context, AppRoutes.disasterMap),
+                                ),
                               ],
                             ),
-                          ),
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
-                            icon: const Icon(Icons.navigation, size: 14),
-                            label: const Text('Open Mission Map'),
-                            onPressed: () => Navigator.pushNamed(context, AppRoutes.disasterMap),
-                          ),
-                        ],
-                      ),
                     ),
                     const Divider(height: 12),
                   ],

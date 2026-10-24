@@ -6,6 +6,7 @@ import '../utils/i18n.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../router/app_router.dart';
+import '../../features/profile/user_profile_screen.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -126,7 +127,30 @@ class _AppShellState extends ConsumerState<AppShell> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 InkWell(
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.home),
+                  onTap: () {
+                    switch (activeRole) {
+                      case UserRole.citizen:
+                        Navigator.pushNamed(context, AppRoutes.citizenDashboard);
+                        break;
+                      case UserRole.volunteer:
+                        Navigator.pushNamed(context, AppRoutes.volunteerDashboard);
+                        break;
+                      case UserRole.ngoLead:
+                        Navigator.pushNamed(context, AppRoutes.ngoDashboard);
+                        break;
+                      case UserRole.govtOfficial:
+                        Navigator.pushNamed(context, AppRoutes.governmentCommandCentre);
+                        break;
+                      case UserRole.rescueTeam:
+                        Navigator.pushNamed(context, AppRoutes.responderDashboard);
+                        break;
+                      case UserRole.doctor:
+                        Navigator.pushNamed(context, AppRoutes.medicalDashboard);
+                        break;
+                      default:
+                        Navigator.pushNamed(context, AppRoutes.home);
+                    }
+                  },
                   borderRadius: BorderRadius.circular(8),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -262,10 +286,26 @@ class _AppShellState extends ConsumerState<AppShell> {
                     tooltip: 'Sign In',
                     onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
                   )
-                : TextButton.icon(
-                    icon: const Icon(Icons.login, size: 16),
-                    label: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton.icon(
+                        icon: const Icon(Icons.login, size: 16),
+                        label: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
+                      ),
+                      const SizedBox(width: 4),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
+                        child: const Text('Register', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      ),
+                    ],
                   ),
           )
         else
@@ -299,20 +339,77 @@ class _AppShellState extends ConsumerState<AppShell> {
                 PopupMenuItem(
                   value: 'profile',
                   child: const ListTile(
-                    leading: Icon(Icons.person, size: 18),
-                    title: Text('My Profile', style: TextStyle(fontSize: 13)),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: Icon(Icons.person, size: 18, color: AppColors.primaryBlue),
+                    title: Text('My Profile', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                   ),
                   onTap: () => Navigator.pushNamed(context, AppRoutes.citizenProfile),
                 ),
                 PopupMenuItem(
+                  value: 'settings',
+                  child: const ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: Icon(Icons.settings, size: 18, color: Colors.grey),
+                    title: Text('Account Settings', style: TextStyle(fontSize: 13)),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const UserProfileScreen(initialTabIndex: 1)),
+                    );
+                  },
+                ),
+                PopupMenuItem(
+                  value: 'notifications',
+                  child: const ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: Icon(Icons.notifications_active, size: 18, color: AppColors.warningOrange),
+                    title: Text('Notification Preferences', style: TextStyle(fontSize: 13)),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const UserProfileScreen(initialTabIndex: 2)),
+                    );
+                  },
+                ),
+                PopupMenuItem(
+                  value: 'help',
+                  child: const ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: Icon(Icons.help_outline, size: 18, color: AppColors.infoBlue),
+                    title: Text('Help & Helplines', style: TextStyle(fontSize: 13)),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const UserProfileScreen(initialTabIndex: 4)),
+                    );
+                  },
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
                   value: 'logout',
                   child: const ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
                     leading: Icon(Icons.logout, size: 18, color: AppColors.emergencyRed),
-                    title: Text('Sign Out', style: TextStyle(fontSize: 13, color: AppColors.emergencyRed)),
+                    title: Text('Sign Out', style: TextStyle(fontSize: 13, color: AppColors.emergencyRed, fontWeight: FontWeight.bold)),
                   ),
                   onTap: () {
                     ref.read(authProvider.notifier).logout();
-                    Navigator.pushReplacementNamed(context, AppRoutes.home);
+                    ref.read(activeRoleProvider.notifier).state = UserRole.citizen;
+                    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: AppColors.primaryBlue,
+                        content: Text('✓ Signed out successfully. Session ended.'),
+                      ),
+                    );
                   },
                 ),
               ],
@@ -649,13 +746,17 @@ class _AppShellState extends ConsumerState<AppShell> {
       case UserRole.citizen:
         return [
           _NavItem('Dashboard', Icons.dashboard_outlined, AppRoutes.citizenDashboard, 'Home'),
+          _NavItem('Disaster Help Hub', Icons.support_agent_outlined, AppRoutes.citizenHelp, 'Emergency'),
+          _NavItem('Emergency SOS', Icons.emergency, AppRoutes.citizenSos, 'Emergency'),
+          _NavItem('Request Humanitarian Aid', Icons.volunteer_activism_outlined, AppRoutes.citizenHelpRequest, 'Emergency'),
+          _NavItem('Report Missing Person', Icons.person_search_outlined, AppRoutes.citizenMissingPerson, 'Emergency'),
           _NavItem('Live Disaster Map', Icons.map_outlined, AppRoutes.citizenMap, 'Navigation'),
           _NavItem('Emergency Alerts', Icons.campaign_outlined, AppRoutes.citizenAlerts, 'Navigation', badgeCount: 2),
-          _NavItem('Emergency SOS', Icons.emergency, AppRoutes.citizenSos, 'Emergency'),
-          _NavItem('My Reports', Icons.assignment_outlined, AppRoutes.citizenReports, 'Reports'),
-          _NavItem('File Damage Claim', Icons.add_circle_outline, AppRoutes.citizenNewReport, 'Reports'),
-          _NavItem('Assistance Status', Icons.handshake_outlined, AppRoutes.citizenAssistance, 'Assistance'),
+          _NavItem('My Requests & Claims', Icons.assignment_outlined, AppRoutes.citizenReports, 'Reports'),
+          _NavItem('File Damage Report', Icons.add_circle_outline, AppRoutes.citizenNewReport, 'Reports'),
           _NavItem('Nearby Shelters', Icons.night_shelter_outlined, AppRoutes.citizenShelters, 'Assistance'),
+          _NavItem('Donate Relief', Icons.favorite_outline, AppRoutes.citizenDonate, 'Giving'),
+          _NavItem('Donation History', Icons.receipt_long_outlined, AppRoutes.citizenDonations, 'Giving'),
           _NavItem('Emergency Contacts', Icons.contact_phone_outlined, AppRoutes.citizenEmergencyContacts, 'Profile'),
           _NavItem('Citizen Profile', Icons.person_outline, AppRoutes.citizenProfile, 'Profile'),
         ];
@@ -716,8 +817,9 @@ class _AppShellState extends ConsumerState<AppShell> {
       case UserRole.citizen:
         return [
           _NavItem('Home', Icons.home, AppRoutes.citizenDashboard, ''),
-          _NavItem('Map', Icons.map_outlined, AppRoutes.citizenMap, ''),
-          _NavItem('Help', Icons.add_box_rounded, AppRoutes.citizenSos, ''),
+          _NavItem('Help Hub', Icons.support_agent_outlined, AppRoutes.citizenHelp, ''),
+          _NavItem('SOS', Icons.emergency, AppRoutes.citizenSos, ''),
+          _NavItem('Requests', Icons.assignment_outlined, AppRoutes.citizenReports, ''),
           _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
         ];
       case UserRole.volunteer:

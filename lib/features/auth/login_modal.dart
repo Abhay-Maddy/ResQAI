@@ -7,6 +7,7 @@ import '../../data/repositories/incident_repository.dart';
 import '../../shared/models/user_model.dart';
 import '../../app.dart';
 import 'admin_verification_modal.dart';
+import '../../core/router/app_router.dart';
 
 class LoginModal extends ConsumerStatefulWidget {
   const LoginModal({super.key});
@@ -92,6 +93,34 @@ class _LoginModalState extends ConsumerState<LoginModal> with SingleTickerProvid
     super.dispose();
   }
 
+  void _navigateToDashboard(UserRole role) {
+    switch (role) {
+      case UserRole.citizen:
+        Navigator.pushReplacementNamed(context, AppRoutes.citizenDashboard);
+        break;
+      case UserRole.volunteer:
+        Navigator.pushReplacementNamed(context, AppRoutes.volunteerDashboard);
+        break;
+      case UserRole.ngoLead:
+      case UserRole.reliefStaff:
+        Navigator.pushReplacementNamed(context, AppRoutes.ngoDashboard);
+        break;
+      case UserRole.govtOfficial:
+      case UserRole.incidentCommander:
+      case UserRole.admin:
+      case UserRole.analyst:
+        Navigator.pushReplacementNamed(context, AppRoutes.governmentCommandCentre);
+        break;
+      case UserRole.fieldResponder:
+      case UserRole.rescueTeam:
+        Navigator.pushReplacementNamed(context, AppRoutes.responderDashboard);
+        break;
+      case UserRole.doctor:
+        Navigator.pushReplacementNamed(context, AppRoutes.medicalDashboard);
+        break;
+    }
+  }
+
   void _loginAsPreset(UserModel user) {
     ref.read(authProvider.notifier).loginAs(user);
     ref.read(activeRoleProvider.notifier).state = user.role;
@@ -103,6 +132,7 @@ class _LoginModalState extends ConsumerState<LoginModal> with SingleTickerProvid
       ref.read(currentTabProvider.notifier).state = MainNavigationTab.roleDashboard;
     }
     Navigator.of(context).pop();
+    _navigateToDashboard(user.role);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: AppColors.verifiedGreen,
@@ -139,6 +169,7 @@ class _LoginModalState extends ConsumerState<LoginModal> with SingleTickerProvid
       ref.read(currentTabProvider.notifier).state = MainNavigationTab.roleDashboard;
     }
     Navigator.of(context).pop();
+    _navigateToDashboard(customUser.role);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: AppColors.verifiedGreen,
@@ -361,7 +392,10 @@ class _LoginModalState extends ConsumerState<LoginModal> with SingleTickerProvid
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.verifiedGreen),
             child: const Text('Enter Citizen Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _navigateToDashboard(user.role);
+            },
           ),
         ],
       ),
@@ -428,7 +462,10 @@ class _LoginModalState extends ConsumerState<LoginModal> with SingleTickerProvid
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Proceed to Restricted Console', style: TextStyle(color: Colors.white)),
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _navigateToDashboard(user.role);
+            },
           ),
         ],
       ),
@@ -557,9 +594,13 @@ class _LoginModalState extends ConsumerState<LoginModal> with SingleTickerProvid
                         label: const Text('Logout', style: TextStyle(fontSize: 11)),
                         onPressed: () {
                           ref.read(authProvider.notifier).logout();
-                          Navigator.of(context).pop();
+                          ref.read(activeRoleProvider.notifier).state = UserRole.citizen;
+                          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Logged out. Session cleared.')),
+                            const SnackBar(
+                              backgroundColor: AppColors.primaryBlue,
+                              content: Text('✓ Successfully logged out. Session ended.'),
+                            ),
                           );
                         },
                       ),

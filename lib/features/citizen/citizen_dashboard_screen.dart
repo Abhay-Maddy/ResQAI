@@ -34,6 +34,7 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
   bool _showHospitals = true;
   bool _showRescueTeams = true;
   bool _showRoadBlockage = true;
+  bool _isLegendExpanded = false;
 
   // Double-tap SOS state
   late AnimationController _pulseController;
@@ -43,7 +44,7 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
   Timer? _countdownTimer;
   bool _isSubmittingSos = false;
 
-  // Ghaziabad / Hindon River High Risk Polygon
+  // High Risk Polygons
   final List<LatLng> _highRiskPolygon = const [
     LatLng(28.7100, 77.3100),
     LatLng(28.6900, 77.3400),
@@ -53,7 +54,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     LatLng(28.6900, 77.3000),
   ];
 
-  // Kaushambi & Vaishali Lowland Polygon
   final List<LatLng> _kaushambiFloodPolygon = const [
     LatLng(28.6400, 77.3100),
     LatLng(28.6450, 77.3400),
@@ -62,7 +62,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     LatLng(28.6250, 77.3050),
   ];
 
-  // Moderate Risk Polygon
   final List<LatLng> _moderateRiskPolygon = const [
     LatLng(28.6480, 77.3400),
     LatLng(28.6600, 77.3800),
@@ -70,7 +69,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     LatLng(28.6250, 77.3500),
   ];
 
-  // Safe Zone Polygon (Vasundhara Plateau)
   final List<LatLng> _safeZonePolygon = const [
     LatLng(28.6650, 77.3550),
     LatLng(28.6800, 77.3750),
@@ -78,14 +76,12 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     LatLng(28.6550, 77.3750),
   ];
 
-  // Blocked Road (NH-9 Crossing)
   final List<LatLng> _blockedRoad = const [
     LatLng(28.6250, 77.2900),
     LatLng(28.6350, 77.3200),
     LatLng(28.6420, 77.3500),
   ];
 
-  // Static emergency facilities in Ghaziabad region
   final List<Map<String, dynamic>> _hospitals = const [
     {
       'name': 'Max Super Speciality Hospital Vaishali',
@@ -146,7 +142,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     if (_isSubmittingSos) return;
 
     if (!_isArmed) {
-      // First tap: Arm the SOS with 5-second countdown window
       setState(() {
         _isArmed = true;
         _remainingSeconds = 5;
@@ -180,7 +175,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
             _remainingSeconds--;
           });
         } else {
-          // Window expired without 2nd tap: safe automatic disarm
           timer.cancel();
           setState(() {
             _isArmed = false;
@@ -189,7 +183,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
         }
       });
     } else {
-      // Second tap: Confirmed emergency submission!
       _countdownTimer?.cancel();
       _submitSos();
     }
@@ -203,14 +196,15 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
 
     final randomId = 'RQ-SOS-${Random().nextInt(9000) + 1000}';
 
-    // Persist incident in Riverpod state & backend
     try {
       ref.read(incidentsProvider.notifier).addIncident(
             IncidentModel(
               id: randomId,
               title: 'Critical Emergency SOS Transmitted by Citizen',
-              descriptionOriginal: '1-Tap Double Confirmed Emergency SOS. Citizen requesting immediate rescue and evacuation.',
-              descriptionTranslated: '1-Tap Double Confirmed Emergency SOS. Citizen requesting immediate rescue and evacuation.',
+              descriptionOriginal:
+                  'Double Confirmed Emergency SOS. Citizen requesting immediate rescue, evacuation, and medical triage.',
+              descriptionTranslated:
+                  'Double Confirmed Emergency SOS. Citizen requesting immediate rescue, evacuation, and medical triage.',
               category: IncidentCategory.flood,
               latitude: _mapCenter.latitude,
               longitude: _mapCenter.longitude,
@@ -232,7 +226,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
       _isSubmittingSos = false;
     });
 
-    // Show honest emergency request tracking dialog
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -272,7 +265,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Incident Reference:', style: TextStyle(fontSize: 12, color: Colors.black54)),
-                  Text(randomId, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.deepNavy)),
+                  Text(randomId,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.deepNavy)),
                 ],
               ),
             ),
@@ -335,8 +329,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-  bool _isLegendExpanded = false;
-
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(authProvider);
@@ -346,11 +338,9 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
 
-    final myReports = incidents.take(3).toList();
-
     return AppShell(
       currentRoute: AppRoutes.citizenDashboard,
-      title: 'Citizen Emergency Portal',
+      title: 'Citizen Disaster Hub',
       breadcrumbs: const ['Citizen', 'Dashboard'],
       hideMobileAppBar: true,
       child: SingleChildScrollView(
@@ -358,326 +348,366 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
           horizontal: isMobile ? 12 : 28,
           vertical: isMobile ? 8 : 20,
         ),
-        child: isMobile
-            ? _buildMobileLayout(context, currentUser, shelters, myReports, isDark)
-            : _buildDesktopLayout(context, currentUser, shelters, myReports, isDark),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 1. Personalized Greeting, Citizen Profile & Location Bar
+            _buildGreetingLocationBar(context, currentUser, isDark, isMobile),
+            const SizedBox(height: 12),
+
+            // 2. Active Official Disaster Alerts for the Region
+            _buildOfficialAlertBanner(context, isDark),
+            const SizedBox(height: 14),
+
+            // 3. Responsive Layout: Map & SOS + Immediate Action Matrix
+            if (isMobile) ...[
+              _buildDisasterMapCard(context, shelters, isDark, height: 420),
+              const SizedBox(height: 16),
+              _buildPrimaryActionsGrid(context, isDark),
+              const SizedBox(height: 16),
+              _buildSecondaryServicesRow(context, isDark),
+              const SizedBox(height: 16),
+              _buildMyRequestsSummarySection(context, incidents, isDark),
+              const SizedBox(height: 16),
+              _buildAssistanceHistoryCard(context, isDark),
+              const SizedBox(height: 16),
+              _buildCampaignsAndTransparencyCard(context, isDark),
+              const SizedBox(height: 20),
+            ] else ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left 7 Cols: Tactical Map with Circular SOS + Primary Actions
+                  Expanded(
+                    flex: 7,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildDisasterMapCard(context, shelters, isDark, height: 500),
+                        const SizedBox(height: 18),
+                        _buildPrimaryActionsGrid(context, isDark),
+                        const SizedBox(height: 18),
+                        _buildSecondaryServicesRow(context, isDark),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+
+                  // Right 5 Cols: Requests Tracking, Assistance History & Giving
+                  Expanded(
+                    flex: 5,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildMyRequestsSummarySection(context, incidents, isDark),
+                        const SizedBox(height: 18),
+                        _buildAssistanceHistoryCard(context, isDark),
+                        const SizedBox(height: 18),
+                        _buildNearbySheltersPreview(context, shelters, isDark),
+                        const SizedBox(height: 18),
+                        _buildCampaignsAndTransparencyCard(context, isDark),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  // MOBILE VERTICAL LAYOUT (EXACTLY MATCHING SMARTPHONE MOCKUP & DESIGN PRINCIPLES)
-  Widget _buildMobileLayout(
-    BuildContext context,
-    dynamic currentUser,
-    List<ShelterModel> shelters,
-    List<IncidentModel> myReports,
-    bool isDark,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // 1. UNIFIED COMPACT BRAND & LOCATION HEADER (NO STACKED BANNERS)
-        _buildMobileHeader(context, currentUser, isDark),
-        const SizedBox(height: 10),
+  // 1. GREETING & LOCATION BAR
+  Widget _buildGreetingLocationBar(BuildContext context, dynamic currentUser, bool isDark, bool isMobile) {
+    final userName = (currentUser != null && currentUser.name.isNotEmpty)
+        ? currentUser.name
+        : 'Citizen';
 
-        // 2. LARGE REALISTIC DISASTER MAP WITH INTEGRATED CIRCULAR SOS
-        _buildDisasterMapCard(context, shelters, isDark, height: 450),
-        const SizedBox(height: 14),
-
-        // 3. ACTION SHORTCUTS (Report Damage & Find Shelter)
-        _buildShortcutsRow(context, isDark),
-        const SizedBox(height: 12),
-
-        // 4. CONTEXTUAL DISASTER ALERT (Flood Watch 2.4 km away)
-        _buildContextualAlertCard(context, isDark),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  // UNIFIED COMPACT MOBILE HEADER
-  Widget _buildMobileHeader(BuildContext context, dynamic currentUser, bool isDark) {
-    return Row(
-      children: [
-        // Brand & Sector
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: AppColors.primaryBlue,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryBlue.withOpacity(0.3),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.health_and_safety, color: Colors.white, size: 20),
-        ),
-        const SizedBox(width: 8),
-        InkWell(
-          onTap: () => _showLocalitySelector(context),
-          borderRadius: BorderRadius.circular(8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 4 : 0, vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Text(
-                'ResQAI',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.4,
-                  color: isDark ? Colors.white : AppColors.deepNavy,
-                ),
-              ),
-              const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurface : Colors.white,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  color: AppColors.primaryBlue,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryBlue.withOpacity(0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: Row(
+                child: const Icon(Icons.shield_outlined, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.location_on, size: 12, color: AppColors.primaryBlue),
-                    const SizedBox(width: 2),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 88),
-                      child: Text(
-                        _selectedLocality,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white70 : AppColors.deepNavy,
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 2,
+                      children: [
+                        Text(
+                          'Namaste, $userName',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: isMobile ? 16 : 20,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppColors.deepNavy,
+                          ),
                         ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.successGreen.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.successGreen.withOpacity(0.3)),
+                          ),
+                          child: const Text(
+                            'Verified Citizen',
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.successGreen),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'Disaster Emergency Response & Relief Command',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
                       ),
                     ),
-                    const Icon(Icons.keyboard_arrow_down, size: 14, color: Colors.grey),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-        const Spacer(),
-        // Weather
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('🌧️', style: TextStyle(fontSize: 11)),
-              SizedBox(width: 4),
-              Text(
-                '28°C',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 4),
-        // Alert Bell with Badge
-        Stack(
-          children: [
-            IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              icon: Icon(Icons.notifications_outlined, size: 22, color: isDark ? Colors.white70 : AppColors.deepNavy),
-              onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenAlerts),
-              tooltip: 'Disaster Alerts',
-            ),
-            Positioned(
-              right: 4,
-              top: 4,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(color: AppColors.emergencyRed, shape: BoxShape.circle),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(width: 4),
-        // Profile Avatar
-        InkWell(
-          onTap: () => Navigator.pushNamed(context, AppRoutes.citizenProfile),
-          borderRadius: BorderRadius.circular(16),
-          child: CircleAvatar(
-            radius: 14,
-            backgroundColor: AppColors.primaryBlue.withOpacity(0.12),
-            child: const Icon(Icons.person_outline, size: 16, color: AppColors.primaryBlue),
-          ),
-        ),
-      ],
-    );
-  }
 
-  // DESKTOP TWO-COLUMN ADAPTIVE LAYOUT
-  Widget _buildDesktopLayout(
-    BuildContext context,
-    dynamic currentUser,
-    List<ShelterModel> shelters,
-    List<IncidentModel> myReports,
-    bool isDark,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildLocalityWeatherBar(context, isDark),
-        const SizedBox(height: 18),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Left Column: Large Interactive Map with Centered Circular Double-Tap SOS
-            Expanded(
-              flex: 7,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildDisasterMapCard(context, shelters, isDark, height: 560),
-                  const SizedBox(height: 18),
-                  _buildShortcutsRow(context, isDark),
-                ],
+              // Bell Notification
+              IconButton(
+                icon: Stack(
+                  children: [
+                    Icon(Icons.notifications_outlined, color: isDark ? Colors.white : AppColors.deepNavy, size: 24),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(color: AppColors.emergencyRed, shape: BoxShape.circle),
+                      ),
+                    ),
+                  ],
+                ),
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenAlerts),
+                tooltip: 'Emergency Notifications',
               ),
-            ),
-            const SizedBox(width: 24),
 
-            // Right Column: Alert Card, My Reports & Shelter Status
-            Expanded(
-              flex: 5,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildContextualAlertCard(context, isDark),
-                  const SizedBox(height: 18),
-                  _buildMyReportsCard(context, myReports, isDark),
-                  const SizedBox(height: 18),
-                  _buildNearbySheltersPreview(context, shelters, isDark),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // 2. LOCALITY SELECTOR & WEATHER BAR
-  Widget _buildLocalityWeatherBar(BuildContext context, bool isDark) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Location Selector Dropdown
-        InkWell(
-          onTap: () => _showLocalitySelector(context),
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.location_on, color: AppColors.primaryBlue, size: 18),
-                const SizedBox(width: 6),
-                Text(
-                  _selectedLocality,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : AppColors.deepNavy,
+              // Profile Avatar
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, AppRoutes.citizenProfile),
+                borderRadius: BorderRadius.circular(20),
+                child: CircleAvatar(
+                  radius: 17,
+                  backgroundColor: AppColors.primaryBlue.withOpacity(0.15),
+                  child: Text(
+                    userName.isNotEmpty ? userName[0].toUpperCase() : 'C',
+                    style: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ),
-                const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down, size: 18, color: Colors.grey),
-              ],
-            ),
-          ),
-        ),
-
-        // Weather Summary Pill
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('🌧️', style: TextStyle(fontSize: 14)),
-              SizedBox(width: 6),
-              Text(
-                '28°C Light Rain',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
               ),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 10),
+
+          // Location Selector Bar & Live Sync
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () => _showLocalitySelector(context),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    height: 38,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.location_on, size: 16, color: AppColors.emergencyRed),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _selectedLocality,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : AppColors.deepNavy,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.keyboard_arrow_down, size: 18, color: Colors.grey),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Weather Summary Pill
+              Container(
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('🌧️', style: TextStyle(fontSize: 13)),
+                    SizedBox(width: 4),
+                    Text(
+                      '28°C',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87),
+                    ),
+                  ],
+                ),
+              ),
+              if (!isMobile) ...[
+                const SizedBox(width: 8),
+
+                // NDMA Live Link Pill
+                Container(
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.successGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.successGreen.withOpacity(0.3)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.wifi_tethering, color: AppColors.successGreen, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'NDMA Live',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.successGreen),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  void _showLocalitySelector(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                child: Text('Select Monitored Disaster Sector', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+  // 2. ACTIVE OFFICIAL DISASTER ALERT BANNER
+  Widget _buildOfficialAlertBanner(BuildContext context, bool isDark) {
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.citizenAlerts),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF1F0),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFECDCA), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.emergencyRed.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFFD92D20),
+                shape: BoxShape.circle,
               ),
-              const Divider(),
-              _buildLocalityTile('Ghaziabad, UP', const LatLng(28.6480, 77.3450), 'Hindon River Basin • High Risk Flood Watch'),
-              _buildLocalityTile('East Delhi (Yamuna Khadar)', const LatLng(28.6250, 77.2650), 'Yamuna Floodplain • Level 3 Evacuation Alert'),
-              _buildLocalityTile('Noida Sector 62', const LatLng(28.6200, 77.3650), 'Lowland Commercial & Residential Sector'),
-              _buildLocalityTile('Patna Lowlands', const LatLng(25.6130, 85.1430), 'Ganga Embankment Basin'),
-            ],
-          ),
+              child: const Icon(Icons.campaign, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'OFFICIAL ALERT • Level-3 Flood Warning (Hindon Basin)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFB42318),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD92D20),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text(
+                          'IMD / NDMA',
+                          style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Water level at Hindon Barrage exceeds danger mark (205.35m). Low-lying sectors in Kaushambi & Morta advised to move to elevated shelters.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF55160C), height: 1.35),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.arrow_forward_ios, color: Color(0xFFB42318), size: 14),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildLocalityTile(String name, LatLng point, String description) {
-    final isSelected = _selectedLocality == name;
-    return ListTile(
-      leading: Icon(Icons.location_city, color: isSelected ? AppColors.primaryBlue : Colors.grey),
-      title: Text(name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
-      subtitle: Text(description, style: const TextStyle(fontSize: 11)),
-      trailing: isSelected ? const Icon(Icons.check, color: AppColors.primaryBlue) : null,
-      onTap: () {
-        setState(() {
-          _selectedLocality = name;
-          _mapCenter = point;
-        });
-        _mapController.move(point, 12.5);
-        Navigator.pop(context);
-      },
-    );
-  }
-
-  // 3. LARGE REALISTIC DISASTER MAP CARD WITH CIRCULAR DOUBLE-TAP SOS
+  // 3. TACTICAL DISASTER MAP WITH INTEGRATED CIRCULAR SOS
   Widget _buildDisasterMapCard(
     BuildContext context,
     List<ShelterModel> shelters,
@@ -701,7 +731,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // FlutterMap OpenStreetMap View
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
@@ -715,8 +744,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'org.resqai.disaster',
               ),
-
-              // Hazard Risk Polygons
               if (_showHazards)
                 PolygonLayer(
                   polygons: [
@@ -750,8 +777,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                     ),
                   ],
                 ),
-
-              // Blocked Road Dashed Polyline
               if (_showRoadBlockage)
                 PolylineLayer(
                   polylines: [
@@ -763,8 +788,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                     ),
                   ],
                 ),
-
-              // Shelter Markers
               if (_showShelters)
                 MarkerLayer(
                   markers: shelters.take(5).map((sh) {
@@ -773,7 +796,13 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                       width: 32,
                       height: 32,
                       child: GestureDetector(
-                        onTap: () => _showMarkerDetails(context, 'Shelter: ${sh.name}', sh.address, 'Capacity: ${sh.totalCapacity - sh.occupiedBeds} beds open', Icons.night_shelter, AppColors.primaryBlue),
+                        onTap: () => _showMarkerDetails(
+                            context,
+                            'Shelter: ${sh.name}',
+                            sh.address,
+                            'Capacity: ${sh.totalCapacity - sh.occupiedBeds} beds open',
+                            Icons.night_shelter,
+                            AppColors.primaryBlue),
                         child: Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF1570EF),
@@ -787,8 +816,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                     );
                   }).toList(),
                 ),
-
-              // Hospital Markers
               if (_showHospitals)
                 MarkerLayer(
                   markers: _hospitals.map((hosp) {
@@ -797,7 +824,13 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                       width: 30,
                       height: 30,
                       child: GestureDetector(
-                        onTap: () => _showMarkerDetails(context, hosp['name'] as String, 'Emergency Contact: ${hosp['phone']}', hosp['beds'] as String, Icons.local_hospital, AppColors.emergencyRed),
+                        onTap: () => _showMarkerDetails(
+                            context,
+                            hosp['name'] as String,
+                            'Emergency Contact: ${hosp['phone']}',
+                            hosp['beds'] as String,
+                            Icons.local_hospital,
+                            AppColors.emergencyRed),
                         child: Container(
                           decoration: BoxDecoration(
                             color: AppColors.emergencyRed,
@@ -811,8 +844,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                     );
                   }).toList(),
                 ),
-
-              // Rescue Team Markers
               if (_showRescueTeams)
                 MarkerLayer(
                   markers: _rescueTeams.map((rt) {
@@ -821,7 +852,13 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                       width: 36,
                       height: 36,
                       child: GestureDetector(
-                        onTap: () => _showMarkerDetails(context, rt['name'] as String, rt['id'] as String, rt['status'] as String, Icons.fire_truck, AppColors.emergencyRed),
+                        onTap: () => _showMarkerDetails(
+                            context,
+                            rt['name'] as String,
+                            rt['id'] as String,
+                            rt['status'] as String,
+                            Icons.directions_boat,
+                            AppColors.emergencyRed),
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
@@ -836,50 +873,31 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                     );
                   }).toList(),
                 ),
-
-              // Hindon River Breach Warning Marker
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: const LatLng(28.6480, 77.3450),
-                    width: 32,
-                    height: 32,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: AppColors.warningOrange,
-                        shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
-                      ),
-                      child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
 
-          // TOP-LEFT MAP LEGEND (MATCHING SMARTPHONE MOCKUP)
+          // Map Legend Pill
           Positioned(
             top: 12,
             left: 12,
             child: _buildMapLegend(isDark),
           ),
 
-          // TOP-RIGHT MAP CONTROLS (LAYERS, LOCATE, RE-CENTER)
+          // Map Controls (Layers, Locate, Recenter)
           Positioned(
             top: 12,
             right: 12,
             child: _buildMapControls(isDark),
           ),
 
-          // BOTTOM-LEFT SCALE BAR
+          // Scale Bar
           Positioned(
             bottom: 12,
             left: 12,
             child: _buildScaleBar(isDark),
           ),
 
-          // CENTER-BOTTOM CIRCULAR DOUBLE-TAP SOS BUTTON (SIGNATURE FEATURE)
+          // PROMINENT CIRCULAR DOUBLE-TAP SOS HERO BUTTON
           Positioned(
             bottom: 12,
             left: 0,
@@ -893,7 +911,872 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-  // MAP LEGEND OVERLAY (COLLAPSIBLE FOR MOBILE CLARITY)
+  // 4. PRIMARY ACTIONS GRID (4 Core Humanitarian Relieves)
+  Widget _buildPrimaryActionsGrid(BuildContext context, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                'Immediate Relief & Reporting Services',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppColors.deepNavy,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenHelp),
+              style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+              child: const Text('View Help Hub ↗',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            // 1. Request Help (Humanitarian aid multi-step form)
+            Expanded(
+              child: _buildServiceActionCard(
+                context,
+                title: 'Request Help',
+                subtitle: 'Food, water, medicine & rescue',
+                icon: Icons.volunteer_activism_outlined,
+                iconColor: const Color(0xFFD92D20),
+                iconBg: const Color(0xFFFFF1F0),
+                route: AppRoutes.citizenHelpRequest,
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // 2. Report Damage (Structural loss & claims)
+            Expanded(
+              child: _buildServiceActionCard(
+                context,
+                title: 'Report Damage',
+                subtitle: 'Home, crops, livestock claims',
+                icon: Icons.home_work_outlined,
+                iconColor: const Color(0xFF1570EF),
+                iconBg: const Color(0xFFEFF8FF),
+                route: AppRoutes.citizenNewReport,
+                isDark: isDark,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            // 3. Find Safe Shelter
+            Expanded(
+              child: _buildServiceActionCard(
+                context,
+                title: 'Find Shelter',
+                subtitle: 'Live bed vacancy & food hubs',
+                icon: Icons.night_shelter_outlined,
+                iconColor: const Color(0xFF12B76A),
+                iconBg: const Color(0xFFECFDF3),
+                route: AppRoutes.citizenShelters,
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // 4. Missing Family Member Report (Confidential DPDP SAR)
+            Expanded(
+              child: _buildServiceActionCard(
+                context,
+                title: 'Missing Family',
+                subtitle: 'Confidential NDMA tracing',
+                icon: Icons.person_search_outlined,
+                iconColor: const Color(0xFF7C3AED),
+                iconBg: const Color(0xFFF5F3FF),
+                route: AppRoutes.citizenMissingPerson,
+                isDark: isDark,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildServiceActionCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required String route,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, route),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark ? iconColor.withOpacity(0.15) : iconBg,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 20),
+                ),
+                Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey.shade400),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : AppColors.deepNavy,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 5. SECONDARY SERVICES & EMERGENCY HELPLINES ROW
+  Widget _buildSecondaryServicesRow(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.support_agent, size: 18, color: AppColors.primaryBlue),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Emergency Direct Lines & Quick Portals',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppColors.deepNavy,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                // Medical Assistance Dial
+                _buildQuickActionChip(
+                  context,
+                  label: 'Medical 108',
+                  icon: Icons.medical_services_outlined,
+                  color: AppColors.emergencyRed,
+                  onTap: () => _showEmergencyCallModal(context, 'Ambulance & Trauma', '108'),
+                ),
+                const SizedBox(width: 8),
+
+                // Police / Emergency 112
+                _buildQuickActionChip(
+                  context,
+                  label: 'Police 112',
+                  icon: Icons.local_police_outlined,
+                  color: AppColors.primaryBlue,
+                  onTap: () => _showEmergencyCallModal(context, 'National Emergency Response', '112'),
+                ),
+                const SizedBox(width: 8),
+
+                // NDMA Disaster Helpline 1078
+                _buildQuickActionChip(
+                  context,
+                  label: 'NDMA 1078',
+                  icon: Icons.shield_outlined,
+                  color: AppColors.warningOrange,
+                  onTap: () => _showEmergencyCallModal(context, 'NDMA National Helpline', '1078'),
+                ),
+                const SizedBox(width: 8),
+
+                // Help Hub Page Link
+                _buildQuickActionChip(
+                  context,
+                  label: '12 Help Categories',
+                  icon: Icons.apps_outlined,
+                  color: const Color(0xFF7C3AED),
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.citizenHelp),
+                ),
+                const SizedBox(width: 8),
+
+                // Relief Donations Link
+                _buildQuickActionChip(
+                  context,
+                  label: 'Donate Relief',
+                  icon: Icons.favorite_border,
+                  color: AppColors.successGreen,
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.citizenDonate),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionChip(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 6. MY ACTIVE REQUESTS & CLAIMS (Real Backend Data)
+  Widget _buildMyRequestsSummarySection(BuildContext context, List<IncidentModel> incidents, bool isDark) {
+    final recentReports = incidents.take(3).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'My Active Help Requests & Claims',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppColors.deepNavy,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenReports),
+                style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                child: const Text('View All Tracking ↗',
+                    style: TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.bold, fontSize: 11)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (recentReports.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.assignment_turned_in_outlined, size: 36, color: Colors.grey.shade400),
+                    const SizedBox(height: 6),
+                    const Text('No active claims or emergency requests filed.',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
+                    const SizedBox(height: 2),
+                    const Text('Use "Request Help" or "Report Damage" above to initiate a case.',
+                        style: TextStyle(fontSize: 11, color: Colors.black38)),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...recentReports.map((inc) {
+              return InkWell(
+                onTap: () => Navigator.pushNamed(context, '/citizen/reports/${inc.id}'),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.description_outlined, color: AppColors.primaryBlue, size: 16),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              inc.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              '${inc.id} • ${inc.address}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: inc.status == IncidentStatus.verified
+                              ? AppColors.successGreen.withOpacity(0.12)
+                              : AppColors.warningOrange.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          inc.status.label.toUpperCase(),
+                          style: TextStyle(
+                            color: inc.status == IncidentStatus.verified
+                                ? AppColors.successGreen
+                                : AppColors.warningOrange,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  // 7. MY ASSISTANCE HISTORY (Delivered Aid Summary)
+  Widget _buildAssistanceHistoryCard(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.handshake_outlined, size: 16, color: AppColors.successGreen),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'My Assistance History',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppColors.deepNavy,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenAssistance),
+                style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                child: const Text('Full History ↗',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Delivered Benefit Item 1: SDRF Direct Cash Relief
+          _buildAssistanceRecordTile(
+            title: 'SDRF Immediate Flood Ex-Gratia',
+            caseId: 'RQ-SDRF-84912',
+            amountOrQty: '₹50,000 Disbursed via DBT',
+            status: 'Delivered',
+            date: 'Oct 21, 2026',
+            agency: 'District Magistrate Disaster Cell',
+            isSuccess: true,
+          ),
+          const Divider(height: 12),
+
+          // Delivered Benefit Item 2: NDRF Ration Kit
+          _buildAssistanceRecordTile(
+            title: 'Emergency Food & Water Ration (7-Day)',
+            caseId: 'RQ-HLP-10492',
+            amountOrQty: '2 Ration Kits Delivered',
+            status: 'Delivered',
+            date: 'Oct 22, 2026',
+            agency: 'NDRF 8th Battalion Logistics',
+            isSuccess: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAssistanceRecordTile({
+    required String title,
+    required String caseId,
+    required String amountOrQty,
+    required String status,
+    required String date,
+    required String agency,
+    required bool isSuccess,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: AppColors.successGreen.withOpacity(0.12),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.check, size: 14, color: AppColors.successGreen),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              Text('$caseId • $agency', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            ],
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(amountOrQty, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.successGreen)),
+            Text(date, style: const TextStyle(fontSize: 9, color: Colors.black45)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // 8. NEARBY SHELTERS PREVIEW
+  Widget _buildNearbySheltersPreview(BuildContext context, List<ShelterModel> shelters, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Nearby Safe Havens & Camps',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w800, color: isDark ? Colors.white : AppColors.deepNavy),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenShelters),
+                style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                child: const Text('All Camps', style: TextStyle(fontSize: 11, color: AppColors.primaryBlue)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ...shelters.take(3).map((s) {
+            final remaining = s.totalCapacity - s.occupiedBeds;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.night_shelter, size: 14, color: AppColors.successGreen),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(s.name,
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                  Text('$remaining beds',
+                      style: const TextStyle(
+                          fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.successGreen)),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // 9. RELIEF CAMPAIGNS & PUBLIC TRANSPARENCY
+  Widget _buildCampaignsAndTransparencyCard(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.volunteer_activism, size: 16, color: Color(0xFF7C3AED)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Verified Relief & Public Audit',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppColors.deepNavy,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F3FF),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('80G Tax-Exempt',
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF7C3AED))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Support verified disaster response funds. 100% of proceeds are audited and allocated to verified beneficiaries.',
+            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.3),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenDonate),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C3AED),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.favorite, size: 14),
+                  label: const Text('Donate Relief', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.transparency),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.account_balance, size: 14),
+                  label: const Text('Audit Ledger', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // CIRCULAR DOUBLE-TAP SOS BUTTON (SIGNATURE)
+  Widget _buildDoubleTapSosButton() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            final scale = _isArmed ? _pulseAnimation.value : 1.0;
+            return Transform.scale(
+              scale: scale,
+              child: GestureDetector(
+                onTap: _onSosTap,
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: _isArmed
+                            ? Colors.redAccent.withOpacity(0.6)
+                            : AppColors.emergencyRed.withOpacity(0.35),
+                        blurRadius: _isArmed ? 24 : 16,
+                        spreadRadius: _isArmed ? 6 : 2,
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: (_isArmed ? Colors.redAccent : AppColors.emergencyRed).withOpacity(0.2),
+                        ),
+                      ),
+                      Container(
+                        width: 82,
+                        height: 82,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: _isArmed
+                                ? const [Color(0xFFFF5252), Color(0xFFD32F2F)]
+                                : const [Color(0xFFEF4444), Color(0xFFB91C1C)],
+                            center: Alignment.topLeft,
+                            radius: 0.85,
+                          ),
+                          border: Border.all(color: Colors.white, width: 3),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              '✱',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                height: 0.9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              _isArmed ? '$_remainingSeconds' : 'SOS',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 6),
+        if (_isArmed)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF1F0),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.emergencyRed, width: 1.2),
+                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                ),
+                child: Text(
+                  '⚠️ Tap again to confirm SOS (${_remainingSeconds}s)',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.emergencyRed,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              InkWell(
+                onTap: () {
+                  _countdownTimer?.cancel();
+                  setState(() => _isArmed = false);
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.close, size: 12, color: Colors.grey),
+                      SizedBox(width: 2),
+                      Text('Cancel',
+                          style: TextStyle(fontSize: 11, color: Colors.black87, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          )
+        else
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFFFFCDD2),
+                    width: 1.2,
+                  ),
+                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                ),
+                child: const Text(
+                  'Double-tap to request emergency dispatch',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFB91C1C),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, AppRoutes.citizenSos),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Motor Assist / Form SOS Mode ↗',
+                    style: TextStyle(fontSize: 10, color: AppColors.primaryBlue, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  // MAP CONTROLS & UTILITIES
   Widget _buildMapLegend(bool isDark) {
     if (!_isLegendExpanded) {
       return InkWell(
@@ -937,7 +1820,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Map Legend', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.deepNavy)),
+              const Text('Map Legend',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.deepNavy)),
               const SizedBox(width: 14),
               InkWell(
                 onTap: () => setState(() => _isLegendExpanded = false),
@@ -985,7 +1869,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-  // MAP CONTROLS PILL
   Widget _buildMapControls(bool isDark) {
     return Container(
       decoration: BoxDecoration(
@@ -1093,7 +1976,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-  // BOTTOM-LEFT SCALE BAR
   Widget _buildScaleBar(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -1126,462 +2008,58 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-  // 4. SIGNATURE FEATURE: PROMINENT CIRCULAR DOUBLE-TAP SOS BUTTON
-  Widget _buildDoubleTapSosButton() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Pulsing Rings + Core Circular SOS Button
-        AnimatedBuilder(
-          animation: _pulseAnimation,
-          builder: (context, child) {
-            final scale = _isArmed ? _pulseAnimation.value : 1.0;
-            return Transform.scale(
-              scale: scale,
-              child: GestureDetector(
-                onTap: _onSosTap,
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: _isArmed
-                            ? Colors.redAccent.withOpacity(0.6)
-                            : AppColors.emergencyRed.withOpacity(0.35),
-                        blurRadius: _isArmed ? 24 : 16,
-                        spreadRadius: _isArmed ? 6 : 2,
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Outer soft halo
-                      Container(
-                        width: 96,
-                        height: 96,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: (_isArmed ? Colors.redAccent : AppColors.emergencyRed).withOpacity(0.2),
-                        ),
-                      ),
-                      // Core circular button
-                      Container(
-                        width: 82,
-                        height: 82,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: _isArmed
-                                ? const [Color(0xFFFF5252), Color(0xFFD32F2F)]
-                                : const [Color(0xFFEF4444), Color(0xFFB91C1C)],
-                            center: Alignment.topLeft,
-                            radius: 0.85,
-                          ),
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              '✱',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                height: 0.9,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              _isArmed ? '$_remainingSeconds' : 'SOS',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 6),
-
-        // Pill Instruction Badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-          decoration: BoxDecoration(
-            color: _isArmed ? const Color(0xFFFFF1F0) : Colors.white.withOpacity(0.95),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: _isArmed ? AppColors.emergencyRed : const Color(0xFFFFCDD2),
-              width: 1.2,
-            ),
-            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
-          ),
-          child: Text(
-            _isArmed
-                ? '⚠️ Tap again to confirm SOS (${_remainingSeconds}s)'
-                : 'Double-tap to request help',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: _isArmed ? AppColors.emergencyRed : const Color(0xFFB91C1C),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 5. SHORTCUTS ROW: [Report Damage] & [Find Shelter]
-  Widget _buildShortcutsRow(BuildContext context, bool isDark) {
-    return Row(
-      children: [
-        // Left Card: Report Damage
-        Expanded(
-          child: _buildShortcutCard(
-            context,
-            icon: Icons.assignment_late_outlined,
-            iconColor: const Color(0xFF1570EF),
-            iconBg: const Color(0xFFEFF8FF),
-            title: 'Report Damage',
-            subtitle: 'Homes, roads, utilities',
-            onTap: () => Navigator.pushNamed(context, AppRoutes.citizenNewReport),
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: 12),
-
-        // Right Card: Find Shelter
-        Expanded(
-          child: _buildShortcutCard(
-            context,
-            icon: Icons.night_shelter_outlined,
-            iconColor: const Color(0xFF12B76A),
-            iconBg: const Color(0xFFECFDF3),
-            title: 'Find Shelter',
-            subtitle: 'Nearby safe locations',
-            onTap: () => Navigator.pushNamed(context, AppRoutes.citizenShelters),
-            isDark: isDark,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildShortcutCard(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBg,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isDark ? iconColor.withOpacity(0.15) : iconBg,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 22),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : AppColors.deepNavy,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right, size: 18, color: Colors.grey.shade400),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 6. CONTEXTUAL DISASTER ALERT (FLOOD WATCH 2.4 KM AWAY)
-  Widget _buildContextualAlertCard(BuildContext context, bool isDark) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.citizenAlerts),
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFF1F0),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFFECDCA), width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.emergencyRed.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(
-                color: Color(0xFFD92D20),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Flood Watch • 2.4 km away',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFFB42318),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD92D20),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'High Risk',
-                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Rising water levels in Hindon River. Avoid low-lying areas. Stay updated and follow official instructions.',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF55160C), height: 1.35),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.chevron_right, color: Color(0xFFB42318), size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 7. MY ACTIVE REPORTS & CASE FILES
-  Widget _buildMyReportsCard(BuildContext context, List<IncidentModel> reports, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  void _showLocalitySelector(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  'My Filed Reports & Claims',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : AppColors.deepNavy,
-                  ),
-                ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                child: Text('Select Monitored Disaster Sector',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
-              TextButton(
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenReports),
-                style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-                child: const Text('View All', style: TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.bold, fontSize: 12)),
-              ),
+              const Divider(),
+              _buildLocalityTile('Ghaziabad, UP', const LatLng(28.6480, 77.3450),
+                  'Hindon River Basin • High Risk Flood Watch'),
+              _buildLocalityTile('East Delhi (Yamuna Khadar)', const LatLng(28.6250, 77.2650),
+                  'Yamuna Floodplain • Level 3 Evacuation Alert'),
+              _buildLocalityTile('Noida Sector 62', const LatLng(28.6200, 77.3650),
+                  'Lowland Commercial & Residential Sector'),
+              _buildLocalityTile('Patna Lowlands', const LatLng(25.6130, 85.1430),
+                  'Ganga Embankment Basin'),
             ],
           ),
-          const SizedBox(height: 10),
-          if (reports.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text('No open emergency claims filed.', style: TextStyle(fontSize: 12, color: Colors.grey)),
-            )
-          else
-            ...reports.map((r) => _buildReportTile(context, r, isDark)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReportTile(BuildContext context, IncidentModel inc, bool isDark) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, '/citizen/reports/${inc.id}'),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.description_outlined, color: AppColors.primaryBlue, size: 18),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    inc.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '${inc.address} • Score: ${inc.priorityScore.toStringAsFixed(0)}/100',
-                    style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: inc.status == IncidentStatus.verified
-                    ? AppColors.successGreen.withOpacity(0.12)
-                    : AppColors.warningOrange.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                inc.status.label.toUpperCase(),
-                style: TextStyle(
-                  color: inc.status == IncidentStatus.verified ? AppColors.successGreen : AppColors.warningOrange,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
   }
 
-  // DESKTOP: NEARBY SHELTERS PREVIEW
-  Widget _buildNearbySheltersPreview(BuildContext context, List<ShelterModel> shelters, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'Nearby Safe Havens',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.deepNavy),
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenShelters),
-                child: const Text('All Shelters', style: TextStyle(fontSize: 12, color: AppColors.primaryBlue)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...shelters.take(3).map((s) {
-            final remaining = s.totalCapacity - s.occupiedBeds;
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                children: [
-                  const Icon(Icons.night_shelter, size: 16, color: AppColors.successGreen),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(s.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
-                  ),
-                  Text('$remaining beds', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.successGreen)),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
+  Widget _buildLocalityTile(String name, LatLng point, String description) {
+    final isSelected = _selectedLocality == name;
+    return ListTile(
+      leading: Icon(Icons.location_city, color: isSelected ? AppColors.primaryBlue : Colors.grey),
+      title: Text(name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
+      subtitle: Text(description, style: const TextStyle(fontSize: 11)),
+      trailing: isSelected ? const Icon(Icons.check, color: AppColors.primaryBlue) : null,
+      onTap: () {
+        setState(() {
+          _selectedLocality = name;
+          _mapCenter = point;
+        });
+        _mapController.move(point, 12.5);
+        Navigator.pop(context);
+      },
     );
   }
 
-  // MARKER DETAILS MODAL
-  void _showMarkerDetails(BuildContext context, String title, String subtitle, String details, IconData icon, Color color) {
+  void _showMarkerDetails(
+      BuildContext context, String title, String subtitle, String details, IconData icon, Color color) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
@@ -1633,9 +2111,76 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => Navigator.pop(ctx),
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
                       icon: const Icon(Icons.check, size: 18),
                       label: const Text('Done'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEmergencyCallModal(BuildContext context, String title, String number) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.emergencyRed.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.phone_in_talk, color: AppColors.emergencyRed, size: 28),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Connect to $title',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Toll-Free Emergency Number: $number',
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Connecting emergency call to $number...'),
+                            backgroundColor: AppColors.emergencyRed,
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.emergencyRed,
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.call, size: 18),
+                      label: Text('Dial $number'),
                     ),
                   ),
                 ],

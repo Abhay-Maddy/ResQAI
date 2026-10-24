@@ -27,7 +27,7 @@ class IncidentModel {
   final bool duplicateConfirmedByHuman;
   final Map<String, dynamic>? whatIfSimulation;
 
-  // Detailed Disaster Damage & Assistance Fields (Part 6)
+  // Detailed Disaster Damage & Assistance Fields (Part 6 & 7)
   final List<String> affectedProperties; // Home, Agricultural Land, Livestock, Business, Assets
   final double? estimatedLossInr;
   final int? householdMembersCount;
@@ -35,8 +35,13 @@ class IncidentModel {
   final List<String> reliefRequirements; // Food, Water, Shelter, Clothing, Medicine
   final List<String> evidencePhotos;
   final String? preferredFollowUp; // SMS, Phone, Field Visit
+  final int missingPersonsCount;
+  final String? missingPersonsDetails;
+  final bool missingPersonEmergencyAssistanceNeeded;
+  final List<String> lostDocuments; // Aadhaar, Ration Card, Land Records, Bank Passbook, Insurance
+  final String? immediateSafetyConcerns;
 
-  // Traceable Incident Verification Fields (Part 7)
+  // Traceable Incident Verification Fields (Part 7 & 8)
   final String? reviewerId;
   final String? reviewerName;
   final String? reviewerRole;
@@ -46,10 +51,13 @@ class IncidentModel {
   final String? departmentAssigned;
   final String? escalatedTo;
 
-  // Government Relief Sanction Fields (Part 10 & 11)
+  // Government Relief Sanction & Delivery Fields (Part 8 & 11)
   final bool? governmentAssistanceApproved;
   final double? sanctionedAmountInr;
+  final double? assistanceDeliveredInr;
   final String? reliefAssistanceCategory;
+  final String? assistanceDeliveryStatus; // 'PENDING_SANCTION', 'SANCTIONED', 'DISBURSED', 'REJECTED'
+  final String? assistanceRejectionReason;
 
   IncidentModel({
     required this.id,
@@ -84,6 +92,11 @@ class IncidentModel {
     this.reliefRequirements = const [],
     this.evidencePhotos = const [],
     this.preferredFollowUp,
+    this.missingPersonsCount = 0,
+    this.missingPersonsDetails,
+    this.missingPersonEmergencyAssistanceNeeded = false,
+    this.lostDocuments = const [],
+    this.immediateSafetyConcerns,
     this.reviewerId,
     this.reviewerName,
     this.reviewerRole,
@@ -94,7 +107,10 @@ class IncidentModel {
     this.escalatedTo,
     this.governmentAssistanceApproved,
     this.sanctionedAmountInr,
+    this.assistanceDeliveredInr,
     this.reliefAssistanceCategory,
+    this.assistanceDeliveryStatus,
+    this.assistanceRejectionReason,
   });
 
   IncidentModel copyWith({
@@ -130,6 +146,11 @@ class IncidentModel {
     List<String>? reliefRequirements,
     List<String>? evidencePhotos,
     String? preferredFollowUp,
+    int? missingPersonsCount,
+    String? missingPersonsDetails,
+    bool? missingPersonEmergencyAssistanceNeeded,
+    List<String>? lostDocuments,
+    String? immediateSafetyConcerns,
     String? reviewerId,
     String? reviewerName,
     String? reviewerRole,
@@ -140,7 +161,10 @@ class IncidentModel {
     String? escalatedTo,
     bool? governmentAssistanceApproved,
     double? sanctionedAmountInr,
+    double? assistanceDeliveredInr,
     String? reliefAssistanceCategory,
+    String? assistanceDeliveryStatus,
+    String? assistanceRejectionReason,
   }) {
     return IncidentModel(
       id: id ?? this.id,
@@ -175,6 +199,11 @@ class IncidentModel {
       reliefRequirements: reliefRequirements ?? this.reliefRequirements,
       evidencePhotos: evidencePhotos ?? this.evidencePhotos,
       preferredFollowUp: preferredFollowUp ?? this.preferredFollowUp,
+      missingPersonsCount: missingPersonsCount ?? this.missingPersonsCount,
+      missingPersonsDetails: missingPersonsDetails ?? this.missingPersonsDetails,
+      missingPersonEmergencyAssistanceNeeded: missingPersonEmergencyAssistanceNeeded ?? this.missingPersonEmergencyAssistanceNeeded,
+      lostDocuments: lostDocuments ?? this.lostDocuments,
+      immediateSafetyConcerns: immediateSafetyConcerns ?? this.immediateSafetyConcerns,
       reviewerId: reviewerId ?? this.reviewerId,
       reviewerName: reviewerName ?? this.reviewerName,
       reviewerRole: reviewerRole ?? this.reviewerRole,
@@ -185,7 +214,10 @@ class IncidentModel {
       escalatedTo: escalatedTo ?? this.escalatedTo,
       governmentAssistanceApproved: governmentAssistanceApproved ?? this.governmentAssistanceApproved,
       sanctionedAmountInr: sanctionedAmountInr ?? this.sanctionedAmountInr,
+      assistanceDeliveredInr: assistanceDeliveredInr ?? this.assistanceDeliveredInr,
       reliefAssistanceCategory: reliefAssistanceCategory ?? this.reliefAssistanceCategory,
+      assistanceDeliveryStatus: assistanceDeliveryStatus ?? this.assistanceDeliveryStatus,
+      assistanceRejectionReason: assistanceRejectionReason ?? this.assistanceRejectionReason,
     );
   }
 

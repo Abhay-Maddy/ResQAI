@@ -55,15 +55,30 @@ class MedicalDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 22),
 
             // Metrics
-            Row(
-              children: [
-                Expanded(child: _buildMetricCard('IMMEDIATE RED (TRIAGE)', '$immediateRed Patients', AppColors.criticalRed, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildMetricCard('AVAILABLE ICU BEDS', '$totalIcuBeds Beds', AppColors.primaryBlue, isDark)),
-                const SizedBox(width: 14),
-                Expanded(child: _buildMetricCard('EMERGENCY HOSPITALS', '${hospitals.length} Centers', AppColors.successGreen, isDark)),
-              ],
-            ),
+            if (isMobile)
+              Column(
+                children: [
+                  _buildMetricCard('IMMEDIATE RED (TRIAGE)', '$immediateRed Patients', AppColors.criticalRed, isDark),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: _buildMetricCard('AVAILABLE ICU BEDS', '$totalIcuBeds Beds', AppColors.primaryBlue, isDark)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _buildMetricCard('EMERGENCY HOSPITALS', '${hospitals.length} Centers', AppColors.successGreen, isDark)),
+                    ],
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(child: _buildMetricCard('IMMEDIATE RED (TRIAGE)', '$immediateRed Patients', AppColors.criticalRed, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildMetricCard('AVAILABLE ICU BEDS', '$totalIcuBeds Beds', AppColors.primaryBlue, isDark)),
+                  const SizedBox(width: 14),
+                  Expanded(child: _buildMetricCard('EMERGENCY HOSPITALS', '${hospitals.length} Centers', AppColors.successGreen, isDark)),
+                ],
+              ),
             const SizedBox(height: 24),
 
             // Triage Cases Queue
@@ -82,44 +97,91 @@ class MedicalDashboardScreen extends ConsumerWidget {
                   for (final item in triageCases) ...[
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: item.triageCategory.contains('RED') ? AppColors.criticalRed.withOpacity(0.12) : AppColors.warningOrange.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              item.triageCategory,
-                              style: TextStyle(
-                                color: item.triageCategory.contains('RED') ? AppColors.criticalRed : AppColors.warningOrange,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
+                      child: isMobile
+                          ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('${item.patientAgeGender} • ${item.conditionSummary}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: item.triageCategory.contains('RED') ? AppColors.criticalRed.withOpacity(0.12) : AppColors.warningOrange.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        item.triageCategory,
+                                        style: TextStyle(
+                                          color: item.triageCategory.contains('RED') ? AppColors.criticalRed : AppColors.warningOrange,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        '${item.patientAgeGender} • ${item.conditionSummary}',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
                                 Text('Location: ${item.location} • Required: ${item.urgencyNeeds}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Assigned Dr. Referral to ${hospitals.first.name}')),
+                                      );
+                                    },
+                                    child: const Text('Refer Hospital Bed'),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: item.triageCategory.contains('RED') ? AppColors.criticalRed.withOpacity(0.12) : AppColors.warningOrange.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    item.triageCategory,
+                                    style: TextStyle(
+                                      color: item.triageCategory.contains('RED') ? AppColors.criticalRed : AppColors.warningOrange,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('${item.patientAgeGender} • ${item.conditionSummary}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                      Text('Location: ${item.location} • Required: ${item.urgencyNeeds}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Assigned Dr. Referral to ${hospitals.first.name}')),
+                                    );
+                                  },
+                                  child: const Text('Refer Hospital Bed'),
+                                ),
                               ],
                             ),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Assigned Dr. Referral to ${hospitals.first.name}')),
-                              );
-                            },
-                            child: const Text('Refer Hospital Bed'),
-                          ),
-                        ],
-                      ),
                     ),
                     const Divider(height: 12),
                   ],
