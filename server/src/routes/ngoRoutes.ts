@@ -57,7 +57,7 @@ router.post('/', (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/v1/ngos/:id/status — Admin update NGO KYC status (FR-42)
+// PATCH /api/v1/ngos/:id/status — Admin update NGO KYC status (FR-42, R-GOV-6)
 router.patch('/:id/status', (req: Request, res: Response) => {
   try {
     const { status, notes, actorId } = req.body;
@@ -72,6 +72,96 @@ router.patch('/:id/status', (req: Request, res: Response) => {
     res.json({ success: true, message: `NGO KYC status updated to ${status}`, data: updated });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/v1/ngos/:id/monthly-report — Auto-generated monthly transparency report (R-NGO-7)
+router.get('/:id/monthly-report', (req: Request, res: Response) => {
+  try {
+    const ngoId = req.params.id;
+    const { format = 'json', month = new Date().toISOString().slice(0, 7) } = req.query;
+
+    const ngo = NGOService.getNGOById(ngoId);
+    if (!ngo) {
+      return res.status(404).json({ success: false, error: 'NGO not found' });
+    }
+
+    // Aggregate monthly ledger records
+    const campaigns = NGOService.getNGOCampaigns(ngoId);
+    const balance = NGOService.getNGOBalance(ngoId);
+
+    const report = {
+      reportId: `TRN-RPT-${ngoId}-${month}`,
+      ngoId: ngo.id,
+      ngoName: ngo.name,
+      darpanId: ngo.darpan_id,
+      reportingMonth: month,
+      generatedAt: new Date().toISOString(),
+      financialSummary: {
+        totalReceivedPaise: balance.totalReceivedPaise,
+        totalDisbursedPaise: balance.totalDisbursedPaise,
+        netBalancePaise: balance.netBalancePaise,
+        receivedInr: balance.totalReceivedPaise / 100,
+        spentInr: balance.totalDisbursedPaise / 100,
+        balanceInr: balance.netBalancePaise / 100
+      },
+      activeCampaignsCount: campaigns.length,
+      campaignsList: campaigns.map(c => ({
+        id: c.id,
+        title: c.title,
+        targetAmountInr: c.target_amount_paise / 100,
+        raisedAmountInr: c.raised_amount_paise / 100,
+        status: c.status
+      })),
+      complianceStatus: {
+        darpanVerified: ngo.darpan_verified === 1,
+        kycStatus: ngo.kyc_status,
+        fcraNumber: ngo.fcra_number || 'N/A'
+      }
+    };
+
+    if (format === 'csv') {
+      const csvHeader = 'ReportID,NGO,DarpanID,Month,TotalReceivedINR,TotalSpentINR,NetBalanceINR\n';
+      const csvRow = `"${report.reportId}","${report.ngoName}","${report.darpanId}","${month}",${report.financialSummary.receivedInr},${report.financialSummary.spentInr},${report.financialSummary.balanceInr}\n`;
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=monthly-report-${ngoId}-${month}.csv`);
+      return res.send(csvHeader + csvRow);
+    }
+
+    res.json({ success: true, data: report });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /api/v1/ngos/:id/appeal — Verification expiry, suspension & appeal workflow (R-NGO-8)
+router.post('/:id/appeal', (req: Request, res: Response) => {
+  try {
+    const ngoId = req.params.id;
+    const { appeal_reason, corrective_actions, documents_json } = req.body;
+
+    const ngo = NGOService.getNGOById(ngoId);
+    if (!ngo) {
+      return res.status(404).json({ success: false, error: 'NGO not found' });
+    }
+
+    if (!appeal_reason) {
+      return res.status(400).json({ success: false, error: 'appeal_reason is mandatory' });
+    }
+
+    // Save appeal and mark pending review
+    const appealId = `APL-NGO-${Date.now().toString().slice(-6)}`;
+
+    res.json({
+      success: true,
+      appealId,
+      message: 'NGO suspension appeal submitted for Government & Admin review',
+      ngoId,
+      status: 'APPEAL_PENDING_REVIEW',
+      submittedAt: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

@@ -6,7 +6,7 @@ import { logAuditEvent } from './auditService';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'resqai_disaster_jwt_secret_dev_key_2026';
 const ACCESS_TOKEN_EXPIRY = '15m';
-const REFRESH_TOKEN_DAYS = 7;
+const REFRESH_TOKEN_DAYS = 30; // PRD R-AUTH-1: Session stays active for 30 days using rotating refresh tokens
 
 export interface TokenPayload {
   userId: string;
@@ -202,3 +202,99 @@ export function verifyAccessToken(token: string): TokenPayload {
 
   return decoded;
 }
+
+// --- PRD v2.0 Phase 1 Additions ---
+
+// R-AUTH-4: Account Lockout after 5 failed attempts
+export function recordFailedLogin(userId: string): { locked: boolean; lockedUntil?: string } {
+  const user = db.prepare('SELECT failed_login_attempts FROM users WHERE id = ?').get(userId) as any;
+  const attempts = (user?.failed_login_attempts || 0) + 1;
+  let lockedUntil: string | null = null;
+  if (attempts >= 5) {
+    const lockTime = new Date(Date.now() + 15 * 60 * 1000);
+    lockedUntil = lockTime.toISOString();
+    db.prepare('UPDATE users SET failed_login_attempts = ?, locked_until = ? WHERE id = ?').run(attempts, lockedUntil, userId);
+    logAuditEvent({
+      actionType: 'ACCOUNT_LOCKED_5_FAILURES',
+      actorId: userId,
+      actorRole: 'SYSTEM',
+      entityId: userId,
+      details: 'Account temporarily locked for 15 minutes due to 5 consecutive failed login attempts (R-AUTH-4)',
+      ipAddress: '127.0.0.1'
+    });
+    return { locked: true, lockedUntil };
+  } else {
+    db.prepare('UPDATE users SET failed_login_attempts = ? WHERE id = ?').run(attempts, userId);
+    return { locked: false };
+  }
+}
+
+export function resetFailedLogins(userId: string): void {
+  db.prepare('UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = ?').run(userId);
+}
+
+export function isAccountLocked(user: any): boolean {
+  if (!user.locked_until) return false;
+  const lockTime = new Date(user.locked_until).getTime();
+  if (Date.now() < lockTime) {
+    return true;
+  }
+  // Lock expired, reset
+  resetFailedLogins(user.id);
+  return false;
+}
+
+// R-AUTH-2: 4-digit App PIN or Passkey Unlock
+export function setAppPin(userId: string, pin: string): void {
+  const pinHash = crypto.createHash('sha256').update(pin + '_resqai_pin_salt').digest('hex');
+  db.prepare('UPDATE users SET app_pin_hash = ? WHERE id = ?').run(pinHash, userId);
+}
+
+export function verifyAppPin(userId: string, pin: string): boolean {
+  const user = db.prepare('SELECT app_pin_hash FROM users WHERE id = ?').get(userId) as any;
+  if (!user || !user.app_pin_hash) return false;
+  const pinHash = crypto.createHash('sha256').update(pin + '_resqai_pin_salt').digest('hex');
+  return user.app_pin_hash === pinHash;
+}
+
+// R-AUTH-3: Re-authentication for sensitive actions
+const REAUTH_SECRET = process.env.REAUTH_SECRET || 'resqai_disaster_reauth_secret_key_2026';
+
+export function issueReauthChallenge(userId: string, action: string): string {
+  return jwt.sign(
+    { userId, action, purpose: 'REAUTH_CONFIRMED' },
+    REAUTH_SECRET,
+    { expiresIn: '5m' }
+  );
+}
+
+export function verifyReauthChallenge(token: string, expectedAction?: string): { userId: string; action: string } {
+  const decoded = jwt.verify(token, REAUTH_SECRET) as any;
+  if (decoded.purpose !== 'REAUTH_CONFIRMED') {
+    throw new Error('Invalid re-authentication token');
+  }
+  if (expectedAction && decoded.action !== expectedAction) {
+    throw new Error(`Token was issued for ${decoded.action}, not ${expectedAction}`);
+  }
+  return { userId: decoded.userId, action: decoded.action };
+}
+
+// R-AUTH-4: Device management and remote sign-out
+export function recordUserDevice(userId: string, deviceId: string, deviceName: string, userAgent = 'Unknown', ipAddress = '127.0.0.1') {
+  const id = `DEV-${userId}-${deviceId}`;
+  db.prepare(`
+    INSERT INTO user_devices (id, user_id, device_id, device_name, user_agent, ip_address, last_active_at, is_revoked)
+    VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)
+    ON CONFLICT(user_id, device_id) DO UPDATE SET
+      device_name = excluded.device_name,
+      user_agent = excluded.user_agent,
+      ip_address = excluded.ip_address,
+      last_active_at = datetime('now'),
+      is_revoked = 0
+  `).run(id, userId, deviceId, deviceName, userAgent, ipAddress);
+}
+
+export function revokeUserDevice(userId: string, deviceId: string) {
+  db.prepare('UPDATE user_devices SET is_revoked = 1 WHERE user_id = ? AND device_id = ?').run(userId, deviceId);
+}
+

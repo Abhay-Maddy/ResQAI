@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db/database';
 import { authenticate, requireRole } from '../middleware/rbacMiddleware';
 import { logAuditEvent } from '../services/auditService';
+import { verifyAccessToken } from '../services/authService';
 
 export const gisRouter = Router();
 
@@ -112,6 +113,128 @@ gisRouter.get('/layers', (req: Request, res: Response) => {
       shelters,
       roadClosures
     }
+  });
+});
+
+// PRD v2.0 Phase 3: Shelter & Resource Capacity Board (F-20)
+gisRouter.get('/shelters/capacity-board', (req: Request, res: Response) => {
+  const shelters = [
+    {
+      id: 'SHELTER-01',
+      name: 'Patna Central High School Relief Camp',
+      areaId: 'area-a',
+      areaName: 'Sector A (North River Basin)',
+      latitude: 25.6150,
+      longitude: 85.1480,
+      totalCapacity: 500,
+      currentOccupancy: 310,
+      remainingCapacity: 190,
+      occupancyPercentage: 62,
+      status: 'OPEN',
+      supplies: {
+        foodKitsRemaining: 420,
+        waterLitersRemaining: 2800,
+        medicalKitsRemaining: 65,
+        generatorOperational: true
+      },
+      facilities: ['DRINKING_WATER', 'MEDICAL_FIRST_AID', 'KITCHEN', 'POWER_GENERATOR', 'WASH_BLOCK'],
+      contactPhone: '+91 94310 99881',
+      lastUpdated: new Date().toISOString()
+    },
+    {
+      id: 'SHELTER-02',
+      name: 'Sector C Community Cyclone/Flood Center',
+      areaId: 'area-c',
+      areaName: 'Sector C (Elevated Ridge)',
+      latitude: 25.6300,
+      longitude: 85.1700,
+      totalCapacity: 350,
+      currentOccupancy: 85,
+      remainingCapacity: 265,
+      occupancyPercentage: 24,
+      status: 'OPEN',
+      supplies: {
+        foodKitsRemaining: 550,
+        waterLitersRemaining: 4200,
+        medicalKitsRemaining: 95,
+        generatorOperational: true
+      },
+      facilities: ['SOLAR_POWER', 'DRINKING_WATER', 'SANITATION', 'WOMEN_CHILD_CORRIDOR'],
+      contactPhone: '+91 94310 99882',
+      lastUpdated: new Date().toISOString()
+    },
+    {
+      id: 'SHELTER-03',
+      name: 'Sector B Lowland Primary School Relief Center',
+      areaId: 'area-b',
+      areaName: 'Sector B (Lowland Colony)',
+      latitude: 25.5940,
+      longitude: 85.1220,
+      totalCapacity: 200,
+      currentOccupancy: 195,
+      remainingCapacity: 5,
+      occupancyPercentage: 98,
+      status: 'NEAR_CAPACITY',
+      supplies: {
+        foodKitsRemaining: 25,
+        waterLitersRemaining: 150,
+        medicalKitsRemaining: 10,
+        generatorOperational: false
+      },
+      facilities: ['DRINKING_WATER'],
+      contactPhone: '+91 94310 99883',
+      lastUpdated: new Date().toISOString()
+    }
+  ];
+
+  res.json({
+    timestamp: new Date().toISOString(),
+    totalShelters: shelters.length,
+    totalBeds: shelters.reduce((acc, s) => acc + s.totalCapacity, 0),
+    occupiedBeds: shelters.reduce((acc, s) => acc + s.currentOccupancy, 0),
+    remainingBeds: shelters.reduce((acc, s) => acc + s.remainingCapacity, 0),
+    shelters
+  });
+});
+
+// PRD v2.0 Phase 3: Emergency Hospitals on Map
+gisRouter.get('/hospitals', (req: Request, res: Response) => {
+  const hospitals = [
+    {
+      id: 'HOSP-01',
+      name: 'Patna Medical College Hospital (PMCH) Trauma Center',
+      areaId: 'area-a',
+      latitude: 25.6200,
+      longitude: 85.1580,
+      totalEmergencyBeds: 120,
+      availableEmergencyBeds: 28,
+      totalIcuBeds: 40,
+      availableIcuBeds: 6,
+      traumaCapable: true,
+      oxygenSupplyHoursRemaining: 72,
+      contactPhone: '+91 612 230 0080',
+      openStatus: 'OPEN_24_7'
+    },
+    {
+      id: 'HOSP-02',
+      name: 'AIIMS Patna Emergency & Disaster Triage Wing',
+      areaId: 'area-b',
+      latitude: 25.5600,
+      longitude: 85.0400,
+      totalEmergencyBeds: 200,
+      availableEmergencyBeds: 75,
+      totalIcuBeds: 60,
+      availableIcuBeds: 18,
+      traumaCapable: true,
+      oxygenSupplyHoursRemaining: 120,
+      contactPhone: '+91 612 245 1070',
+      openStatus: 'OPEN_24_7'
+    }
+  ];
+
+  res.json({
+    timestamp: new Date().toISOString(),
+    hospitals
   });
 });
 

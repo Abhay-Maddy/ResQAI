@@ -12,10 +12,12 @@ declare global {
 
 export type RoleName = 
   | 'CITIZEN' 
+  | 'VOLUNTEER'
+  | 'NGO'
+  | 'GOVERNMENT_MEMBER'
   | 'ADMIN' 
   | 'GOVT_OFFICER' 
   | 'RESPONDER' 
-  | 'NGO' 
   | 'DONOR' 
   | 'AUDITOR';
 

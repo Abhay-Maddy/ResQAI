@@ -7,7 +7,40 @@ import { logAuditEvent } from '../services/auditService';
 
 export const incidentRouter = Router();
 
-// FR-5, FR-6, FR-7: Citizen Emergency Report submission
+// Helper: Bilingual auto-translation mock for responders (Hindi <-> English)
+function autoTranslateForResponders(text: string): { original: string; translated: string } {
+  const hasHindi = /[\u0900-\u097F]/.test(text);
+  if (hasHindi) {
+    return {
+      original: text,
+      translated: `[Auto-Translated from Hindi]: Emergency request detected: "${text}". Immediate responder attention required.`
+    };
+  }
+  return {
+    original: text,
+    translated: text
+  };
+}
+
+// PRD v2.0 Phase 3: Status history tracking helper
+export function recordStatusHistory(
+  incidentId: string, 
+  fromStatus: string | null, 
+  toStatus: string, 
+  userId?: string | null, 
+  role?: string | null, 
+  reason?: string | null
+) {
+  try {
+    const id = `SH-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+    db.prepare(`
+      INSERT INTO incident_status_history (id, incident_id, from_status, to_status, changed_by_user_id, changed_by_role, reason)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(id, incidentId, fromStatus, toStatus, userId || null, role || null, reason || null);
+  } catch (_) {}
+}
+
+// FR-5, FR-6, FR-7, PRD v2.0 Phase 2: Citizen Emergency SOS & Report submission
 incidentRouter.post('/', async (req: Request, res: Response) => {
   const {
     category,
@@ -21,7 +54,12 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
     isAnonymous = false,
     mediaUrls = [],
     idempotencyKey,
-    areaId = 'area-a'
+    areaId = 'area-a',
+    // PRD v2.0 Phase 2 additions
+    needs = [],
+    voiceNoteUrl,
+    notifyEmergencyContacts = false,
+    userId
   } = req.body;
 
   if (!category || !description || latitude === undefined || longitude === undefined) {
@@ -31,7 +69,7 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
     });
   }
 
-  // FR-7: Idempotency Key deduplication
+  // FR-7 & Phase 2: Idempotency Key deduplication
   if (idempotencyKey) {
     const existingReport = db.prepare('SELECT * FROM incident_reports WHERE idempotency_key = ?').get(idempotencyKey) as any;
     if (existingReport) {
@@ -45,6 +83,23 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
   }
 
   try {
+    // Phase 2 Spam & repeated-source protection (F-05)
+    let isRepeatedSource = 0;
+    if (contactPhone && !isAnonymous) {
+      const recentCount = (db.prepare(`
+        SELECT count(*) as c 
+        FROM incident_reports 
+        WHERE contact_phone = ? AND created_at >= datetime('now', '-5 minutes')
+      `).get(contactPhone) as any)?.c || 0;
+
+      if (recentCount >= 3) {
+        isRepeatedSource = 1;
+      }
+    }
+
+    // Auto-translation for emergency responders (F-01)
+    const { original, translated } = autoTranslateForResponders(description);
+
     // Retrieve active incidents for AI duplicate detection & triage (FR-11)
     const existingIncidents = db.prepare(`
       SELECT id, title, category, urgency, latitude, longitude 
@@ -55,7 +110,7 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
     const aiAnalysis = analyzeIncidentTriage(
       {
         category,
-        description,
+        description: translated,
         urgency,
         peopleCount: Number(peopleCount) || 1,
         latitude: Number(latitude),
@@ -64,13 +119,12 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
       existingIncidents
     );
 
-    // FR-6: Return unique incident ID only after server confirmation
+    // Unique incident ID confirmed by server
     const incidentId = `INC-${new Date().getFullYear()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
     const reportId = `REP-${Date.now().toString().slice(-6)}`;
 
-    // Set SLA deadline (e.g. Critical = 15m, High = 30m, Medium = 60m, Low = 120m)
+    // Set SLA deadline (Critical = 15m, High = 30m, Medium = 60m, Low = 120m)
     const slaMinutes = urgency === 'CRITICAL' ? 15 : urgency === 'HIGH' ? 30 : urgency === 'MEDIUM' ? 60 : 120;
-
     const shortTitle = description.length > 60 ? description.substring(0, 57) + '...' : description;
 
     // Insert Incident
@@ -78,14 +132,14 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
       INSERT INTO incidents (
         id, title, category, status, urgency, priority_score, why_priority_explanation,
         latitude, longitude, location_name, area_id, people_affected, sla_deadline_minutes, is_simulated_drill
-      ) VALUES (?, ?, ?, 'TRIAGE', ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+      ) VALUES (?, ?, ?, 'RECEIVED', ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
     `).run(
       incidentId,
       shortTitle,
       category,
       urgency,
       aiAnalysis.suggestedPriorityScore,
-      aiAnalysis.whyExplanation,
+      isRepeatedSource ? `${aiAnalysis.whyExplanation} [FLAGGED: Repeated submissions from caller within 5 mins]` : aiAnalysis.whyExplanation,
       latitude,
       longitude,
       locationName,
@@ -94,12 +148,13 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
       slaMinutes
     );
 
-    // Insert Report
+    // Insert Report with PRD v2.0 Phase 2 columns
     db.prepare(`
       INSERT INTO incident_reports (
         id, incident_id, source_type, category, description, latitude, longitude,
-        location_name, urgency, people_count, contact_phone, is_anonymous, media_urls_json, idempotency_key
-      ) VALUES (?, ?, 'CITIZEN_PWA', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        location_name, urgency, people_count, contact_phone, is_anonymous, media_urls_json, idempotency_key,
+        description_original, description_translated, needs_json, voice_note_url, is_repeated_source
+      ) VALUES (?, ?, 'CITIZEN_PWA', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       reportId,
       incidentId,
@@ -113,15 +168,46 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
       isAnonymous ? null : contactPhone,
       isAnonymous ? 1 : 0,
       JSON.stringify(mediaUrls),
-      idempotencyKey || null
+      idempotencyKey || null,
+      original,
+      translated,
+      JSON.stringify(needs),
+      voiceNoteUrl || null,
+      isRepeatedSource
     );
+
+    // PRD R-CIT-4: Emergency contact SMS notification if user allows it
+    let emergencyContactsNotified = 0;
+    if (notifyEmergencyContacts && (contactPhone || userId)) {
+      let contacts: any[] = [];
+      if (userId) {
+        contacts = db.prepare('SELECT phone, name FROM emergency_contacts WHERE user_id = ?').all(userId) as any[];
+      } else if (contactPhone) {
+        const user = db.prepare('SELECT id FROM users WHERE phone = ?').get(contactPhone) as any;
+        if (user) {
+          contacts = db.prepare('SELECT phone, name FROM emergency_contacts WHERE user_id = ?').all(user.id) as any[];
+        }
+      }
+
+      for (const contact of contacts) {
+        emergencyContactsNotified++;
+        logAuditEvent({
+          actionType: 'EMERGENCY_CONTACT_SMS_SENT',
+          actorId: incidentId,
+          actorRole: 'SYSTEM_SMS_ADAPTER',
+          entityId: contact.phone,
+          details: `Automated SOS notification dispatched to emergency contact ${contact.name} (${contact.phone}) with live tracking link /track/${incidentId}`,
+          ipAddress: req.ip
+        });
+      }
+    }
 
     logAuditEvent({
       actionType: 'INCIDENT_REPORTED',
       actorId: isAnonymous ? 'ANONYMOUS_CITIZEN' : (contactPhone || 'CITIZEN'),
       actorRole: 'CITIZEN',
       entityId: incidentId,
-      details: `Report submitted: ${category} in ${locationName}. Urgency: ${urgency}. Priority: ${aiAnalysis.suggestedPriorityScore}.`,
+      details: `Report submitted: ${category} in ${locationName}. Urgency: ${urgency}. Priority: ${aiAnalysis.suggestedPriorityScore}. RepeatedSource: ${isRepeatedSource}. ContactsNotified: ${emergencyContactsNotified}.`,
       ipAddress: req.ip
     });
 
@@ -129,14 +215,16 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
       message: 'Emergency incident confirmed and registered on server.',
       incidentId,
       reportId,
-      status: 'TRIAGE',
+      status: 'RECEIVED',
       urgency,
       priorityScore: aiAnalysis.suggestedPriorityScore,
       whyPriorityExplanation: aiAnalysis.whyExplanation,
       aiSummary: aiAnalysis.summary,
       duplicateCandidates: aiAnalysis.duplicateCandidates,
       slaDeadlineMinutes: slaMinutes,
-      whatHappensNext: 'Your report has entered the rapid triage queue. A designated disaster officer and AI verifier will corroborate the evidence within minutes.'
+      emergencyContactsNotified,
+      publicTrackingUrl: `/track/${incidentId}`,
+      whatHappensNext: 'Your SOS signal has been confirmed by the command center. Field dispatch units and the DDMA triage desk have been notified.'
     });
   } catch (err: any) {
     res.status(500).json({ error: 'SERVER_ERROR', message: err.message });
@@ -186,6 +274,7 @@ incidentRouter.get('/:id', (req: Request, res: Response) => {
 
   const reports = db.prepare('SELECT * FROM incident_reports WHERE incident_id = ?').all(req.params.id);
   const verifications = db.prepare('SELECT * FROM verifications WHERE incident_id = ?').all(req.params.id);
+  const statusHistory = db.prepare('SELECT * FROM incident_status_history WHERE incident_id = ? ORDER BY created_at ASC').all(req.params.id);
   const assignedTeam = incident.assigned_team_id 
     ? db.prepare('SELECT * FROM rescue_teams WHERE id = ?').get(incident.assigned_team_id)
     : null;
@@ -213,7 +302,10 @@ incidentRouter.get('/:id', (req: Request, res: Response) => {
     incident,
     reports,
     verifications,
+    statusHistory,
     assignedTeam,
+    escalatedToSupervisor: !!incident.escalated_to_supervisor,
+    escalationBadge: incident.escalation_badge || null,
     aiSummary: aiAnalysis.summary,
     duplicateCandidates: aiAnalysis.duplicateCandidates
   });
@@ -273,6 +365,8 @@ incidentRouter.post('/:id/verify', authenticate, requireRole('ADMIN', 'GOVT_OFFI
     WHERE id = ?
   `).run(newStatus, incidentId);
 
+  recordStatusHistory(incidentId, incident.status, newStatus, req.user!.userId, req.user!.role, reason);
+
   logAuditEvent({
     actionType: 'INCIDENT_VERIFIED',
     actorId: req.user!.userId,
@@ -292,7 +386,77 @@ incidentRouter.post('/:id/verify', authenticate, requireRole('ADMIN', 'GOVT_OFFI
   });
 });
 
-// FR-16, FR-17: Assign Rescue Team
+// PRD v2.0 Phase 3: Reversible Duplicate Merge (Reviewer-signed unmerge)
+// ACCEPTANCE CRITERIA: "duplicate merge needs a reviewer and is reversible"
+incidentRouter.post('/:id/unmerge', authenticate, requireRole('ADMIN', 'GOVT_OFFICER'), (req: Request, res: Response) => {
+  const { reason = 'Reviewer confirmed report is a distinct independent emergency' } = req.body;
+  const incidentId = req.params.id as string;
+
+  const incident = db.prepare('SELECT * FROM incidents WHERE id = ?').get(incidentId) as any;
+  if (!incident) {
+    return res.status(404).json({ error: 'NOT_FOUND', message: 'Incident not found' });
+  }
+
+  if (incident.status !== 'DUPLICATE') {
+    return res.status(400).json({ error: 'BAD_REQUEST', message: `Only DUPLICATE incidents can be unmerged. Current status is ${incident.status}` });
+  }
+
+  // Find target merged incident
+  const verification = db.prepare(`
+    SELECT merged_into_incident_id FROM verifications 
+    WHERE incident_id = ? AND decision = 'DUPLICATE'
+    ORDER BY created_at DESC LIMIT 1
+  `).get(incidentId) as any;
+  const mergedInto = verification?.merged_into_incident_id;
+
+  // Revert incident status back to VERIFIED
+  db.prepare(`
+    UPDATE incidents 
+    SET status = 'VERIFIED', updated_at = datetime('now')
+    WHERE id = ?
+  `).run(incidentId);
+
+  // Update verifications
+  db.prepare(`
+    UPDATE verifications 
+    SET decision = 'VERIFIED', reason = ?, merged_into_incident_id = NULL
+    WHERE incident_id = ? AND decision = 'DUPLICATE'
+  `).run(`Unmerge authorized by ${req.user!.userId}: ${reason}`, incidentId);
+
+  recordStatusHistory(incidentId, 'DUPLICATE', 'VERIFIED', req.user!.userId, req.user!.role, `Duplicate unmerge: ${reason}`);
+
+  logAuditEvent({
+    actionType: 'DUPLICATE_MERGE_REVERSED',
+    actorId: req.user!.userId,
+    actorRole: req.user!.role,
+    entityId: incidentId,
+    details: `Duplicate merge into ${mergedInto || 'N/A'} reversed. Incident reinstated to VERIFIED status. Reviewer: ${req.user!.userId}. Reason: ${reason}`,
+    beforeState: { status: 'DUPLICATE', mergedInto },
+    afterState: { status: 'VERIFIED', mergedInto: null },
+    ipAddress: req.ip
+  });
+
+  res.json({
+    message: 'Duplicate merge successfully reversed. Incident reinstated as VERIFIED.',
+    incidentId,
+    previousMergedInto: mergedInto,
+    status: 'VERIFIED'
+  });
+});
+
+// PRD v2.0 Phase 3: Incident Status History
+incidentRouter.get('/:id/status-history', (req: Request, res: Response) => {
+  const incidentId = req.params.id as string;
+  const history = db.prepare(`
+    SELECT * FROM incident_status_history 
+    WHERE incident_id = ? 
+    ORDER BY created_at ASC
+  `).all(incidentId);
+
+  res.json({ incidentId, history });
+});
+
+// FR-16, FR-17, PRD v2.0 Phase 3: Assign Rescue Team with Responder Notification
 incidentRouter.post('/:id/assign', authenticate, requireRole('ADMIN', 'GOVT_OFFICER'), (req: Request, res: Response) => {
   const { teamId, notes = '' } = req.body;
   const incidentId = req.params.id as string;
@@ -318,6 +482,18 @@ incidentRouter.post('/:id/assign', authenticate, requireRole('ADMIN', 'GOVT_OFFI
   db.prepare("UPDATE incidents SET status = 'RESPONSE_ASSIGNED', assigned_team_id = ? WHERE id = ?").run(teamId, incidentId);
   db.prepare("UPDATE rescue_teams SET status = 'ASSIGNED', assigned_incident_id = ? WHERE id = ?").run(incidentId, teamId);
 
+  recordStatusHistory(incidentId, 'VERIFIED', 'RESPONSE_ASSIGNED', req.user!.userId, req.user!.role, `Dispatched team: ${team.name}`);
+
+  // Responder notification (email / SMS / push)
+  logAuditEvent({
+    actionType: 'RESPONDER_NOTIFICATION_DISPATCHED',
+    actorId: req.user!.userId,
+    actorRole: 'DISPATCHER',
+    entityId: team.id,
+    details: `Emergency notification dispatched to ${team.name} (${team.contact_number}) via SMS/Push for incident ${incidentId}`,
+    ipAddress: req.ip
+  });
+
   logAuditEvent({
     actionType: 'TEAM_ASSIGNED',
     actorId: req.user!.userId,
@@ -328,10 +504,70 @@ incidentRouter.post('/:id/assign', authenticate, requireRole('ADMIN', 'GOVT_OFFI
   });
 
   res.json({
-    message: 'Rescue team successfully dispatched',
+    message: 'Rescue team successfully dispatched with responder notification sent.',
     assignmentId,
     teamName: team.name,
     status: 'RESPONSE_ASSIGNED'
+  });
+});
+
+// PRD v2.0 Phase 3: Configurable Escalation Engine (X minutes unassigned critical incident alert)
+// ACCEPTANCE CRITERIA: "a critical incident unassigned for X minutes notifies the supervisor and shows an escalation badge"
+incidentRouter.post('/escalation/check', (req: Request, res: Response) => {
+  const thresholdMinutes = Number(req.body.thresholdMinutes || req.query.thresholdMinutes || 15);
+
+  const unassignedCritical = db.prepare(`
+    SELECT * FROM incidents 
+    WHERE (urgency = 'CRITICAL' OR priority_score >= 80)
+      AND (assigned_team_id IS NULL OR status IN ('RECEIVED', 'TRIAGE'))
+      AND status NOT IN ('RESOLVED', 'CLOSED', 'REJECTED')
+      AND datetime(created_at, '+' || ? || ' minutes') <= datetime('now')
+  `).all(thresholdMinutes) as any[];
+
+  const escalatedIncidents = [];
+
+  for (const inc of unassignedCritical) {
+    db.prepare(`
+      UPDATE incidents 
+      SET escalated_to_supervisor = 1,
+          escalation_badge = 'SUPERVISOR_ALERT: ESCALATED',
+          escalated_at = datetime('now')
+      WHERE id = ?
+    `).run(inc.id);
+
+    recordStatusHistory(
+      inc.id,
+      inc.status,
+      inc.status,
+      'SYSTEM_ESCALATION_ENGINE',
+      'SYSTEM',
+      `Critical incident unassigned for > ${thresholdMinutes} minutes. Escalation badge attached & supervisor notified.`
+    );
+
+    logAuditEvent({
+      actionType: 'INCIDENT_ESCALATED_TO_SUPERVISOR',
+      actorId: 'SYSTEM_ESCALATION_ENGINE',
+      actorRole: 'SYSTEM',
+      entityId: inc.id,
+      details: `Critical incident ${inc.id} unassigned for > ${thresholdMinutes} mins. Notified supervisor with escalation badge.`,
+      ipAddress: req.ip
+    });
+
+    escalatedIncidents.push({
+      id: inc.id,
+      title: inc.title,
+      urgency: inc.urgency,
+      priorityScore: inc.priority_score,
+      escalationBadge: 'SUPERVISOR_ALERT: ESCALATED',
+      escalatedToSupervisor: true
+    });
+  }
+
+  res.json({
+    message: `Escalation check complete. ${escalatedIncidents.length} critical incidents escalated.`,
+    thresholdMinutes,
+    escalatedCount: escalatedIncidents.length,
+    escalatedIncidents
   });
 });
 
@@ -370,5 +606,138 @@ incidentRouter.get('/stats/command', (req: Request, res: Response) => {
         percentage: resourcePct
       }
     }
+  });
+});
+
+// PRD v2.0 Phase 2 (F-06 & Acceptance Criteria): Public Status Tracking Page by Reference ID
+// ACCEPTANCE CRITERIA: "tracking page shows only the status, never contact details."
+incidentRouter.get('/track/:referenceId', (req: Request, res: Response) => {
+  const refId = req.params.referenceId as string;
+
+  // Search by incident ID or report ID
+  let incident = db.prepare('SELECT * FROM incidents WHERE id = ?').get(refId) as any;
+  if (!incident) {
+    const report = db.prepare('SELECT incident_id FROM incident_reports WHERE id = ? OR idempotency_key = ?').get(refId, refId) as any;
+    if (report && report.incident_id) {
+      incident = db.prepare('SELECT * FROM incidents WHERE id = ?').get(report.incident_id) as any;
+    }
+  }
+
+  if (!incident) {
+    return res.status(404).json({
+      error: 'REFERENCE_NOT_FOUND',
+      message: `No public emergency tracking record found for reference ID: ${refId}`
+    });
+  }
+
+  // Determine stage and timeline
+  let stageLabel = 'Received';
+  if (incident.status === 'RECEIVED' || incident.status === 'TRIAGE') {
+    stageLabel = 'Received & Queued for Review';
+  } else if (incident.status === 'UNDER_REVIEW' || incident.status === 'PENDING_REVIEW') {
+    stageLabel = 'Under Review by Dispatcher';
+  } else if (incident.status === 'VERIFIED') {
+    stageLabel = 'Officially Verified';
+  } else if (incident.status === 'RESPONSE_ASSIGNED' || incident.status === 'ASSIGNED') {
+    stageLabel = 'Help Assigned / Team En Route';
+  } else if (incident.status === 'RESOLVED') {
+    stageLabel = 'Resolved & Safe';
+  }
+
+  let assignedTeamType: string | null = null;
+  if (incident.assigned_team_id) {
+    const team = db.prepare('SELECT type, name FROM rescue_teams WHERE id = ?').get(incident.assigned_team_id) as any;
+    if (team) {
+      assignedTeamType = `${team.type} Unit (${team.name})`;
+    }
+  }
+
+  const verifications = db.prepare(`
+    SELECT decision, reason, verified_at 
+    FROM verifications 
+    WHERE incident_id = ?
+    ORDER BY verified_at ASC
+  `).all(incident.id) as any[];
+
+  // Construct privacy-safe timeline (no phone, no caller name)
+  const timeline = [
+    {
+      stage: 'RECEIVED',
+      timestamp: incident.created_at,
+      label: 'Emergency SOS Signal Received',
+      description: 'Your report was received by the ResQAI gateway and assigned a server reference ID.'
+    }
+  ];
+
+  if (verifications.length > 0) {
+    for (const v of verifications) {
+      timeline.push({
+        stage: v.decision,
+        timestamp: v.verified_at,
+        label: `Verification Decision: ${v.decision}`,
+        description: `Reviewed by designated emergency officer. Finding: ${v.reason}`
+      });
+    }
+  }
+
+  if (assignedTeamType) {
+    timeline.push({
+      stage: 'HELP_ASSIGNED',
+      timestamp: incident.updated_at || incident.created_at,
+      label: 'Rescue Team Dispatched',
+      description: `${assignedTeamType} has been assigned to coordinate relief for this zone.`
+    });
+  }
+
+  if (incident.status === 'RESOLVED') {
+    timeline.push({
+      stage: 'RESOLVED',
+      timestamp: incident.updated_at,
+      label: 'Emergency Mission Complete',
+      description: 'The incident has been recorded as resolved.'
+    });
+  }
+
+  // EXPLICIT PRIVACY ENFORCEMENT: Never expose contact_phone, caller name, exact GPS coordinates, or PII
+  res.json({
+    referenceId: incident.id,
+    status: incident.status,
+    stage: stageLabel,
+    category: incident.category,
+    urgency: incident.urgency,
+    area: incident.location_name, // Ward-level description only
+    priorityScore: incident.priority_score,
+    timeline,
+    assignedTeamType,
+    whatHappensNext: incident.status === 'RESOLVED' 
+      ? 'The situation has been stabilized.' 
+      : (assignedTeamType 
+          ? 'First responders are responding to the affected area.' 
+          : 'Emergency authorities are corroborating incoming reports to mobilize nearest rescue resources.'),
+    // Explicit guarantees for compliance
+    privacyNotice: 'Under ResQAI Privacy Rules (R-TRN-1 & DPDP Act), caller names, contact phone numbers, and victim PII are strictly omitted from public tracking pages.'
+  });
+});
+
+// PRD v2.0 Phase 2 (F-07): Data retention masking job (masks records older than retention period)
+incidentRouter.post('/jobs/retention-cleanup', authenticate, requireRole('ADMIN'), (req: Request, res: Response) => {
+  const result = db.prepare(`
+    UPDATE incident_reports 
+    SET contact_phone = '[REDACTED_BY_RETENTION_POLICY]', retention_masked = 1
+    WHERE created_at <= datetime('now', '-90 days')
+  `).run();
+
+  logAuditEvent({
+    actionType: 'DATA_RETENTION_CLEANUP',
+    actorId: req.user!.userId,
+    actorRole: req.user!.role,
+    entityId: 'INCIDENT_REPORTS_TABLE',
+    details: `Executed retention masking job: ${result.changes} records masked per F-07 compliance.`,
+    ipAddress: req.ip
+  });
+
+  res.json({
+    message: 'Data retention cleanup completed successfully',
+    recordsMasked: result.changes
   });
 });

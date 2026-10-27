@@ -176,13 +176,13 @@ export class FloodMLService {
       {
         factor: 'Cumulative 48h Rainfall',
         contributionPct: Math.round(normRainfall * 42),
-        direction: normRainfall > 0.4 ? 'INCREASING_RISK' : 'DECREASING_RISK',
+        direction: (normRainfall > 0.4 ? 'INCREASING_RISK' : 'DECREASING_RISK') as 'INCREASING_RISK' | 'DECREASING_RISK',
         description: `${telemetry.rainfall48hMm}mm rainfall measured across local catchment.`
       },
       {
         factor: 'River Gauge Delta vs Danger Mark',
         contributionPct: Math.round(normGauge * 38),
-        direction: telemetry.riverGaugeDeltaM > 0 ? 'INCREASING_RISK' : 'DECREASING_RISK',
+        direction: (telemetry.riverGaugeDeltaM > 0 ? 'INCREASING_RISK' : 'DECREASING_RISK') as 'INCREASING_RISK' | 'DECREASING_RISK',
         description: telemetry.riverGaugeDeltaM >= 0 
           ? `+${telemetry.riverGaugeDeltaM.toFixed(2)}m above CWC danger mark.` 
           : `${Math.abs(telemetry.riverGaugeDeltaM).toFixed(2)}m below danger mark.`
@@ -190,7 +190,7 @@ export class FloodMLService {
       {
         factor: 'Soil Moisture Saturation',
         contributionPct: Math.round(normSoil * 20),
-        direction: normSoil > 0.7 ? 'INCREASING_RISK' : 'DECREASING_RISK',
+        direction: (normSoil > 0.7 ? 'INCREASING_RISK' : 'DECREASING_RISK') as 'INCREASING_RISK' | 'DECREASING_RISK',
         description: `${telemetry.soilMoistureSaturationPct}% topsoil saturation reduces runoff absorption.`
       }
     ].sort((a, b) => b.contributionPct - a.contributionPct);

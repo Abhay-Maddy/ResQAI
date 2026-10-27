@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: 'server/.env' });
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import http from 'http';
@@ -20,6 +22,12 @@ import { sitrepRouter } from './routes/sitrepRoutes';
 import { alertRouter } from './routes/alertRoutes';
 import { rumourRouter } from './routes/rumourRoutes';
 import { evacuationRouter } from './routes/evacuationRoutes';
+import { systemRouter } from './routes/systemRoutes';
+import { claimRouter } from './routes/claimRoutes';
+import { transparencyRouter } from './routes/transparencyRoutes';
+import { volunteerRouter } from './routes/volunteerRoutes';
+import { governmentRouter } from './routes/governmentRoutes';
+import { researchRouter } from './routes/researchRoutes';
 
 const app = express();
 const server = http.createServer(app);
@@ -52,6 +60,12 @@ app.use('/api/v1/sitrep', sitrepRouter);
 app.use('/api/v1/alerts', alertRouter);
 app.use('/api/v1/rumours', rumourRouter);
 app.use('/api/v1/evacuation', evacuationRouter);
+app.use('/api/v1/system', systemRouter);
+app.use('/api/v1/claims', claimRouter);
+app.use('/api/v1/transparency', transparencyRouter);
+app.use('/api/v1/volunteer', volunteerRouter);
+app.use('/api/v1/government', governmentRouter);
+app.use('/api/v1/research', researchRouter);
 
 // FR-9 Persistent emergency status & system health
 app.get('/api/v1/health', (req: Request, res: Response) => {
