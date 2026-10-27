@@ -4,7 +4,10 @@ import { hash, verify, Algorithm } from '@node-rs/argon2';
 import { db } from '../db/database';
 import { logAuditEvent } from './auditService';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'resqai_disaster_jwt_secret_dev_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET must be configured in the environment');
+}
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_DAYS = 30; // PRD R-AUTH-1: Session stays active for 30 days using rotating refresh tokens
 
@@ -258,7 +261,10 @@ export function verifyAppPin(userId: string, pin: string): boolean {
 }
 
 // R-AUTH-3: Re-authentication for sensitive actions
-const REAUTH_SECRET = process.env.REAUTH_SECRET || 'resqai_disaster_reauth_secret_key_2026';
+const REAUTH_SECRET = process.env.REAUTH_SECRET;
+if (!REAUTH_SECRET) {
+  throw new Error('REAUTH_SECRET must be configured in the environment');
+}
 
 export function issueReauthChallenge(userId: string, action: string): string {
   return jwt.sign(

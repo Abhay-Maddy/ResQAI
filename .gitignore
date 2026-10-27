@@ -45,3 +45,8 @@ build/
 *.iml
 .idea/
 .vscode/
+
+# Server environment secrets
+server/.env
+server/.env.*
+!server/.env.example
