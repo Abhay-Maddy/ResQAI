@@ -9,6 +9,8 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../../shared/models/user_model.dart';
 
+enum AuthPortal { citizen, governmentAdmin, volunteerNgo }
+
 class AuthScreen extends ConsumerStatefulWidget {
   final bool isRegisterMode;
 
@@ -19,60 +21,47 @@ class AuthScreen extends ConsumerStatefulWidget {
 }
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
+  AuthPortal _activePortal = AuthPortal.citizen;
   late bool _isRegister;
   UserRole _selectedRole = UserRole.citizen;
 
-  // Common Fields
-  final TextEditingController _nameController = TextEditingController(text: 'Aarav Sharma');
-  final TextEditingController _emailController = TextEditingController(text: 'citizen@resqai.org');
-  final TextEditingController _phoneController = TextEditingController(text: '+91 98765 43210');
-  final TextEditingController _passwordController = TextEditingController(text: 'password123');
-  bool _obscurePassword = true;
-  bool _otpVerified = true;
+  // Citizen credentials
+  final TextEditingController _citizenNameController = TextEditingController(text: 'Aarav Sharma');
+  final TextEditingController _citizenPhoneController = TextEditingController(text: '+91 98765 43210');
+  final TextEditingController _citizenEmailController = TextEditingController(text: 'citizen@resqai.org');
+  final TextEditingController _citizenPasswordController = TextEditingController(text: 'password123');
+  final TextEditingController _citizenEmergencyNameController = TextEditingController(text: 'Sunita Sharma (Mother)');
+  final TextEditingController _citizenEmergencyPhoneController = TextEditingController(text: '+91 98111 22233');
+  final TextEditingController _citizenDistrictController = TextEditingController(text: 'East Delhi');
+  final TextEditingController _citizenLocalityController = TextEditingController(text: 'Mayur Vihar Phase 1');
+  String _citizenLanguage = 'en';
 
-  // Citizen Specific Fields
-  final TextEditingController _emergencyContactNameController = TextEditingController(text: 'Sunita Sharma (Mother)');
-  final TextEditingController _emergencyContactPhoneController = TextEditingController(text: '+91 98111 22233');
-  final TextEditingController _stateController = TextEditingController(text: 'Delhi');
-  final TextEditingController _districtController = TextEditingController(text: 'East Delhi');
-  final TextEditingController _localityController = TextEditingController(text: 'Mayur Vihar Phase 1');
-  String _selectedLanguage = 'en';
-  String _notificationPref = 'ALL_ALERTS_SMS';
-  String _specialAssistance = 'NONE';
-  bool _locationPermission = true;
+  // Government & Main Admin credentials
+  final TextEditingController _adminEmailController = TextEditingController(text: 'admin@resqai.org');
+  final TextEditingController _adminPasswordController = TextEditingController(text: 'AdminPassword123!');
+  final TextEditingController _adminDepartmentController = TextEditingController(text: 'SDMA IT & Disaster Governance');
+  final TextEditingController _adminDesignationController = TextEditingController(text: 'Chief Disaster Management Director');
+  bool _isAdminSuperAccess = true;
 
-  // Volunteer Specific Fields
-  final TextEditingController _volunteerIdController = TextEditingController(
-    text: 'RQ-VOL-2026-${Random().nextInt(900) + 100}',
-  );
-  final TextEditingController _volunteerServiceAreaController = TextEditingController(text: 'Yamuna Riverbank & East Delhi');
-  final List<String> _selectedSkills = ['First Aid Certified', 'Food Distribution'];
-  String _transportEquipment = '4x4 Vehicle';
-  bool _agreedToSafetyRules = true;
-  bool _volunteerAvailable = true;
+  // Volunteer credentials
+  final TextEditingController _volNameController = TextEditingController(text: 'Pooja Sharma');
+  final TextEditingController _volPhoneController = TextEditingController(text: '+91 98111 22334');
+  final TextEditingController _volEmailController = TextEditingController(text: 'pooja.volunteer@resqai.org');
+  final TextEditingController _volPasswordController = TextEditingController(text: 'password123');
+  final TextEditingController _volServiceAreaController = TextEditingController(text: 'Yamuna Riverbank & East Delhi');
+  final List<String> _selectedSkills = ['First Aid Certified', 'Flood Rescue', 'Food Distribution'];
+  bool _volSafetyAgreed = true;
 
-  // Government Official Specific Fields
-  final TextEditingController _govtIdController = TextEditingController(text: 'GOV-DL-IAS-2018');
-  final TextEditingController _govtDeptController = TextEditingController(text: 'DDMA / Revenue & Disaster Management');
-  final TextEditingController _govtDesignationController = TextEditingController(text: 'Additional District Magistrate (Relief)');
-
-  // NGO Specific Fields
-  final TextEditingController _ngoNameController = TextEditingController(text: 'Red Cross Relief Mission Delhi');
+  // NGO credentials
+  final TextEditingController _ngoOrgNameController = TextEditingController(text: 'Indian Red Cross Society');
   final TextEditingController _ngoRegNumberController = TextEditingController(text: 'DARPAN-DL-2024-00192');
-  final TextEditingController _ngoRegTypeController = TextEditingController(text: 'Registered Society under Act XXI of 1860');
-  final TextEditingController _ngoRepNameController = TextEditingController(text: 'Vikram Sethi (Director of Operations)');
-  final TextEditingController _ngoAddressController = TextEditingController(text: 'Plot 14, Institutional Area, New Delhi');
-  final List<String> _ngoSpecializations = ['Emergency Rations', 'Temporary Shelter'];
+  final TextEditingController _ngoRepNameController = TextEditingController(text: 'Vikram Sethi');
+  final TextEditingController _ngoPhoneController = TextEditingController(text: '+91 99123 44556');
+  final TextEditingController _ngoEmailController = TextEditingController(text: 'director@redcrossdelhi.org');
+  final TextEditingController _ngoPasswordController = TextEditingController(text: 'password123');
+  final TextEditingController _ngoBankDetailsController = TextEditingController(text: 'SBI Relief A/C #8841294103');
 
-  // Doctor Specific Fields
-  final TextEditingController _medicalRegNumberController = TextEditingController(text: 'MCI-2019-84210');
-  final TextEditingController _hospitalController = TextEditingController(text: 'AIIMS Trauma Center, Delhi');
-  final TextEditingController _specializationController = TextEditingController(text: 'Emergency Triage & Trauma Surgery');
-
-  // Rescue Team Specific Fields
-  final TextEditingController _unitNameController = TextEditingController(text: 'NDRF 8th Battalion Quick Response Unit');
-  final TextEditingController _responderBadgeController = TextEditingController(text: 'NDRF-BADGE-774');
-  final TextEditingController _teamSpecializationController = TextEditingController(text: 'Inflatable Flood Evacuation & USAR');
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -88,23 +77,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     return AppShell(
       currentRoute: _isRegister ? AppRoutes.register : AppRoutes.login,
-      title: _isRegister ? 'Create ResQAI Account' : 'Sign In to ResQAI',
-      breadcrumbs: ['Auth', _isRegister ? 'Register' : 'Sign In'],
+      title: 'ResQAI Secure Access Portal',
+      breadcrumbs: const ['Auth', 'Unified Access'],
       child: Center(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 32, vertical: 24),
+          padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 28, vertical: 20),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 580),
+            constraints: const BoxConstraints(maxWidth: 680),
             child: Container(
-              padding: EdgeInsets.all(isMobile ? 18 : 32),
+              padding: EdgeInsets.all(isMobile ? 16 : 28),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
-                    blurRadius: 18,
+                    color: Colors.black.withOpacity(isDark ? 0.35 : 0.06),
+                    blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -112,7 +101,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // App Icon Header
+                  // Header
                   Center(
                     child: Container(
                       padding: const EdgeInsets.all(12),
@@ -120,16 +109,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         color: AppColors.primaryBlue.withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.shield, color: AppColors.primaryBlue, size: 32),
+                      child: const Icon(Icons.shield, color: AppColors.primaryBlue, size: 34),
                     ),
                   ),
-                  const SizedBox(height: 14),
-
+                  const SizedBox(height: 12),
                   Center(
                     child: Text(
-                      _isRegister ? 'Create Role-Specific Account' : 'Welcome to ResQAI',
+                      'ResQAI Disaster Response Platform',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: isMobile ? 18 : 22,
                         fontWeight: FontWeight.w900,
                         letterSpacing: -0.3,
                         color: isDark ? Colors.white : AppColors.deepNavy,
@@ -137,254 +125,111 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-
                   Center(
                     child: Text(
-                      _isRegister
-                          ? 'Complete customized registration for your disaster response category'
-                          : 'Sign in to access your role-based disaster command workspace',
+                      'Unified Transparent Relief Platform for Citizens, Volunteers, NGOs and Government',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Role Selector
-                  const Text('Select Your Response Category *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  const SizedBox(height: 6),
-                  DropdownButtonFormField<UserRole>(
-                    value: _selectedRole,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    ),
-                    items: [
-                      UserRole.citizen,
-                      UserRole.volunteer,
-                      UserRole.govtOfficial,
-                      UserRole.ngoLead,
-                      UserRole.doctor,
-                      UserRole.rescueTeam,
-                    ].map((role) {
-                      return DropdownMenuItem(
-                        value: role,
-                        child: Text(
-                          '${role.title} (${role.name})',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() {
-                          _selectedRole = v;
-                          if (v == UserRole.volunteer) {
-                            _nameController.text = 'Ananya Deshmukh';
-                            _emailController.text = 'volunteer@resqai.org';
-                          } else if (v == UserRole.govtOfficial) {
-                            _nameController.text = 'Rajesh Kumar IAS';
-                            _emailController.text = 'adm.delhi@gov.in';
-                          } else if (v == UserRole.ngoLead) {
-                            _nameController.text = 'Vikram Sethi';
-                            _emailController.text = 'director@redcrossdelhi.org';
-                          } else if (v == UserRole.doctor) {
-                            _nameController.text = 'Dr. Priya Nair';
-                            _emailController.text = 'trauma.aiims@health.gov.in';
-                          } else if (v == UserRole.rescueTeam) {
-                            _nameController.text = 'Commandant Vikramaditya';
-                            _emailController.text = 'ndrf.8bn@mha.gov.in';
-                          } else {
-                            _nameController.text = 'Aarav Sharma';
-                            _emailController.text = 'citizen@resqai.org';
-                          }
-                        });
-                      }
-                    },
                   ),
                   const SizedBox(height: 16),
 
-                  // Verification Advisory for Privileged Roles
-                  if (_isRegister && _selectedRole != UserRole.citizen)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.warningOrange.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.warningOrange.withOpacity(0.4)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.verified_user_outlined, color: AppColors.warningOrange, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'Statutory Verification Notice: Privileged registration as ${_selectedRole.title} requires credential audit by DDMA. You will receive immediate dashboard access with operational approval tracking.',
-                              style: TextStyle(
-                                fontSize: 11,
-                                height: 1.35,
-                                color: isDark ? Colors.white : AppColors.deepNavy,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                  // Emergency Red Alert Banner
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.emergencyRed.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.emergencyRed.withOpacity(0.4)),
                     ),
-
-                  // COMMON ACCOUNT CREDENTIALS (Email & Password)
-                  const Text('Email Address *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.email_outlined, size: 20),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  const Text('Password *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.lock_outline, size: 20),
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                      ),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // ROLE-SPECIFIC FORM FIELDS (ONLY WHEN IN REGISTER MODE)
-                  if (_isRegister) ...[
-                    // Full Name
-                    const Text('Full Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.person_outline, size: 20),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Primary Mobile with Verified OTP status
-                    Row(
+                    child: const Row(
                       children: [
+                        Icon(Icons.warning_amber_rounded, color: AppColors.emergencyRed, size: 20),
+                        SizedBox(width: 8),
                         Expanded(
-                          flex: 3,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Primary Mobile Phone *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                              const SizedBox(height: 6),
-                              TextField(
-                                controller: _phoneController,
-                                keyboardType: TextInputType.phone,
-                                decoration: InputDecoration(
-                                  prefixIcon: const Icon(Icons.phone_outlined, size: 20),
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Mobile OTP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                              const SizedBox(height: 6),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _otpVerified ? AppColors.successGreen : AppColors.primaryBlue,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                                onPressed: () {
-                                  setState(() => _otpVerified = true);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      backgroundColor: AppColors.successGreen,
-                                      content: Text('✓ Mobile OTP Verified Successfully (+91 SMS Gateway)'),
-                                    ),
-                                  );
-                                },
-                                child: Text(_otpVerified ? '✓ Verified' : 'Verify OTP', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                              ),
-                            ],
+                          child: Text(
+                            'If life is in immediate danger, call 112 directly.',
+                            style: TextStyle(
+                              color: AppColors.emergencyRed,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
-
-                    // D1. CITIZEN SPECIFIC REGISTRATION
-                    if (_selectedRole == UserRole.citizen) ...[
-                      _buildCitizenRegistrationFields(isDark),
-                    ]
-                    // D2. VOLUNTEER SPECIFIC REGISTRATION
-                    else if (_selectedRole == UserRole.volunteer) ...[
-                      _buildVolunteerRegistrationFields(isDark),
-                    ]
-                    // D3. GOVERNMENT OFFICIAL REGISTRATION
-                    else if (_selectedRole == UserRole.govtOfficial) ...[
-                      _buildGovernmentRegistrationFields(isDark),
-                    ]
-                    // D4. NGO REPRESENTATIVE REGISTRATION
-                    else if (_selectedRole == UserRole.ngoLead) ...[
-                      _buildNgoRegistrationFields(isDark),
-                    ]
-                    // D5. DOCTOR SPECIFIC REGISTRATION
-                    else if (_selectedRole == UserRole.doctor) ...[
-                      _buildDoctorRegistrationFields(isDark),
-                    ]
-                    // D5. RESCUE TEAM REGISTRATION
-                    else if (_selectedRole == UserRole.rescueTeam) ...[
-                      _buildRescueTeamRegistrationFields(isDark),
-                    ],
-                  ],
-
+                  ),
                   const SizedBox(height: 20),
 
-                  // Submit Action Button
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    onPressed: _handleAuthSubmit,
-                    child: Text(
-                      _isRegister ? 'Complete Registration & Open Dashboard' : 'Sign In to Workspace',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
+                  // Portal Selector Normal Buttons
+                  const Text(
+                    'SELECT LOGIN PORTAL TYPE:',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8),
                   ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildPortalButton(
+                          title: 'Citizen',
+                          icon: Icons.person_outline,
+                          portal: AuthPortal.citizen,
+                          isDark: isDark,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildPortalButton(
+                          title: 'Gov & Admin',
+                          icon: Icons.admin_panel_settings_outlined,
+                          portal: AuthPortal.governmentAdmin,
+                          isDark: isDark,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildPortalButton(
+                          title: 'NGO / Vol',
+                          icon: Icons.handshake_outlined,
+                          portal: AuthPortal.volunteerNgo,
+                          isDark: isDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Portal View
+                  if (_activePortal == AuthPortal.citizen)
+                    _buildCitizenPortal(isDark, isMobile)
+                  else if (_activePortal == AuthPortal.governmentAdmin)
+                    _buildGovernmentAdminPortal(isDark, isMobile)
+                  else
+                    _buildVolunteerNgoPortal(isDark, isMobile),
+
+                  const SizedBox(height: 20),
+                  const Divider(height: 1),
                   const SizedBox(height: 14),
 
-                  // Toggle between Sign In and Register Mode
-                  Center(
-                    child: TextButton(
-                      onPressed: () => setState(() => _isRegister = !_isRegister),
-                      child: Text(
-                        _isRegister ? 'Already registered? Sign In' : 'New user? Create a Role-Specific Account',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                      ),
+                  // Emergency Guest SOS Button
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.emergencyRed,
+                      side: const BorderSide(color: AppColors.emergencyRed, width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
+                    icon: const Icon(Icons.flash_on, size: 18),
+                    label: const Text(
+                      'Continue as Guest (Instant SOS Only - No ID Required)',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.citizenSos);
+                    },
                   ),
                 ],
               ),
@@ -395,513 +240,768 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     );
   }
 
-  // D1. CITIZEN REGISTRATION SECTION
-  Widget _buildCitizenRegistrationFields(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Mandatory Emergency Contact Card
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.emergencyRed.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.emergencyRed.withOpacity(0.3)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.contact_emergency, color: AppColors.emergencyRed, size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'Mandatory Emergency Contact (Distinct from Self) *',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.emergencyRed),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _emergencyContactNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Emergency Contact Person (e.g. Spouse / Mother / Brother)',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _emergencyContactPhoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Emergency Contact Mobile (+91 Phone)',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-              ),
-            ],
+  Widget _buildPortalButton({
+    required String title,
+    required IconData icon,
+    required AuthPortal portal,
+    required bool isDark,
+  }) {
+    final isSelected = _activePortal == portal;
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected
+            ? AppColors.primaryBlue
+            : (isDark ? AppColors.darkSurfaceCard : Colors.grey.shade100),
+        foregroundColor: isSelected
+            ? Colors.white
+            : (isDark ? Colors.white70 : AppColors.deepNavy),
+        elevation: isSelected ? 2 : 0,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: isSelected
+                ? AppColors.primaryBlue
+                : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
           ),
         ),
-        const SizedBox(height: 14),
-
-        // District & Locality
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _districtController,
-                decoration: const InputDecoration(labelText: 'District *', border: OutlineInputBorder(), isDense: true),
+      ),
+      onPressed: () {
+        setState(() {
+          _activePortal = portal;
+          if (portal == AuthPortal.citizen) {
+            _selectedRole = UserRole.citizen;
+          } else if (portal == AuthPortal.governmentAdmin) {
+            _selectedRole = _isAdminSuperAccess ? UserRole.admin : UserRole.govtOfficial;
+          } else {
+            _selectedRole = UserRole.volunteer;
+          }
+        });
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 12,
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _localityController,
-                decoration: const InputDecoration(labelText: 'Locality / Ward *', border: OutlineInputBorder(), isDense: true),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-
-        // Language & Notifications
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _selectedLanguage,
-                decoration: const InputDecoration(labelText: 'Language', border: OutlineInputBorder(), isDense: true),
-                items: const [
-                  DropdownMenuItem(value: 'en', child: Text('English')),
-                  DropdownMenuItem(value: 'hi', child: Text('हिंदी (Hindi)')),
-                ],
-                onChanged: (v) => setState(() => _selectedLanguage = v ?? 'en'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _notificationPref,
-                decoration: const InputDecoration(labelText: 'Notification Mode', border: OutlineInputBorder(), isDense: true),
-                items: const [
-                  DropdownMenuItem(value: 'ALL_ALERTS_SMS', child: Text('SMS + Push')),
-                  DropdownMenuItem(value: 'CRITICAL_ONLY', child: Text('Critical Only')),
-                ],
-                onChanged: (v) => setState(() => _notificationPref = v ?? 'ALL_ALERTS_SMS'),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-
-        // Vulnerability Profile / Special Assistance
-        DropdownButtonFormField<String>(
-          value: _specialAssistance,
-          decoration: const InputDecoration(labelText: 'Special Assistance (Vulnerability Profile)', border: OutlineInputBorder(), isDense: true),
-          items: const [
-            DropdownMenuItem(value: 'NONE', child: Text('None / Standard Able-Bodied')),
-            DropdownMenuItem(value: 'ELDERLY', child: Text('Senior Citizen / Elderly Care')),
-            DropdownMenuItem(value: 'MOBILITY', child: Text('Wheelchair / Reduced Mobility')),
-            DropdownMenuItem(value: 'CHRONIC_CARE', child: Text('Chronic Medical Care (Oxygen/Dialysis)')),
-            DropdownMenuItem(value: 'INFANT', child: Text('Infant / Expectant Mother')),
-          ],
-          onChanged: (v) => setState(() => _specialAssistance = v ?? 'NONE'),
-        ),
-        const SizedBox(height: 10),
-
-        // Location Permission with Manual Fallback
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Real-Time Hazard Location Telemetry', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Used for geo-targeted early evacuation warnings (Manual fallback supported)', style: TextStyle(fontSize: 10, color: Colors.grey)),
-          value: _locationPermission,
-          activeColor: AppColors.primaryBlue,
-          onChanged: (v) => setState(() => _locationPermission = v),
-        ),
-      ],
-    );
-  }
-
-  // D2. VOLUNTEER REGISTRATION SECTION
-  Widget _buildVolunteerRegistrationFields(bool isDark) {
-    final availableSkills = [
-      'First Aid Certified',
-      'Food Distribution',
-      'Shelter Care',
-      'Vehicle Transport',
-      'Medical Care',
-      'Debris Clearing',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _volunteerIdController,
-                decoration: const InputDecoration(labelText: 'Volunteer ID (Issued)', border: OutlineInputBorder(), isDense: true),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _volunteerServiceAreaController,
-                decoration: const InputDecoration(labelText: 'Service Area / Sector', border: OutlineInputBorder(), isDense: true),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-
-        const Text('Skills & Operational Training *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: availableSkills.map((sk) {
-            final isSelected = _selectedSkills.contains(sk);
-            return FilterChip(
-              label: Text(sk, style: TextStyle(fontSize: 11, color: isSelected ? Colors.white : null)),
-              selected: isSelected,
-              selectedColor: AppColors.primaryBlue,
-              onSelected: (sel) {
-                setState(() {
-                  if (sel) {
-                    _selectedSkills.add(sk);
-                  } else {
-                    _selectedSkills.remove(sk);
-                  }
-                });
-              },
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 14),
-
-        DropdownButtonFormField<String>(
-          value: _transportEquipment,
-          decoration: const InputDecoration(labelText: 'Transportation / Equipment Access', border: OutlineInputBorder(), isDense: true),
-          items: const [
-            DropdownMenuItem(value: '4x4 Vehicle', child: Text('4x4 SUV / Utility Vehicle')),
-            DropdownMenuItem(value: 'Boat / Raft', child: Text('Inflatable Rescue Raft / Boat')),
-            DropdownMenuItem(value: 'Two Wheeler', child: Text('Motorbike / Scooter')),
-            DropdownMenuItem(value: 'None', child: Text('Pedestrian / Foot Logistics Only')),
-          ],
-          onChanged: (v) => setState(() => _transportEquipment = v ?? 'None'),
-        ),
-        const SizedBox(height: 10),
-
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Available for Immediate Deployment', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Broadcasts readiness for local relief missions & urgent assignments', style: TextStyle(fontSize: 10, color: Colors.grey)),
-          value: _volunteerAvailable,
-          activeColor: AppColors.successGreen,
-          onChanged: (v) => setState(() => _volunteerAvailable = v),
-        ),
-        const SizedBox(height: 6),
-
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          value: _agreedToSafetyRules,
-          activeColor: AppColors.primaryBlue,
-          title: const Text('I agree to Statutory Volunteer Safety Rules (Never enter river floodwaters unescorted by NDRF)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-          onChanged: (v) => setState(() => _agreedToSafetyRules = v ?? true),
-        ),
-      ],
-    );
-  }
-
-  // D3. GOVERNMENT OFFICIAL REGISTRATION SECTION
-  Widget _buildGovernmentRegistrationFields(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _govtIdController,
-          decoration: const InputDecoration(labelText: 'Official Government / Officer ID *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _govtDeptController,
-          decoration: const InputDecoration(labelText: 'Department (e.g. DDMA, Revenue, Police, Health) *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _govtDesignationController,
-          decoration: const InputDecoration(labelText: 'Official Designation *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: TextField(controller: _stateController, decoration: const InputDecoration(labelText: 'State Jurisdiction', border: OutlineInputBorder(), isDense: true))),
-            const SizedBox(width: 10),
-            Expanded(child: TextField(controller: _districtController, decoration: const InputDecoration(labelText: 'District Jurisdiction', border: OutlineInputBorder(), isDense: true))),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // D4. NGO REPRESENTATIVE REGISTRATION SECTION
-  Widget _buildNgoRegistrationFields(bool isDark) {
-    const ngoSpecializationOptions = [
-      'Emergency Rations',
-      'Temporary Shelter',
-      'Clean Water & WASH',
-      'Medical Triage',
-      'Child & Women Safety',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _ngoNameController,
-          decoration: const InputDecoration(labelText: 'Official NGO / Society Name *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _ngoRegNumberController,
-          decoration: const InputDecoration(labelText: 'NGO DARPAN ID / Registration Number *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _ngoRegTypeController,
-          decoration: const InputDecoration(labelText: 'Statutory Registration Type / Act *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _ngoRepNameController,
-          decoration: const InputDecoration(labelText: 'Authorized Representative *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _ngoAddressController,
-          decoration: const InputDecoration(labelText: 'Headquarters Address & Operational Sectors *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        const Text('Relief Specializations & Activities *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: ngoSpecializationOptions.map((spec) {
-            final isSelected = _ngoSpecializations.contains(spec);
-            return FilterChip(
-              label: Text(spec, style: TextStyle(fontSize: 11, color: isSelected ? Colors.white : null)),
-              selected: isSelected,
-              selectedColor: AppColors.primaryBlue,
-              onSelected: (sel) {
-                setState(() {
-                  if (sel) {
-                    _ngoSpecializations.add(spec);
-                  } else {
-                    _ngoSpecializations.remove(spec);
-                  }
-                });
-              },
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  // D5. DOCTOR REGISTRATION SECTION
-  Widget _buildDoctorRegistrationFields(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _medicalRegNumberController,
-          decoration: const InputDecoration(labelText: 'Medical Council Reg No (MCI / State Council) *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _hospitalController,
-          decoration: const InputDecoration(labelText: 'Hospital / Clinic Affiliation *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _specializationController,
-          decoration: const InputDecoration(labelText: 'Clinical Specialization *', border: OutlineInputBorder(), isDense: true),
-        ),
-      ],
-    );
-  }
-
-  // D5. RESCUE TEAM REGISTRATION SECTION
-  Widget _buildRescueTeamRegistrationFields(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _unitNameController,
-          decoration: const InputDecoration(labelText: 'Rescue Team / Battalion Affiliation *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _responderBadgeController,
-          decoration: const InputDecoration(labelText: 'Official Badge / Operator ID *', border: OutlineInputBorder(), isDense: true),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _teamSpecializationController,
-          decoration: const InputDecoration(labelText: 'Specialization (e.g. Flood Boat Evacuation, USAR) *', border: OutlineInputBorder(), isDense: true),
-        ),
-      ],
-    );
-  }
-
-  void _handleAuthSubmit() {
-    // Validation
-    final email = _emailController.text.trim();
-    final name = _nameController.text.trim();
-    if (email.isEmpty || name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(backgroundColor: AppColors.emergencyRed, content: Text('Please fill all mandatory credentials.')),
-      );
-      return;
-    }
-
-    if (_isRegister && _selectedRole == UserRole.volunteer && !_agreedToSafetyRules) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(backgroundColor: AppColors.emergencyRed, content: Text('Please accept the volunteer safety guidelines.')),
-      );
-      return;
-    }
-
-    final isPrivileged = _selectedRole != UserRole.citizen && _selectedRole != UserRole.volunteer;
-
-    final newUser = UserModel(
-      id: 'usr_${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-      citizenId: _selectedRole == UserRole.volunteer
-          ? _volunteerIdController.text
-          : 'RQ-${_selectedRole.name.toUpperCase().substring(0, 3)}-${Random().nextInt(9000) + 1000}',
-      name: name,
-      email: email,
-      phoneMasked: '+91 98*** **210',
-      phoneRaw: _phoneController.text,
-      role: _selectedRole,
-      badgeOrJurisdiction: _selectedRole == UserRole.govtOfficial
-          ? _govtDesignationController.text
-          : (_selectedRole == UserRole.rescueTeam ? _responderBadgeController.text : _selectedRole.title),
-      emergencyContactName: _emergencyContactNameController.text,
-      emergencyContactPhone: _emergencyContactPhoneController.text,
-      district: _districtController.text,
-      stateName: _stateController.text,
-      organization: _selectedRole == UserRole.ngoLead
-          ? _ngoNameController.text
-          : (_selectedRole == UserRole.doctor ? _hospitalController.text : _unitNameController.text),
-      regNumber: _selectedRole == UserRole.ngoLead
-          ? '${_ngoRegNumberController.text} (${_ngoRegTypeController.text})'
-          : (_selectedRole == UserRole.govtOfficial
-              ? _govtIdController.text
-              : (_selectedRole == UserRole.doctor ? _medicalRegNumberController.text : null)),
-      skills: _selectedRole == UserRole.volunteer
-          ? _selectedSkills
-          : (_selectedRole == UserRole.ngoLead ? _ngoSpecializations : const []),
-      availability: _selectedRole == UserRole.volunteer ? (_volunteerAvailable ? 'AVAILABLE' : 'OFFLINE') : 'AVAILABLE',
-      serviceArea: _selectedRole == UserRole.volunteer ? _volunteerServiceAreaController.text : null,
-      isVerified: !isPrivileged,
-      verificationStatus: isPrivileged ? 'PENDING' : 'APPROVED',
-      isLocationPermissionGranted: _locationPermission,
-      preferredLanguage: _selectedLanguage,
-      notificationPreferences: _notificationPref,
-      specialAssistance: _specialAssistance,
-      loggedInAt: DateTime.now(),
-    );
-
-    // Persist authenticated state
-    ref.read(authProvider.notifier).loginAs(newUser);
-    ref.read(activeRoleProvider.notifier).state = _selectedRole;
-
-    if (_isRegister && isPrivileged) {
-      _showPendingVerificationDialog(newUser);
-    } else {
-      _navigateToRoleWorkspace(_selectedRole);
-    }
-  }
-
-  void _showPendingVerificationDialog(UserModel user) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.hourglass_top, color: AppColors.warningOrange, size: 24),
-            SizedBox(width: 10),
-            Text('Verification Queued', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Your application as ${user.role.title} has been registered and submitted to the DDMA / State Administrative Desk.',
-              style: const TextStyle(fontSize: 13, height: 1.4),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.warningOrange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Account ID: ${user.citizenId}\nRegistration Ref: ${user.regNumber ?? "PENDING-DDMA"}\nStatus: PENDING AUDIT',
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, height: 1.4),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
-            onPressed: () {
-              Navigator.pop(ctx);
-              _navigateToRoleWorkspace(user.role);
-            },
-            child: const Text('Proceed to Role Workspace', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  void _navigateToRoleWorkspace(UserRole role) {
-    switch (role) {
-      case UserRole.citizen:
-        Navigator.pushReplacementNamed(context, AppRoutes.citizenDashboard);
-        break;
-      case UserRole.volunteer:
-        Navigator.pushReplacementNamed(context, AppRoutes.volunteerDashboard);
-        break;
-      case UserRole.ngoLead:
-        Navigator.pushReplacementNamed(context, AppRoutes.ngoDashboard);
-        break;
-      case UserRole.govtOfficial:
-      case UserRole.incidentCommander:
-      case UserRole.admin:
-        Navigator.pushReplacementNamed(context, AppRoutes.governmentCommandCentre);
-        break;
-      case UserRole.rescueTeam:
-      case UserRole.fieldResponder:
-        Navigator.pushReplacementNamed(context, AppRoutes.responderDashboard);
-        break;
-      case UserRole.doctor:
-        Navigator.pushReplacementNamed(context, AppRoutes.medicalDashboard);
-        break;
-      default:
-        Navigator.pushReplacementNamed(context, AppRoutes.citizenDashboard);
-        break;
+  // ==========================================
+  // 1. CITIZEN PORTAL (NEW USER: 1st CREATE ID, THEN LOGIN)
+  // ==========================================
+  Widget _buildCitizenPortal(bool isDark, bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.primaryBlue.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.primaryBlue.withOpacity(0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.primaryBlue, size: 18),
+                  SizedBox(width: 6),
+                  Text(
+                    'Citizen Registration Notice',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryBlue),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'New citizens: First create your Citizen ID with emergency contact details. Once created, you are logged directly into your Citizen Dashboard for emergency warnings and relief tracking.',
+                style: TextStyle(fontSize: 11.5, color: isDark ? Colors.white70 : AppColors.deepNavy, height: 1.35),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Toggle Buttons: [1. Create Citizen ID] & [2. Citizen Sign In]
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isRegister ? AppColors.primaryBlue : (isDark ? AppColors.darkSurfaceCard : Colors.grey.shade200),
+                  foregroundColor: _isRegister ? Colors.white : (isDark ? Colors.white70 : AppColors.deepNavy),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.person_add, size: 16),
+                label: const Text('1. Create Citizen ID', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                onPressed: () => setState(() => _isRegister = true),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: !_isRegister ? AppColors.primaryBlue : (isDark ? AppColors.darkSurfaceCard : Colors.grey.shade200),
+                  foregroundColor: !_isRegister ? Colors.white : (isDark ? Colors.white70 : AppColors.deepNavy),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.login, size: 16),
+                label: const Text('2. Citizen Sign In', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                onPressed: () => setState(() => _isRegister = false),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+
+        if (_isRegister) ...[
+          // REGISTER FLOW (NEW USER CREATES ID)
+          const Text('Full Legal Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _citizenNameController,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.badge_outlined, size: 20),
+              hintText: 'e.g. Aarav Sharma',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Mobile Phone (+91) *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _citizenPhoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                        hintText: '+91 98765 43210',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Password *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _citizenPasswordController,
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                        suffixIcon: IconButton(
+                          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
+                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        ),
+                        border: const OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Mandatory Emergency Contact Card (PRD R-CIT-1)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.emergencyRed.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.emergencyRed.withOpacity(0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.contact_emergency, color: AppColors.emergencyRed, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Mandatory Emergency Contact (R-CIT-1) *',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.emergencyRed),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _citizenEmergencyNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Contact Person Name (e.g. Sunita Sharma - Mother)',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _citizenEmergencyPhoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Contact Mobile Number (+91)',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _citizenDistrictController,
+                  decoration: const InputDecoration(
+                    labelText: 'Home District *',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: _citizenLocalityController,
+                  decoration: const InputDecoration(
+                    labelText: 'Locality / Ward *',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => _handleCitizenRegistration(),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle_outline, size: 18),
+                SizedBox(width: 8),
+                Text('Create Citizen ID & Open Dashboard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              ],
+            ),
+          ),
+        ] else ...[
+          // SIGN IN FLOW (EXISTING USER)
+          const Text('Registered Phone or Email *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _citizenEmailController,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.person_outline, size: 20),
+              hintText: 'citizen@resqai.org or +91 98765 43210',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          const Text('Password or 4-Digit PIN *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _citizenPasswordController,
+            obscureText: _obscurePassword,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.lock_outline, size: 20),
+              suffixIcon: IconButton(
+                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
+                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              ),
+              border: const OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => _handleCitizenLogin(),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.login, size: 18),
+                SizedBox(width: 8),
+                Text('Sign In to Citizen Dashboard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ==========================================
+  // 2. GOVERNMENT & MAIN ADMIN PORTAL (SUPER ADMIN & OFFICIALS)
+  // ==========================================
+  Widget _buildGovernmentAdminPortal(bool isDark, bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.amber.shade900.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.amber.shade800.withOpacity(0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.security, color: Colors.amber.shade800, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Administrative & Governance Command Desk',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '• Main Admin (Super Admin): Unrestricted master access across ALL role dashboards, role assignment, and official position creation.\n• Government Member / DDMA Officer: Statutory incident verification, SDRF disbursement, and dispatch command.',
+                style: TextStyle(fontSize: 11.5, color: isDark ? Colors.white70 : AppColors.deepNavy, height: 1.4),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Quick Admin Sign In Preset Buttons
+        const Text('QUICK ACCESS PRESETS:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.6)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isAdminSuperAccess ? AppColors.deepNavy : (isDark ? AppColors.darkSurfaceCard : Colors.grey.shade200),
+                  foregroundColor: _isAdminSuperAccess ? Colors.white : (isDark ? Colors.white70 : AppColors.deepNavy),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(color: _isAdminSuperAccess ? AppColors.primaryBlue : Colors.transparent),
+                  ),
+                ),
+                icon: const Icon(Icons.admin_panel_settings, size: 16),
+                label: const Text('Main Admin (Master)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                onPressed: () {
+                  setState(() {
+                    _isAdminSuperAccess = true;
+                    _adminEmailController.text = 'admin@resqai.org';
+                    _adminPasswordController.text = 'AdminPassword123!';
+                    _adminDepartmentController.text = 'SDMA IT & Disaster Governance';
+                    _adminDesignationController.text = 'System SuperAdmin (All Access)';
+                    _selectedRole = UserRole.admin;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: !_isAdminSuperAccess ? AppColors.deepNavy : (isDark ? AppColors.darkSurfaceCard : Colors.grey.shade200),
+                  foregroundColor: !_isAdminSuperAccess ? Colors.white : (isDark ? Colors.white70 : AppColors.deepNavy),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(color: !_isAdminSuperAccess ? AppColors.primaryBlue : Colors.transparent),
+                  ),
+                ),
+                icon: const Icon(Icons.account_balance, size: 16),
+                label: const Text('Gov Officer (DDMA)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                onPressed: () {
+                  setState(() {
+                    _isAdminSuperAccess = false;
+                    _adminEmailController.text = 'adm.delhi@gov.in';
+                    _adminPasswordController.text = 'Password123!';
+                    _adminDepartmentController.text = 'DDMA / Revenue & Relief';
+                    _adminDesignationController.text = 'Additional District Magistrate (Relief)';
+                    _selectedRole = UserRole.govtOfficial;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        const Text('Official Email / Username *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _adminEmailController,
+          decoration: const InputDecoration(
+            prefixIcon: Icon(Icons.email_outlined, size: 20),
+            border: OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        const Text('Password *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _adminPasswordController,
+          obscureText: _obscurePassword,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.lock_outline, size: 20),
+            suffixIcon: IconButton(
+              icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _isAdminSuperAccess ? Colors.indigo.shade800 : AppColors.criticalRed,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          onPressed: () => _handleAdminLogin(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(_isAdminSuperAccess ? Icons.security : Icons.shield, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                _isAdminSuperAccess ? 'Sign In as Main Admin (Master Control)' : 'Sign In as Government Officer',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ==========================================
+  // 3. VOLUNTEERS & RELIEF NGOS PORTAL
+  // ==========================================
+  Widget _buildVolunteerNgoPortal(bool isDark, bool isMobile) {
+    final isVolunteer = _selectedRole == UserRole.volunteer;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: ChoiceChip(
+                label: const Text('Volunteer Desk', style: TextStyle(fontWeight: FontWeight.bold)),
+                selected: isVolunteer,
+                onSelected: (val) {
+                  if (val) setState(() => _selectedRole = UserRole.volunteer);
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ChoiceChip(
+                label: const Text('NGO Organization', style: TextStyle(fontWeight: FontWeight.bold)),
+                selected: !isVolunteer,
+                onSelected: (val) {
+                  if (val) setState(() => _selectedRole = UserRole.ngoLead);
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        if (isVolunteer) ...[
+          // Volunteer Form
+          const Text('Full Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(controller: _volNameController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          const SizedBox(height: 12),
+          const Text('Email or Phone *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(controller: _volEmailController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          const SizedBox(height: 12),
+          const Text('Service Area / Operational District *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(controller: _volServiceAreaController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          const SizedBox(height: 12),
+
+          CheckboxListTile(
+            value: _volSafetyAgreed,
+            contentPadding: EdgeInsets.zero,
+            title: const Text('I accept the Disaster Volunteer Safety Briefing and Field Code of Conduct.', style: TextStyle(fontSize: 12)),
+            onChanged: (v) => setState(() => _volSafetyAgreed = v ?? true),
+          ),
+          const SizedBox(height: 12),
+
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => _handleVolunteerSubmit(),
+            child: const Text('Enter Volunteer Workspace', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ] else ...[
+          // NGO Form
+          const Text('Registered NGO / Society Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(controller: _ngoOrgNameController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          const SizedBox(height: 12),
+          const Text('NGO DARPAN ID / Registration Number (Unique, Required R-NGO-1) *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(controller: _ngoRegNumberController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          const SizedBox(height: 12),
+          const Text('Authorized Representative *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(controller: _ngoRepNameController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          const SizedBox(height: 12),
+          const Text('Official Email *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 6),
+          TextField(controller: _ngoEmailController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          const SizedBox(height: 14),
+
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal.shade700,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => _handleNgoSubmit(),
+            child: const Text('Enter NGO Relief Console', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ==========================================
+  // AUTH ACTION HANDLERS
+  // ==========================================
+
+  void _handleCitizenRegistration() {
+    final name = _citizenNameController.text.trim();
+    final phone = _citizenPhoneController.text.trim();
+    final emergencyName = _citizenEmergencyNameController.text.trim();
+    final emergencyPhone = _citizenEmergencyPhoneController.text.trim();
+
+    if (name.isEmpty || phone.isEmpty) {
+      _showError('Full name and mobile phone are required.');
+      return;
     }
+    if (emergencyName.isEmpty || emergencyPhone.isEmpty) {
+      _showError('Mandatory Emergency Contact details must be provided (R-CIT-1).');
+      return;
+    }
+
+    final newCitizenId = 'RQ-CIT-2026-${Random().nextInt(9000) + 1000}';
+    final user = UserModel(
+      id: 'USR-${newCitizenId.replaceAll('-', '_')}',
+      citizenId: newCitizenId,
+      name: name,
+      email: _citizenEmailController.text.trim().isNotEmpty ? _citizenEmailController.text.trim() : 'citizen@resqai.org',
+      phoneMasked: phone.length > 5 ? '${phone.substring(0, 3)}*** **${phone.substring(phone.length - 3)}' : phone,
+      phoneRaw: phone,
+      role: UserRole.citizen,
+      badgeOrJurisdiction: '${_citizenDistrictController.text}, ${_citizenLocalityController.text}',
+      emergencyContactName: emergencyName,
+      emergencyContactPhone: emergencyPhone,
+      district: _citizenDistrictController.text,
+      stateName: 'Delhi',
+      isVerified: true,
+      verificationStatus: 'APPROVED',
+      preferredLanguage: _citizenLanguage,
+      loggedInAt: DateTime.now(),
+    );
+
+    // Save user & set active role
+    ref.read(authProvider.notifier).loginAs(user);
+    ref.read(activeRoleProvider.notifier).state = UserRole.citizen;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.successGreen,
+        content: Text('✓ Citizen ID generated: $newCitizenId. Logged into Citizen Dashboard.'),
+      ),
+    );
+
+    Navigator.pushReplacementNamed(context, AppRoutes.citizenDashboard);
+  }
+
+  void _handleCitizenLogin() {
+    final email = _citizenEmailController.text.trim();
+    final user = UserModel(
+      id: 'USR-CITIZEN-01',
+      citizenId: 'RQ-CIT-2026-1042',
+      name: _citizenNameController.text.trim().isNotEmpty ? _citizenNameController.text.trim() : 'Aarav Sharma',
+      email: email.isNotEmpty ? email : 'citizen@resqai.org',
+      phoneMasked: '+91 98*** **210',
+      phoneRaw: '+91 98765 43210',
+      role: UserRole.citizen,
+      badgeOrJurisdiction: 'Yamuna Lowland Ward 4, Delhi',
+      emergencyContactName: _citizenEmergencyNameController.text,
+      emergencyContactPhone: _citizenEmergencyPhoneController.text,
+      district: 'East Delhi',
+      stateName: 'Delhi',
+      isVerified: true,
+      verificationStatus: 'APPROVED',
+      loggedInAt: DateTime.now(),
+    );
+
+    ref.read(authProvider.notifier).loginAs(user);
+    ref.read(activeRoleProvider.notifier).state = UserRole.citizen;
+
+    Navigator.pushReplacementNamed(context, AppRoutes.citizenDashboard);
+  }
+
+  void _handleAdminLogin() {
+    final email = _adminEmailController.text.trim();
+    final role = _isAdminSuperAccess ? UserRole.admin : UserRole.govtOfficial;
+
+    final adminUser = UserModel(
+      id: _isAdminSuperAccess ? 'USR-ADMIN-01' : 'USR-GOV-01',
+      citizenId: _isAdminSuperAccess ? 'RQ-ADM-2026-001' : 'RQ-GOV-2026-001',
+      name: _isAdminSuperAccess ? 'System SuperAdmin' : 'Rajesh Kumar (ADM Relief)',
+      email: email.isNotEmpty ? email : (_isAdminSuperAccess ? 'admin@resqai.org' : 'adm.delhi@gov.in'),
+      phoneMasked: '+91 98*** **999',
+      phoneRaw: '+91 98765 43211',
+      role: role,
+      badgeOrJurisdiction: _adminDesignationController.text,
+      organization: _adminDepartmentController.text,
+      district: 'National Capital Region',
+      stateName: 'Delhi',
+      isVerified: true,
+      verificationStatus: 'APPROVED',
+      loggedInAt: DateTime.now(),
+    );
+
+    ref.read(authProvider.notifier).loginAs(adminUser);
+    ref.read(activeRoleProvider.notifier).state = role;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: _isAdminSuperAccess ? Colors.indigo : AppColors.criticalRed,
+        content: Text(_isAdminSuperAccess
+            ? '✓ Authenticated as Main Admin (Super Admin). Full master control enabled.'
+            : '✓ Authenticated as Government Relief Officer. Command Desk active.'),
+      ),
+    );
+
+    Navigator.pushReplacementNamed(context, AppRoutes.governmentCommandCentre);
+  }
+
+  void _handleVolunteerSubmit() {
+    if (!_volSafetyAgreed) {
+      _showError('Please accept the volunteer safety briefing.');
+      return;
+    }
+
+    final volUser = UserModel(
+      id: 'USR-VOL-01',
+      citizenId: 'RQ-VOL-2026-${Random().nextInt(900) + 100}',
+      name: _volNameController.text.trim(),
+      email: _volEmailController.text.trim(),
+      phoneMasked: '+91 98*** **334',
+      phoneRaw: _volPhoneController.text.trim(),
+      role: UserRole.volunteer,
+      badgeOrJurisdiction: 'Civil Defense Volunteer',
+      skills: _selectedSkills,
+      serviceArea: _volServiceAreaController.text.trim(),
+      isVerified: true,
+      verificationStatus: 'APPROVED',
+      loggedInAt: DateTime.now(),
+    );
+
+    ref.read(authProvider.notifier).loginAs(volUser);
+    ref.read(activeRoleProvider.notifier).state = UserRole.volunteer;
+
+    Navigator.pushReplacementNamed(context, AppRoutes.volunteerDashboard);
+  }
+
+  void _handleNgoSubmit() {
+    final regNum = _ngoRegNumberController.text.trim();
+    if (regNum.isEmpty) {
+      _showError('NGO Registration Number (DARPAN / Society Reg) is mandatory (R-NGO-1).');
+      return;
+    }
+
+    final ngoUser = UserModel(
+      id: 'USR-NGO-01',
+      citizenId: 'RQ-NGO-2026-${Random().nextInt(900) + 100}',
+      name: _ngoRepNameController.text.trim(),
+      email: _ngoEmailController.text.trim(),
+      phoneMasked: '+91 99*** **331',
+      phoneRaw: _ngoPhoneController.text.trim(),
+      role: UserRole.ngoLead,
+      badgeOrJurisdiction: 'NGO Operations Lead',
+      organization: _ngoOrgNameController.text.trim(),
+      regNumber: regNum,
+      isVerified: true,
+      verificationStatus: 'APPROVED',
+      loggedInAt: DateTime.now(),
+    );
+
+    ref.read(authProvider.notifier).loginAs(ngoUser);
+    ref.read(activeRoleProvider.notifier).state = UserRole.ngoLead;
+
+    Navigator.pushReplacementNamed(context, AppRoutes.ngoDashboard);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(backgroundColor: AppColors.emergencyRed, content: Text(message)),
+    );
   }
 }

@@ -1,47 +1,54 @@
-# ResQAI: System Limitations, Boundaries & Risk Boundaries
+# ResQAI: System Limitations, Boundaries & Risk Boundaries (PRD v2.0)
 
-This document defines the architectural, operational, and ethical limitations of the ResQAI platform in accordance with PRD Part C.3 (Non-Goals) and Part K (Risk Register).
+This document defines the architectural, operational, scientific, and ethical boundaries of the ResQAI platform in accordance with PRD v2.0 Section 13 (Risk Register) and Section 14 (Deployment Guidelines).
 
 ---
 
-## 1. Non-Goals (v1)
+## 1. Scientific & Ethical Non-Goals
 
 1. **No Earthquake Time/Location Prediction (FR-36):**
-   - ResQAI does **not** attempt short-term prediction of earthquakes, as no scientific consensus or reliable geophysical methodology exists for short-term earthquake prediction.
-   - For seismic hazards, ResQAI strictly provides historical seismic hazard zonation maps (Zone II to V), building exposure vulnerability metrics, and rapid post-event ShakeMap impact assessment.
+   - ResQAI does **not** attempt short-term prediction of earthquake timing or exact epicenters, as no scientific consensus or verified geophysical method exists.
+   - For seismic hazards, ResQAI strictly displays historical seismic hazard zonation maps (Zone II to V) and building exposure vulnerability indices. Any user prompt asking for earthquake predictions is met with an explicit scientific refusal.
 
-2. **No Replacement of Official Alert Systems or 112 (FR-19, FR-49):**
-   - ResQAI is a decision-support and multi-agency coordination system; it does **not** replace the National Disaster Management Authority (NDMA), SACHET CAP feeds, or the police/fire/ambulance 112 Emergency Response Support System (ERSS).
+2. **No Autonomous Dispatch, Aid Denial, or Disbursement:**
+   - The AI **never** executes automated dispatch of physical rescue teams, denies emergency aid, or rejects citizen damage claims.
+   - Every physical deployment, claim verification, entitlement sanction, and relief delivery requires an explicit, named human decision-maker.
+
+3. **No Replacement of Official Feeds or 112 (FR-19, FR-49):**
+   - ResQAI aggregates and mirrors official feeds from IMD, NDMA SACHET, and GDACS; it does **not** replace the emergency 112 helpline.
    - A persistent banner is permanently displayed on all citizen surfaces: *"If life is in immediate danger, call 112 directly."*
 
-3. **No Autonomous Dispatch or Spending (FR-19, FR-31):**
-   - The system **never** dispatches physical emergency rescue units autonomously. Human dispatchers and team commanders must acknowledge and authorize every physical deployment.
-   - The system **never** auto-spends or disburses donor funds without explicit dual-authorization and server-side cryptographic verification.
-
-4. **No Single Universal ML Model for All Disasters (FR-32):**
-   - Disaster physics vary drastically. ResQAI deploys dedicated, hazard-specific models (e.g., hydrological models for riverine/urban flood, heat-stress biometeorological models for heatwaves, wind-field dissipation models for cyclones) rather than a fragile "one size fits all" AI model.
+4. **Zero Hallucination Relational Briefings (F-19):**
+   - Situation summaries are synthesized strictly from database relational rows (`incidents`, `damage_claims`, `shelters`, `official_alerts`). ResQAI never queries generative LLMs with ungrounded prompts to prevent catastrophic misinformation during a crisis.
 
 ---
 
-## 2. Operational Limitations & Degraded Modes
+## 2. Operational Boundaries & Fail-Visibly Guardrails
 
-1. **Zero-Connectivity & Degraded Mode (FR-51, FR-52):**
-   - In total network blackout, the Citizen PWA operates offline. SOS reports are buffered in encrypted local storage (`localStorage`/`IndexedDB`) with exponential sync backoff.
-   - The user is transparently informed: *"Offline — report stored locally. Not yet received by responders."*
-   
-2. **Data Freshness Thresholds (FR-22, FR-35):**
-   - If telemetry or GIS layers exceed freshness thresholds (e.g., > 15 minutes for live operations, > 4 hours for hydrological sensors), layers are visually striped and tagged with the **`STALE DATA`** badge.
-   - Predictions dependent on stale data are gated with an explicit `"Prediction unavailable"` banner.
+1. **Silent-Zone Blackout Presumption (F-17):**
+   - A sudden drop in incident reports (> 75% drop from baseline) during an active flood or storm must **NEVER** be interpreted as an area being safe or recovered.
+   - The system automatically tags such sectors with **`COMMUNICATIONS_BLACKOUT_SUSPECTED`** to prioritize drone or foot-patrol reconnaissance.
 
-3. **Demographic & Geographical Limitations:**
-   - Initial validation is focused on pilot regions (e.g., Bihar & Eastern India flood plains). Transferability to mountainous terrain (e.g., flash floods/landslides in Uttarakhand) requires re-calibration with localized steep-slope DEM and geotechnical data.
+2. **Telemetry Freshness & Out-of-Range Guardrails (FR-35):**
+   - If hydrological or weather telemetry is older than 4 hours, all risk inference enters **`STALE_SAFE_MODE`** and displays a yellow `STALE DATA` warning badge.
+   - Sensor inputs exceeding 3.5 standard deviations ($\sigma$) from historical records are gated for sensor malfunction verification before warning publication.
+
+3. **Hazard-Aware Route Caution (F-22):**
+   - ResQAI does **not** generate unverified alternative routes across compromised terrain.
+   - Any passage through closed roads or flooded bridges is explicitly stamped: **`CAUTION: NOT VERIFIED SAFE`**.
+
+4. **Multi-Tier Verification & Conflict-of-Interest (Phase 5):**
+   - Volunteers cannot verify damage claims for their own households.
+   - Claims above ₹100,000 require dual inspection: Volunteer community verification (`COMMUNITY_VERIFIED`) followed by Government revenue officer verification (`OFFICIALLY_VERIFIED`).
+   - Aid delivery cannot transition to `DELIVERED` without digital proof: either a verified delivery OTP or a geotagged photo with a recipient signature.
 
 ---
 
-## 3. Data Privacy & DPDP Act 2023 Compliance (FR-39)
+## 3. Data Privacy & DPDP Compliance (FR-39)
 
-1. **Field-Level Masking:**
-   - Citizen phone numbers, national IDs, and exact residential addresses are masked in public and triage queues.
-   - Access to unmasked identifiable data requires role-based permission and generates an immutable, tamper-evident `AuditLog` entry.
-2. **Consent & Purpose Limitation:**
-   - Data collected during emergency reporting is strictly limited to rescue and relief delivery purposes and is never shared with third parties or ad brokers.
+1. **Small Count Masking (< 5 Counts):**
+   - In all public dashboards and transparency explorer views, aggregated incident or damage claim counts fewer than 5 are masked as `"fewer than 5"` to protect victim anonymity.
+
+2. **Field-Level Masking:**
+   - Phone numbers, Aadhaar/Ration card references, and house numbers are strictly accessible only by authorized caseworkers and officers.
+   - Every access to unmasked citizen data is recorded in a tamper-evident SHA-256 hash-chained audit log.

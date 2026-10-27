@@ -261,3 +261,70 @@ class PendingApprovalsNotifier extends StateNotifier<List<UserModel>> {
 final pendingApprovalsProvider = StateNotifierProvider<PendingApprovalsNotifier, List<UserModel>>((ref) {
   return PendingApprovalsNotifier();
 });
+
+// Admin Master User & Role Management (Admin Full Control)
+class SystemUsersNotifier extends StateNotifier<List<UserModel>> {
+  SystemUsersNotifier() : super(List.from(AuthNotifier.demoAccounts));
+
+  void createUserPosition({
+    required String name,
+    required String email,
+    required String phone,
+    required UserRole role,
+    String? department,
+    String? designation,
+    String? jurisdiction,
+    String? regNumber,
+  }) {
+    final newUser = UserModel(
+      id: 'USR-${role.name.toUpperCase()}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
+      citizenId: 'RQ-${role.name.toUpperCase().substring(0, 3)}-${DateTime.now().millisecondsSinceEpoch.toString().substring(9)}',
+      name: name,
+      email: email,
+      phoneMasked: phone.length > 5 ? '${phone.substring(0, 3)}*** **${phone.substring(phone.length - 3)}' : phone,
+      phoneRaw: phone,
+      role: role,
+      badgeOrJurisdiction: designation ?? department ?? jurisdiction ?? role.title,
+      district: jurisdiction ?? 'District HQ',
+      stateName: 'Delhi NCT',
+      isVerified: true,
+      verificationStatus: 'APPROVED',
+      organization: department ?? 'Government Operations',
+      regNumber: regNumber,
+      loggedInAt: DateTime.now(),
+    );
+
+    state = [newUser, ...state];
+  }
+
+  void updateUserRole(
+    String userId, 
+    UserRole newRole, {
+    String? designation,
+    String? department,
+    String? jurisdiction,
+    String? status,
+  }) {
+    state = state.map((u) {
+      if (u.id == userId || u.citizenId == userId) {
+        return u.copyWith(
+          role: newRole,
+          badgeOrJurisdiction: designation ?? department ?? jurisdiction ?? u.badgeOrJurisdiction,
+          organization: department ?? u.organization,
+          district: jurisdiction ?? u.district,
+          verificationStatus: status ?? 'APPROVED',
+          isVerified: status != 'REJECTED',
+        );
+      }
+      return u;
+    }).toList();
+  }
+
+  void removeUser(String userId) {
+    state = state.where((u) => u.id != userId && u.citizenId != userId).toList();
+  }
+}
+
+final systemUsersProvider = StateNotifierProvider<SystemUsersNotifier, List<UserModel>>((ref) {
+  return SystemUsersNotifier();
+});
