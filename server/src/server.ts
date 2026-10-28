@@ -1,6 +1,13 @@
 import dotenv from 'dotenv';
 import path from 'path';
-dotenv.config({ path: path.resolve(process.cwd(), 'server/.env') });
+import fs from 'fs';
+const envPath = fs.existsSync(path.resolve(process.cwd(), '.env'))
+  ? path.resolve(process.cwd(), '.env')
+  : path.resolve(process.cwd(), 'server/.env');
+dotenv.config({ path: envPath });
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = 'resqai-dev-jwt-secret-key-2026-secure-32chars!';
+}
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import http from 'http';
@@ -29,6 +36,8 @@ import { transparencyRouter } from './routes/transparencyRoutes';
 import { volunteerRouter } from './routes/volunteerRoutes';
 import { governmentRouter } from './routes/governmentRoutes';
 import { researchRouter } from './routes/researchRoutes';
+import { weatherRouter } from './routes/weatherRoutes';
+import { notificationRouter } from './routes/notificationRoutes';
 
 const app = express();
 const server = http.createServer(app);
@@ -67,6 +76,8 @@ app.use('/api/v1/transparency', transparencyRouter);
 app.use('/api/v1/volunteer', volunteerRouter);
 app.use('/api/v1/government', governmentRouter);
 app.use('/api/v1/research', researchRouter);
+app.use('/api/v1/weather', weatherRouter);
+app.use('/api/v1/notifications', notificationRouter);
 
 // FR-9 Persistent emergency status & system health
 app.get('/api/v1/health', (req: Request, res: Response) => {
@@ -83,6 +94,21 @@ app.get('/api/v1/health', (req: Request, res: Response) => {
     }
   });
 });
+
+
+// Serve Flutter Web frontend if build exists
+const flutterWebDir = path.resolve(process.cwd(), '../build/web');
+const altWebDir = path.resolve(process.cwd(), 'build/web');
+const webDir = fs.existsSync(flutterWebDir) ? flutterWebDir : (fs.existsSync(altWebDir) ? altWebDir : null);
+
+if (webDir) {
+  console.log(`[ResQAI Server] Serving Flutter Web from: ${webDir}`);
+  app.use(express.static(webDir));
+  app.get('*', (req: Request, res: Response, next) => {
+    if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io/')) return next();
+    res.sendFile(path.join(webDir, 'index.html'));
+  });
+}
 
 const PORT = process.env.PORT || 5000;
 

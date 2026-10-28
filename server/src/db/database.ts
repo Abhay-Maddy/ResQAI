@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import { hash, Algorithm } from '@node-rs/argon2';
+import { ensurePrdV3Schema } from './prdV3Schema';
 
 const DB_DIR = path.resolve(__dirname, '../../data');
 if (!fs.existsSync(DB_DIR)) {
@@ -26,6 +27,7 @@ export async function initDatabase() {
 
   // PRD v2.0 column migrations
   ensurePrdV2Columns();
+  ensurePrdV3Schema();
 
   // Check if seed users exist
   const countStmt = db.prepare('SELECT count(*) as count FROM users');

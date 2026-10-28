@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken, TokenPayload } from '../services/authService';
+import { db } from '../db/database';
 
 // Extend Express Request type to include authenticated user
 declare global {
@@ -33,7 +34,22 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
 
   const token = authHeader.split(' ')[1];
   try {
+    // SEC-5: Private responses send Cache-Control: no-store
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     const payload = verifyAccessToken(token);
+
+    // DEL-4: Check if account is deactivated in 7-day grace period
+    const userRow = db.prepare('SELECT is_deactivated, deletion_scheduled_at FROM users WHERE id = ?').get(payload.userId) as any;
+    if (userRow?.is_deactivated) {
+      return res.status(403).json({
+        error: 'ACCOUNT_DEACTIVATED',
+        message: 'This account is currently scheduled for deletion (DEL-4). Please cancel deletion to restore access.',
+        deletionScheduledAt: userRow.deletion_scheduled_at
+      });
+    }
     req.user = payload;
     next();
   } catch (err: any) {
