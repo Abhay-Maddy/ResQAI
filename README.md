@@ -1,85 +1,143 @@
-# ResQAI — Unified Disaster Response & Transparent Relief Platform (PRD v2.0)
 
-[![Backend Tests](https://img.shields.io/badge/Backend%20Tests-133%2F133%20Passing-brightgreen)](docs/test_report.md)
-[![Frontend Tests](https://img.shields.io/badge/Frontend%20Tests-28%2F28%20Passing-brightgreen)](docs/test_report.md)
-[![Architecture](https://img.shields.io/badge/Architecture-Node.js%20%7C%20SQLite%20WAL%20%7C%20Flutter-blue)](docs/architecture.md)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](docker-compose.yml)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+# ResQAI — Unified Disaster Response & Transparent Relief Platform
 
-> **ResQAI** is a unified, offline-first disaster response and transparent relief coordination platform built for **Citizens**, **Volunteers**, **NGOs**, and **Government Authorities**.  
-> Designed for high-stress disaster operations with strict adherence to human-in-the-loop safety, non-PII privacy protection, tamper-evident financial ledgers, and explainable AI.
+![Backend Tests](https://img.shields.io/badge/Backend_Tests-133%2F133_Passing-brightgreen)
+![Frontend Tests](https://img.shields.io/badge/Frontend_Tests-28%2F28_Passing-brightgreen)
+![Architecture](https://img.shields.io/badge/Node.js%20%7C%20SQLite%20WAL%20%7C%20Flutter-blue)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
+![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 
----
-
-## ⚠️ Core Operational Principles
-
-1. **AI Only Assists, Humans Decide:** AI models only score, cluster, flag anomalies, and suggest allocations. A named, accountable human verifies claims, sanctions aid, authorizes budgets, and dispatches rescue battalions.
-2. **Fail Visibly:** Telemetry older than 4 hours triggers `STALE DATA` safe mode. Sudden drops in emergency reporting (>75%) during active hazards are flagged as `COMMUNICATIONS_BLACKOUT_SUSPECTED` — never marked safe. Compromised routes are stamped `CAUTION: NOT VERIFIED SAFE`.
-3. **Strict Non-PII Exposure:** Aggregates $< 5$ appear as `"fewer than 5"`. Public views omit victim phone numbers and exact street addresses.
-4. **Integer Paise Accounting:** All relief grants, SDRF allocations, and NGO campaign donations are calculated and stored in integer paise with append-only hash chains.
+> **ResQAI** is an offline-first disaster response and transparent relief coordination platform built for **Citizens, Volunteers, NGOs, and Government Authorities**.
+>
+> It combines emergency reporting, responder coordination, AI-assisted hazard intelligence, relief distribution, and financial transparency in a unified platform designed for high-stress disaster operations.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Core Features
+
+- **Emergency SOS & Citizen Support:** Guided emergency reporting, voice notes, Hindi translation, duplicate detection, and status tracking.
+- **Disaster Operations & Dispatch:** Incident verification, responder assignment, shelter capacity monitoring, and escalation workflows.
+- **AI-Powered Hazard Intelligence:** Location-aware warnings, flood-risk inference, anomaly detection, SHAP explainability, and stale-data safeguards.
+- **Damage Claims & Relief Distribution:** Multi-tier verification, appeals, delivery evidence, and privacy-preserving public summaries.
+- **Volunteer & NGO Coordination:** Local help board, relief campaigns, task management, and donation tracking.
+- **Transparent Financial Ledger:** Integer-paise accounting, hash-linked records, expenditure tracking, and duplicate-allocation protection.
+- **Government Command Dashboard:** Jurisdiction-level monitoring, official verification, targeted notices, and inter-district mutual-aid coordination.
+- **Low-Bandwidth Communication:** SMS triage, duplicate-message suppression, speech-to-text workflows, and SMS-friendly alerts.
+- **Explainable AI & Research Tools:** Priority analysis, what-if scenarios, communication-blackout detection, and fact-based situation summaries.
+
+## 🛡️ Core Operational Principles
+
+1. **Human-in-the-Loop AI:** AI assists with scoring, clustering, anomaly detection, and recommendations. Authorized humans retain responsibility for consequential decisions.
+2. **Fail Visibly:** Telemetry older than four hours triggers `STALE DATA`. Reporting drops exceeding 75% during active hazards can trigger `COMMUNICATIONS_BLACKOUT_SUSPECTED`. Routes are marked `CAUTION: NOT VERIFIED SAFE` when appropriate.
+3. **Privacy by Design:** Public views omit victim phone numbers and exact street addresses. Aggregates below five are displayed as `fewer than 5`.
+4. **Financial Integrity:** Relief grants, allocations, and donations use integer paise and append-only, hash-linked ledger records.
+
+## 🏗️ Technology Stack
+
+| Component | Technology |
+|---|---|
+| Mobile Application | Flutter, Dart |
+| Backend | Node.js |
+| Database | SQLite with WAL |
+| API | REST API (`/api/v1`) |
+| AI/ML | Risk inference, anomaly detection, explainability |
+| Payments | Razorpay test mode |
+| Communication | SMS and speech-to-text integrations |
+| Deployment | Docker, Docker Compose |
+| Testing | Backend automated tests, Flutter tests |
+
+## ⚡ Quick Start
 
 ### Option A: Docker Compose (Recommended)
-Spin up the entire backend and database with persistent storage in one command:
+
 ```bash
 docker compose up --build
 ```
-API will be live at `http://localhost:5000/api/v1/system/health`.
+
+API health check:
+
+`http://localhost:5000/api/v1/system/health`
 
 ### Option B: Local Development
+
+**1. Start the backend**
+
 ```bash
-# 1. Install and start server
 cd server
 npm install
 npm run build
 npm start
+```
 
-# 2. Run backend automated verification suite (133 tests)
+**2. Run backend tests**
+
+```bash
 npm test
+```
 
-# 3. In root directory, run frontend automated verification suite (28 tests)
-cd ..
+**3. Run Flutter tests**
+
+From the project root:
+
+```bash
+flutter pub get
 flutter test
 ```
 
----
+## 🔐 Demo Credentials
 
-## 🔐 Pre-Seeded Test Credentials
+For local development and evaluation only.
 
-| Role | Phone | Password | Quick PIN | Access Scope |
-|---|---|---|---|---|
-| **Master Admin** | `+919999900000` | `Admin@ResQAI2026` | `1234` | Omni-Dashboard Switcher, System Controls |
-| **Citizen (A)** | `+919876543210` | `Citizen@123` | `1234` | SOS Wizard, Claims, Status Tracking |
-| **Volunteer (A)** | `+919876543211` | `Volunteer@123` | `1234` | Local Help Board, Community Verification |
-| **NGO Lead** | `+919876543212` | `NgoLead@123` | `1234` | Campaigns, Integer Ledger, Relief Tasks |
-| **Govt Officer** | `+919876543213` | `Officer@123` | `1234` | Official Verification, Sanctions, Command |
+| Role | Phone | Password |
+|---|---|---|
+| Master Admin | `+919999900000` | `Admin@ResQAI2026` |
+| Citizen | `+919876543210` | `Citizen@123` |
+| Volunteer | `+919876543211` | `Volunteer@123` |
+| NGO Lead | `+919876543212` | `NgoLead@123` |
+| Government Officer | `+919876543213` | `Officer@123` |
 
----
+**Quick PIN:** `1234` for the supplied demo accounts.
 
-## 📦 PRD v2.0 Implementation Matrix (100% Complete)
+> **Security:** Replace demo credentials and secrets before deployment. Never use these credentials in a publicly accessible production environment.
 
-| Phase | Description | Key Modules & Endpoints | Test Suite |
-|---|---|---|:---:|
-| **Phase 1** | Accounts, Persistent Login & RBAC Gating | 30-day persistent session, rotating refresh tokens, 4-digit PIN unlock, 5-attempt lockout, re-auth challenges, role gating (Citizen, Volunteer, NGO, Govt, Master Admin Omni-Switcher) | `phase1_prd_v2.test.ts` (14/14) |
-| **Phase 2** | Citizen Core & SOS Wizard | Wizard intake, need tiles, voice notes, idempotency keys, auto-translation preserving original Hindi, anti-spam repeat source detector, emergency contact SMS | `phase2_prd_v2.test.ts` (8/8) |
-| **Phase 3** | Operations & Dispatcher Workflow | Verification queue with reversible unmerge, status history audit, team assignment, responder state machine, supervisor escalation badge, live shelter capacity board | `phase3_prd_v2.test.ts` (10/10) |
-| **Phase 4** | Warnings Matched to Location | Official feeds (IMD, NDMA_SACHET, GDACS), ML flood baseline inference, Platt calibration, SHAP attribution, 3.5σ anomaly gating, >4h stale telemetry gating, saved-places matching, 4-eyes approval gate | `phase4_prd_v2.test.ts` (11/11) |
-| **Phase 5** | Damage Claims, Multi-Tier Verification & Aid | Completeness meter (never auto-rejects), volunteer conflict-of-interest check, community vs official truth labels, delivery proof gate (OTP / signature photo), appeals to independent officer, <5 privacy masking | `phase5_prd_v2.test.ts` (10/10) |
-| **Phase 6** | Volunteer/NGO Consoles & Transparency | Local help board (`UNSAFE_TRAINED_ONLY`), impact ledger, Darpan ID check, campaign approval gate, Razorpay test mode idempotency, dynamic public balance (`received - spent`), unsupported expense flags, anti-duplication double-allocation lock | `phase6_prd_v2.test.ts` (7/7) |
-| **Phase 7** | Government Command & Watch Panel | Jurisdiction crisis overview, Connect-and-Inform role-targeted notices, delivered/failed tracking, watch panel detecting ignored areas, NGO suspension with recorded reason, dataset import with review/rollback, inter-district mutual aid | `phase7_prd_v2.test.ts` (7/7) |
-| **Phase 8** | Research Features & Explainability | What-if priority delta with stored formula, silent-zone blackout alert (>75% drop during active hazard), situation summary synthesized strictly from relational facts, route caution ("NOT VERIFIED SAFE"), responder feedback loop | `phase8_prd_v2.test.ts` (8/8) |
-| **Phase 9** | Low-Bandwidth SMS & Voice Gateway | Structured inbound SMS triage, 5-minute anti-spam deduplication (`DUPLICATE_IGNORED`), Speech-to-Text voice note transcription preserving raw audio link for dispatchers, 160-char SMS payload formatter | `phase9_prd_v2.test.ts` (7/7) |
+## 🧪 Test Results
 
----
+The current project documentation reports **161 passing automated tests**.
 
-## 📚 Technical Documentation
+| Test Suite | Results |
+|---|---:|
+| Backend | 133/133 |
+| Flutter Frontend | 28/28 |
+| **Total** | **161/161** |
 
-- **[System Architecture & ER Diagram](docs/architecture.md)** — Architectural component diagram, data flows, and full Mermaid ER diagram.
-- **[API Specification](docs/api_documentation.md)** — Comprehensive REST API reference across all v1 route controllers.
-- **[Automated Test Verification Report](docs/test_report.md)** — 161 automated tests (133 backend + 28 frontend) passing 100% green.
-- **[System Limitations & Risk Register](docs/limitations.md)** — Disclosure of non-goals, scientific refusals, and operational constraints.
-- **[AI Model Card](docs/model-card.md)** — Calibrated hydrologic early warning baseline, SHAP explainability, and ground-truth feedback.
-- **[Evaluator Demo Script](docs/demo_script.md)** — Step-by-step role-based demonstration script for evaluators and judges.
+See the [Automated Test Report](docs/test_report.md) for details.
+
+## 📚 Documentation
+
+- [System Architecture & ER Diagram](docs/architecture.md)
+- [API Specification](docs/api_documentation.md)
+- [Automated Test Report](docs/test_report.md)
+- [System Limitations & Risk Register](docs/limitations.md)
+- [AI Model Card](docs/model-card.md)
+- [Evaluator Demo Script](docs/demo_script.md)
+
+## 📋 Implementation Status
+
+**PRD Version:** 2.0
+
+The implementation matrix covers nine phases:
+
+1. Accounts, Persistent Login & Role-Based Access Control
+2. Citizen Core & SOS Wizard
+3. Operations & Dispatcher Workflow
+4. Location-Aware Hazard Warnings
+5. Damage Claims, Verification & Aid
+6. Volunteer/NGO Consoles & Transparency
+7. Government Command & Monitoring
+8. Research Features & Explainability
+9. Low-Bandwidth SMS & Voice Gateway
+
+Refer to the project documentation and test reports for implementation details and verification.
+
+
+**ResQAI — Coordinating response. Protecting communities. Making relief accountable.**
