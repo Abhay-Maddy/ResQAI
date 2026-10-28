@@ -223,6 +223,9 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
       duplicateCandidates: aiAnalysis.duplicateCandidates,
       slaDeadlineMinutes: slaMinutes,
       emergencyContactsNotified,
+      googleMapsUrl: `https://www.google.com/maps?q=${latitude},${longitude}`,
+      adminDeliveryStatus: 'SENT',
+      contactDeliveryStatus: emergencyContactsNotified > 0 ? 'SENT' : 'NO_CONTACTS',
       publicTrackingUrl: `/track/${incidentId}`,
       whatHappensNext: 'Your SOS signal has been confirmed by the command center. Field dispatch units and the DDMA triage desk have been notified.'
     });
@@ -308,6 +311,92 @@ incidentRouter.get('/:id', (req: Request, res: Response) => {
     escalationBadge: incident.escalation_badge || null,
     aiSummary: aiAnalysis.summary,
     duplicateCandidates: aiAnalysis.duplicateCandidates
+  });
+});
+
+// PRD v3.0 SOS-7: Accidental cancel ("I pressed by mistake") - never hides from audit
+incidentRouter.post('/:id/cancel-accidental', async (req: Request, res: Response) => {
+  const incidentId = String(req.params.id);
+  const { reason = 'Citizen pressed SOS button by mistake' } = req.body;
+
+  const incident = db.prepare('SELECT * FROM incidents WHERE id = ?').get(incidentId) as any;
+  if (!incident) {
+    return res.status(404).json({ error: 'NOT_FOUND', message: 'Incident not found' });
+  }
+
+  const nowIso = new Date().toISOString();
+  db.prepare(`
+    UPDATE incidents 
+    SET is_accidental_cancelled = 1, accidental_cancelled_at = ?, accidental_cancelled_by = ?, status = 'CLOSED'
+    WHERE id = ?
+  `).run(nowIso, reason, incidentId);
+
+  recordStatusHistory(incidentId, incident.status, 'CANCELLED', null, 'CITIZEN', `Accidental trigger: ${reason}`);
+
+  logAuditEvent({
+    actionType: 'INCIDENT_CANCELLED_ACCIDENTAL',
+    actorId: incidentId,
+    actorRole: 'CITIZEN',
+    entityId: incidentId,
+    details: `Incident marked as accidental trigger: "${reason}". Retained in audit log per SOS-7.`,
+    ipAddress: req.ip
+  });
+
+  return res.json({
+    success: true,
+    incidentId,
+    message: 'SOS cancelled as accidental. Incident preserved in audit trail for accountability (SOS-7).'
+  });
+});
+
+// PRD v3.0 SOS-11 to SOS-14: Attach detailed emergency form to existing SOS incident
+incidentRouter.post('/:id/attach-details', async (req: Request, res: Response) => {
+  const incidentId = String(req.params.id);
+  const { category, peopleCount, needs = [], photoUrls = [], voiceNoteUrl, additionalDetails } = req.body;
+
+  const incident = db.prepare('SELECT * FROM incidents WHERE id = ?').get(incidentId) as any;
+  if (!incident) {
+    return res.status(404).json({ error: 'NOT_FOUND', message: 'Incident not found' });
+  }
+
+  const attachedFormJson = JSON.stringify({
+    category,
+    peopleCount,
+    needs,
+    photoUrls,
+    voiceNoteUrl,
+    additionalDetails,
+    attachedAt: new Date().toISOString()
+  });
+
+  db.prepare(`
+    UPDATE incidents 
+    SET attached_form_json = ?, people_affected = COALESCE(?, people_affected), category = COALESCE(?, category)
+    WHERE id = ?
+  `).run(attachedFormJson, peopleCount || null, category || null, incidentId);
+
+  // Update incident_reports
+  try {
+    db.prepare(`
+      UPDATE incident_reports 
+      SET needs_json = ?, media_urls_json = ?, voice_note_url = COALESCE(?, voice_note_url)
+      WHERE incident_id = ?
+    `).run(JSON.stringify(needs), JSON.stringify(photoUrls), voiceNoteUrl || null, incidentId);
+  } catch (_) {}
+
+  logAuditEvent({
+    actionType: 'FORM_ATTACHED_TO_SOS',
+    actorId: incidentId,
+    actorRole: 'CITIZEN',
+    entityId: incidentId,
+    details: `Detailed emergency form attached to incident ${incidentId} (SOS-13)`,
+    ipAddress: req.ip
+  });
+
+  return res.json({
+    success: true,
+    incidentId,
+    message: 'Details attached to existing SOS incident. Admin views consolidated single case (SOS-13).'
   });
 });
 

@@ -23,6 +23,17 @@ import {
 } from '../services/authService';
 import { authenticate, requireRole } from '../middleware/rbacMiddleware';
 import { logAuditEvent } from '../services/auditService';
+import { 
+  generateOtp as generateOtpV3, 
+  verifyOtpDetailed, 
+  checkOtpRateLimit 
+} from '../services/otpService';
+import { 
+  initiateAccountDeletion, 
+  cancelAccountDeletion, 
+  exportUserData, 
+  purgeExpiredAccounts 
+} from '../services/accountDeletionService';
 
 export const authRouter = Router();
 const TWO_FACTOR_JWT_SECRET = 'resqai_disaster_2fa_temp_key_2026';
@@ -284,6 +295,17 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     // Password is valid -> reset failed attempts
     resetFailedLogins(user.id);
 
+    // DEL-4: If account is scheduled for deletion, allow cancelling deletion during grace period
+    if (user.is_deactivated) {
+      return res.status(200).json({
+        scheduledForDeletion: true,
+        canCancelDeletion: true,
+        userId: user.id,
+        deletionScheduledAt: user.deletion_scheduled_at,
+        message: 'This account is scheduled for deletion. You can cancel deletion within the 7-day grace period (DEL-4).'
+      });
+    }
+
     // Record user device
     if (deviceId) {
       recordUserDevice(user.id, deviceId, deviceName, req.headers['user-agent'] as string, req.ip);
@@ -372,13 +394,104 @@ authRouter.post('/verify-2fa', (req: Request, res: Response) => {
 });
 
 // FR-1: Request OTP for Phone/Email Login
+// PRD v3.0 OTP & Account Deletion Endpoints
+authRouter.post('/verify-otp-action', (req: Request, res: Response) => {
+  const { identifier, code, purpose = 'LOGIN' } = req.body;
+  if (!identifier || !code) {
+    return res.status(400).json({ error: 'BAD_REQUEST', message: 'Identifier and OTP code are required' });
+  }
+
+  const result = verifyOtpDetailed(identifier, code, purpose);
+  if (!result.valid) {
+    const statusCode = result.status === 'LOCKED' ? 423 : (result.status === 'EXPIRED' ? 410 : 401);
+    return res.status(statusCode).json({
+      error: result.status,
+      messageEn: result.messageEn,
+      messageHi: result.messageHi
+    });
+  }
+
+  return res.json({
+    success: true,
+    status: result.status,
+    messageEn: result.messageEn,
+    messageHi: result.messageHi
+  });
+});
+
+// PRD v3.0 DEL-1 to DEL-8: Delete Account (Danger Zone, 7-day grace period)
+authRouter.post('/delete-account', authenticate, async (req: Request, res: Response) => {
+  const { passwordOrPin, otpCode, confirmationText } = req.body;
+  const userId = req.user!.userId;
+
+  if (!passwordOrPin || !otpCode || !confirmationText) {
+    return res.status(400).json({
+      error: 'BAD_REQUEST',
+      message: 'Password/PIN, OTP code, and confirmationText ("DELETE") are required (DEL-3)'
+    });
+  }
+
+  try {
+    const result = await initiateAccountDeletion(userId, passwordOrPin, otpCode, confirmationText);
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(400).json({
+      error: 'DELETION_FAILED',
+      message: err.message
+    });
+  }
+});
+
+// PRD v3.0 DEL-4: Cancel Account Deletion during 7-day grace period
+authRouter.post('/cancel-deletion', async (req: Request, res: Response) => {
+  const { identifier, password } = req.body;
+  if (!identifier || !password) {
+    return res.status(400).json({ error: 'BAD_REQUEST', message: 'Identifier and password are required' });
+  }
+
+  const user = db.prepare('SELECT * FROM users WHERE email = ? OR phone = ?').get(identifier, identifier) as any;
+  if (!user) {
+    return res.status(404).json({ error: 'USER_NOT_FOUND', message: 'User not found' });
+  }
+
+  const isValidPassword = await verifyPasswordHash(user.password_hash, password);
+  if (!isValidPassword) {
+    return res.status(401).json({ error: 'INVALID_CREDENTIALS', message: 'Invalid password' });
+  }
+
+  try {
+    const result = cancelAccountDeletion(user.id);
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(400).json({ error: 'CANCEL_DELETION_FAILED', message: err.message });
+  }
+});
+
+// PRD v3.0 DEL-2: Export user data before deletion ("Download my data")
+authRouter.get('/export-data', authenticate, (req: Request, res: Response) => {
+  try {
+    const data = exportUserData(req.user!.userId);
+    return res.json(data);
+  } catch (err: any) {
+    return res.status(404).json({ error: 'EXPORT_FAILED', message: err.message });
+  }
+});
+
 authRouter.post('/request-otp', (req: Request, res: Response) => {
+  const rateLimit = checkOtpRateLimit(req.body.identifier);
+  if (!rateLimit.allowed) {
+    return res.status(429).json({
+      error: rateLimit.status || 'RATE_LIMITED',
+      message: rateLimit.reason,
+      secondsRemaining: rateLimit.secondsRemaining
+    });
+  }
   const { identifier, purpose = 'LOGIN' } = req.body;
   if (!identifier) {
     return res.status(400).json({ error: 'BAD_REQUEST', message: 'Phone or email identifier is required' });
   }
 
-  const code = generateOtp(identifier, purpose);
+  const code = generateOtpV3(identifier, purpose);
   res.json({
     message: `OTP sent successfully to ${identifier}`,
     demoOtp: code // Provided in demo mode for instant testing
@@ -399,6 +512,14 @@ authRouter.post('/login-otp', (req: Request, res: Response) => {
   }
 
   let user = db.prepare('SELECT * FROM users WHERE email = ? OR phone = ?').get(identifier, identifier) as any;
+  if (user && user.is_deactivated) {
+    return res.status(200).json({
+      scheduledForDeletion: true,
+      canCancelDeletion: true,
+      deletionScheduledAt: user.deletion_scheduled_at,
+      message: 'This account is scheduled for deletion. You can cancel deletion within the 7-day grace period (DEL-4).'
+    });
+  }
   if (!user) {
     // Auto-create citizen profile on verified OTP
     const userId = `USR-CITIZEN-${Date.now()}`;
