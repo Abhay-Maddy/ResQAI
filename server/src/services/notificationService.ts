@@ -234,6 +234,10 @@ export function markAsRead(id: string, userId: string): void {
   db.prepare('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?').run(id, userId);
 }
 
+export function markAsUnread(id: string, userId: string): void {
+  db.prepare('UPDATE notifications SET is_read = 0 WHERE id = ? AND user_id = ?').run(id, userId);
+}
+
 export function markAllAsRead(userId: string): void {
   db.prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ?').run(userId);
 }
@@ -245,5 +249,88 @@ export function deleteNotification(id: string, userId: string): void {
 export function getUnreadCount(userId: string): number {
   const row = db.prepare('SELECT count(*) as count FROM notifications WHERE user_id = ? AND is_read = 0').get(userId) as any;
   return row?.count || 0;
+}
+
+/**
+ * Broadcast official alerts to all citizens and active app users
+ */
+export async function broadcastAlertToCitizens(params: {
+  title: string;
+  body: string;
+  type?: string;
+  severity?: string;
+  data?: Record<string, any>;
+}): Promise<number> {
+  const { title, body, type = 'OFFICIAL_ALERT', severity = 'CRITICAL', data = {} } = params;
+  try {
+    const users = db.prepare("SELECT id FROM users").all() as { id: string }[];
+    const now = new Date().toISOString();
+
+    const insertNotif = db.prepare(`
+      INSERT INTO notifications (id, user_id, title, body, channel, type, is_read, data_json, created_at)
+      VALUES (?, ?, ?, ?, 'IN_APP', ?, 0, ?, ?)
+    `);
+
+    const insertDelivery = db.prepare(`
+      INSERT INTO notification_deliveries (id, notification_id, user_id, channel, status, provider_receipt, provider_error, delivered_at)
+      VALUES (?, ?, ?, 'IN_APP', 'DELIVERED', ?, NULL, ?)
+    `);
+
+    let sent = 0;
+    for (const u of users) {
+      const id = `NOTIF-${Date.now().toString().slice(-6)}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+      const delvId = `DELV-${crypto.randomBytes(6).toString('hex')}`;
+      const mergedData = { ...data, severity, broadcastTime: now };
+      insertNotif.run(id, u.id, title, body, type, JSON.stringify(mergedData), now);
+      insertDelivery.run(delvId, id, u.id, `REC-${id}`, now);
+      sent++;
+    }
+    return sent;
+  } catch (err) {
+    console.error('Error broadcasting alert to citizens:', err);
+    return 0;
+  }
+}
+
+/**
+ * Directly notify NGOs, government officers, and rescue response teams of citizen SOS
+ */
+export async function notifyRespondersOfEmergency(params: {
+  incidentId: string;
+  title: string;
+  category: string;
+  urgency: string;
+  locationName: string;
+  peopleCount: number;
+  needs?: string[];
+}): Promise<number> {
+  const { incidentId, title, category, urgency, locationName, peopleCount, needs = [] } = params;
+  try {
+    const responders = db.prepare(`
+      SELECT id FROM users 
+      WHERE role IN ('ADMIN', 'GOVT_OFFICER', 'NGO_COORDINATOR', 'RESCUE_TEAM')
+    `).all() as { id: string }[];
+
+    const now = new Date().toISOString();
+    const notifTitle = `🚨 SOS DISASTER ALERT: ${category.toUpperCase()} at ${locationName}`;
+    const notifBody = `Urgency: ${urgency} | People in distress: ${peopleCount} | Needs: ${needs.join(', ') || 'Immediate Rescue'}. ID: ${incidentId}`;
+
+    const insertNotif = db.prepare(`
+      INSERT INTO notifications (id, user_id, title, body, channel, type, is_read, data_json, created_at)
+      VALUES (?, ?, ?, ?, 'IN_APP', 'EMERGENCY_SOS', 0, ?, ?)
+    `);
+
+    let sent = 0;
+    for (const r of responders) {
+      const id = `NOTIF-${Date.now().toString().slice(-6)}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+      const dataPayload = { incidentId, category, urgency, locationName, peopleCount, needs };
+      insertNotif.run(id, r.id, notifTitle, notifBody, JSON.stringify(dataPayload), now);
+      sent++;
+    }
+    return sent;
+  } catch (err) {
+    console.error('Error dispatching SOS to responders:', err);
+    return 0;
+  }
 }
 

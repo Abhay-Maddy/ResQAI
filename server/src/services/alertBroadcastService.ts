@@ -1,6 +1,7 @@
 import { db } from '../db/database';
 import crypto from 'crypto';
 import { logAuditEvent } from './auditService';
+import { broadcastAlertToCitizens } from './notificationService';
 
 export interface AlertBroadcastInput {
   source: 'IMD' | 'CWC' | 'NDMA_SACHET' | 'STATE_SDMA';
@@ -90,6 +91,14 @@ export class AlertBroadcastService {
       details: `Broadcasted ${input.severity} alert for ${input.affected_region} sourced from ${input.source}: "${input.title}"`
     });
 
+    broadcastAlertToCitizens({
+      title: '🚨 ' + input.severity + ': ' + input.title,
+      body: finalDescription,
+      type: 'OFFICIAL_ALERT',
+      severity: input.severity,
+      data: { alertId, source: input.source, affectedRegion: input.affected_region }
+    }).catch(() => { });
+
     return {
       id: alertId,
       source: input.source,
@@ -138,7 +147,7 @@ export class AlertBroadcastService {
   static generateCapXml(alert: OfficialAlertRecord): string {
     const urgency = alert.severity === 'CRITICAL' ? 'Immediate' : alert.severity === 'WARN' ? 'Expected' : 'Future';
     const severity = alert.severity === 'CRITICAL' ? 'Extreme' : alert.severity === 'WARN' ? 'Severe' : 'Moderate';
-    
+
     return `<?xml version="1.0" encoding="UTF-8"?>
 <alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
   <identifier>${alert.cap_feed_id || alert.id}</identifier>

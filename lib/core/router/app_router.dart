@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../features/home/home_portal_screen.dart';
 import '../../features/auth/auth_screen.dart';
@@ -8,6 +9,7 @@ import '../../features/citizen/citizen_new_report_screen.dart';
 import '../../features/citizen/citizen_report_detail_screen.dart';
 import '../../features/citizen/citizen_shelters_screen.dart';
 import '../../features/citizen/citizen_alerts_screen.dart';
+import '../../features/notifications/notifications_screen.dart';
 import '../../features/citizen/citizen_campaigns_screen.dart';
 import '../../features/citizen/citizen_donations_screen.dart';
 import '../../features/citizen/citizen_help_screen.dart';
@@ -36,6 +38,10 @@ import '../../features/medical/medical_dashboard_screen.dart';
 import '../../features/rescue/responder_dashboard_screen.dart';
 import '../../features/preparedness/preparedness_screen.dart';
 import '../../features/profile/user_profile_screen.dart';
+import '../../data/services/storage_service.dart';
+import '../../shared/models/user_model.dart';
+import '../../core/constants/app_constants.dart';
+import '../../shared/widgets/access_denied_screen.dart';
 
 class AppRoutes {
   // Public
@@ -141,6 +147,104 @@ class AppRouter {
     final uri = Uri.parse(settings.name ?? AppRoutes.home);
     final path = uri.path;
 
+    // PRD v3.0 Section 8 & SEC-1, SEC-2, SEC-6: Route Guards and Role Separation
+    // 1. Identify if route is Public or Protected
+    final isPublicRoute = path == AppRoutes.home ||
+        path == AppRoutes.login ||
+        path == AppRoutes.register ||
+        path == AppRoutes.forgotPassword ||
+        path == AppRoutes.transparency ||
+        path.startsWith('/transparency/') ||
+        path == AppRoutes.preparedness ||
+        path == AppRoutes.disasterMap ||
+        path == AppRoutes.citizenMap ||
+        path == AppRoutes.citizenSos;
+
+    // Load active session from storage
+    UserModel? currentUser;
+    try {
+      final userJson = StorageService.getString(StorageService.keyCurrentUser);
+      if (userJson != null && userJson.isNotEmpty) {
+        currentUser = UserModel.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+      }
+    } catch (_) {}
+
+    // If route is private and user is not authenticated, redirect to login
+    if (!isPublicRoute && currentUser == null) {
+      return MaterialPageRoute(
+        settings: settings,
+        builder: (_) => const AuthScreen(isRegisterMode: false),
+      );
+    }
+
+    // Role-based privilege enforcement for authenticated users
+    if (currentUser != null) {
+      final role = currentUser.role;
+
+      // Government & Intelligence modules require Incident Commander / Official / Admin
+      if (path.startsWith('/government') || path.startsWith('/intelligence')) {
+        final isGovtAuthorized = role == UserRole.incidentCommander ||
+            role == UserRole.govtOfficial ||
+            role == UserRole.analyst ||
+            role == UserRole.admin;
+        if (!isGovtAuthorized) {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => AccessDeniedScreen(
+              attemptedPath: path,
+              requiredRoleDescription: 'Incident Commander / Government SDRF Authority',
+            ),
+          );
+        }
+      }
+
+      // NGO modules require NGO Lead or Admin
+      if (path.startsWith('/ngo')) {
+        final isNgoAuthorized = role == UserRole.ngoLead || role == UserRole.admin;
+        if (!isNgoAuthorized) {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => AccessDeniedScreen(
+              attemptedPath: path,
+              requiredRoleDescription: 'Verified NGO Administrator (DARPAN Registered)',
+            ),
+          );
+        }
+      }
+
+      // Field Responder / Rescue modules require Rescue Team, Incident Commander or Admin
+      if (path.startsWith('/responder')) {
+        final isResponderAuthorized = role == UserRole.rescueTeam ||
+            role == UserRole.incidentCommander ||
+            role == UserRole.admin;
+        if (!isResponderAuthorized) {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => AccessDeniedScreen(
+              attemptedPath: path,
+              requiredRoleDescription: 'NDRF / SDRF Field Rescue Team',
+            ),
+          );
+        }
+      }
+
+      // Medical modules require Medical Doctor, Incident Commander or Admin
+      if (path.startsWith('/medical')) {
+        final isMedicalAuthorized = role == UserRole.doctor ||
+            role == UserRole.incidentCommander ||
+            role == UserRole.admin;
+        if (!isMedicalAuthorized) {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => AccessDeniedScreen(
+              attemptedPath: path,
+              requiredRoleDescription: 'Licensed Medical Doctor / Trauma Specialist',
+            ),
+          );
+        }
+      }
+    }
+
     // Parameterized Route Matching: /citizen/reports/:id or /government/incidents/:id
     if (path.startsWith('/citizen/reports/') && path != AppRoutes.citizenNewReport) {
       final id = path.replaceFirst('/citizen/reports/', '');
@@ -217,8 +321,10 @@ class AppRouter {
         page = const CitizenNewReportScreen();
         break;
       case AppRoutes.citizenAlerts:
-      case AppRoutes.citizenNotifications:
         page = const CitizenAlertsScreen();
+        break;
+      case AppRoutes.citizenNotifications:
+        page = const NotificationsScreen();
         break;
       case AppRoutes.citizenShelters:
         page = const CitizenSheltersScreen();

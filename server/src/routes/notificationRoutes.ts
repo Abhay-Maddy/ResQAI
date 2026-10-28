@@ -6,6 +6,7 @@ import {
   sendTestNotification,
   getUserNotifications,
   markAsRead,
+  markAsUnread,
   markAllAsRead,
   deleteNotification,
   getUnreadCount,
@@ -66,6 +67,12 @@ notificationRouter.get('/', authenticate, (req: Request, res: Response) => {
 // Mark single notification as read
 notificationRouter.patch('/:id/read', authenticate, (req: Request, res: Response) => {
   markAsRead(String(req.params.id), req.user!.userId);
+  return res.json({ success: true });
+});
+
+// Mark single notification as unread
+notificationRouter.patch('/:id/unread', authenticate, (req: Request, res: Response) => {
+  markAsUnread(String(req.params.id), req.user!.userId);
   return res.json({ success: true });
 });
 

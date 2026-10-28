@@ -114,3 +114,35 @@ systemRouter.post('/backup', authenticate, requireRole('ADMIN'), (req: Request, 
   }
 });
 
+
+// GET /api/v1/system/app-version
+// Check if app update exists
+systemRouter.get('/app-version', (req: Request, res: Response) => {
+  const clientVersion = (req.query.current as string) || '1.0.0';
+  const simulate = req.query.simulate === 'true' || req.query.simulate_update === 'true';
+  const latestVersion = simulate ? '1.2.0' : (process.env.LATEST_APP_VERSION || '1.1.0');
+
+  const p1 = latestVersion.split('.').map(Number);
+  const p2 = clientVersion.split('.').map(Number);
+  let cmp = 0;
+  for (let i = 0; i < 3; i++) {
+    const a = p1[i] || 0;
+    const b = p2[i] || 0;
+    if (a > b) { cmp = 1; break; }
+    if (a < b) { cmp = -1; break; }
+  }
+  const hasUpdate = cmp > 0;
+
+  res.json({
+    currentVersion: clientVersion,
+    latestVersion,
+    hasUpdate,
+    downloadUrl: 'https://github.com/rxhulsingh16/ResQAI/releases/latest',
+    releaseNotes: hasUpdate
+      ? '• Real-time flood telemetry streaming with 10-minute caching\n• Blue dot precision GPS accuracy indicator\n• Enhanced offline cache resilience and SOS packet compression'
+      : 'All disaster emergency pipelines and telemetry modules are up to date.',
+    releaseDate: '2026-10-28',
+    mandatory: false,
+    checkedAt: new Date().toISOString()
+  });
+});

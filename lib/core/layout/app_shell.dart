@@ -1,3 +1,6 @@
+import '../../data/services/notification_client_service.dart';
+import '../../features/notifications/notifications_screen.dart';
+import '../../data/services/app_update_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_colors.dart';
@@ -65,6 +68,7 @@ class _AppShellState extends ConsumerState<AppShell> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  _buildPersistent112Banner(),
                   if (!isMobile && widget.breadcrumbs != null && widget.breadcrumbs!.isNotEmpty)
                     _buildBreadcrumbBar(isDark),
                   Expanded(
@@ -123,9 +127,12 @@ class _AppShellState extends ConsumerState<AppShell> {
                 color: isDark ? Colors.white : AppColors.deepNavy,
               ),
             )
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+          : FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                 InkWell(
                   onTap: () {
                     switch (activeRole) {
@@ -212,6 +219,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                 ],
               ],
             ),
+          ),
       actions: [
         // Live IMD / NDRF status indicator
         if (!isMobile)
@@ -254,6 +262,53 @@ class _AppShellState extends ConsumerState<AppShell> {
             ),
           ),
 
+        
+        // Check for Updates action
+        IconButton(
+          icon: const Icon(Icons.system_update_alt, size: 19),
+          tooltip: 'Check for Updates',
+          onPressed: () => AppUpdateService.showUpdateCheckDialog(context, ref: ref),
+        ),
+        // Live Notification Bell with Dynamic Unread Counter
+        Consumer(
+          builder: (context, ref, _) {
+            final unread = ref.watch(unreadNotificationCountProvider);
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined, size: 22),
+                  tooltip: 'Emergency Bulletins & Notifications (' + unread.toString() + ')',
+                  onPressed: () => NotificationsScreen.showNotificationCenter(context),
+                ),
+                Positioned(
+                  right: 6,
+                  top: 8,
+                  child: IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: unread > 0 ? AppColors.emergencyRed : Colors.grey.shade600,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Text(
+                        unread.toString(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
         // Language Selector
         Consumer(
           builder: (context, ref, _) {
@@ -336,6 +391,17 @@ class _AppShellState extends ConsumerState<AppShell> {
                       ),
                     ),
               itemBuilder: (context) => [
+                
+                PopupMenuItem(
+                  value: 'updates',
+                  child: const ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: Icon(Icons.system_update, size: 18, color: AppColors.primaryBlue),
+                    title: Text('Check for Updates', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  ),
+                  onTap: () => AppUpdateService.showUpdateCheckDialog(context, ref: ref),
+                ),
                 PopupMenuItem(
                   value: 'profile',
                   child: const ListTile(
@@ -423,6 +489,34 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 
+  Widget _buildPersistent112Banner() {
+    return Container(
+      width: double.infinity,
+      color: AppColors.emergencyRed,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.emergency, color: Colors.white, size: 16),
+          SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              'If life is in immediate danger, call 112.',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                letterSpacing: 0.3,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBreadcrumbBar(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -475,59 +569,6 @@ class _AppShellState extends ConsumerState<AppShell> {
       ),
       child: Column(
         children: [
-          // Role Switcher Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: borderColor)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'ACTIVE PORTAL WORKSPACE',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<UserRole>(
-                      value: activeRole,
-                      isExpanded: true,
-                      icon: const Icon(Icons.swap_vert, size: 18),
-                      items: UserRole.values.map((role) {
-                        return DropdownMenuItem<UserRole>(
-                          value: role,
-                          child: Text(
-                            role.title,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (newRole) {
-                        if (newRole != null) {
-                          ref.read(activeRoleProvider.notifier).state = newRole;
-                          _navigateToRoleDefault(context, newRole);
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Navigation Links
           Expanded(
             child: ListView.separated(

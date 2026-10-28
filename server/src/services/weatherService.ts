@@ -36,7 +36,10 @@ interface CacheEntry {
   timestamp: number;
 }
 
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes (WX-2)
+const getCacheTtlMs = () => {
+  const mins = parseInt(process.env.WEATHER_CACHE_MINUTES || '10', 10);
+  return (isNaN(mins) ? 10 : mins) * 60 * 1000;
+};
 const weatherCache = new Map<string, CacheEntry>();
 
 function getCacheKey(lat: number, lon: number): string {
@@ -100,7 +103,7 @@ export async function fetchLiveWeather(latitude: number, longitude: number): Pro
   const cached = weatherCache.get(cacheKey);
 
   // Return fresh cached data if under 10 minutes
-  if (cached && (now - cached.timestamp < CACHE_TTL_MS)) {
+  if (cached && (now - cached.timestamp < getCacheTtlMs())) {
     return {
       ...cached.data,
       isStale: false,
@@ -149,7 +152,8 @@ export async function fetchLiveWeather(latitude: number, longitude: number): Pro
       };
     } else {
       // Default: Open-Meteo keyless provider (WX-3)
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&hourly=precipitation_probability&forecast_days=1`;
+      const openMeteoBase = process.env.OPEN_METEO_BASE_URL || 'https://api.open-meteo.com/v1/forecast';
+      const url = `${openMeteoBase}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&hourly=precipitation_probability&forecast_days=1`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Open-Meteo returned status ${res.status}`);
       const d = await res.json() as any;

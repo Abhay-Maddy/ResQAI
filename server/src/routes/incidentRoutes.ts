@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db/database';
 import { authenticate, requireRole } from '../middleware/rbacMiddleware';
+import { notifyRespondersOfEmergency } from '../services/notificationService';
 import { analyzeIncidentTriage } from '../services/aiTriageService';
 import { logAuditEvent } from '../services/auditService';
 
@@ -177,6 +178,17 @@ incidentRouter.post('/', async (req: Request, res: Response) => {
     );
 
     // PRD R-CIT-4: Emergency contact SMS notification if user allows it
+    
+    // Notify NGOs, Government Officers, and Rescue Teams of citizen emergency SOS
+    notifyRespondersOfEmergency({
+      incidentId,
+      title: shortTitle,
+      category,
+      urgency,
+      locationName,
+      peopleCount: Number(peopleCount) || 1,
+      needs
+    }).catch(() => {});
     let emergencyContactsNotified = 0;
     if (notifyEmergencyContacts && (contactPhone || userId)) {
       let contacts: any[] = [];

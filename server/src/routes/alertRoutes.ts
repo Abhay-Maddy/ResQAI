@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db/database';
 import { AlertBroadcastService } from '../services/alertBroadcastService';
+import { broadcastAlertToCitizens } from '../services/notificationService';
 import { authenticate, requireRole } from '../middleware/rbacMiddleware';
 import { logAuditEvent } from '../services/auditService';
 
@@ -249,6 +250,14 @@ alertRouter.post('/:id/four-eyes-approve', authenticate, requireRole('ADMIN', 'G
     afterState: { status: 'ACTIVE', approvedBy: req.user!.userId },
     ipAddress: req.ip
   });
+
+  broadcastAlertToCitizens({
+    title: '🚨 OFFICIAL WARNING: ' + alert.title,
+    body: alert.description || 'Official emergency warning issued by disaster management authority.',
+    type: 'OFFICIAL_ALERT',
+    severity: alert.severity || 'CRITICAL',
+    data: { alertId, source: alert.source, affectedRegion: alert.affected_region }
+  }).catch(() => {});
 
   res.json({
     message: 'Four-eyes authorization confirmed. Alert is now ACTIVE and broadcast-ready.',

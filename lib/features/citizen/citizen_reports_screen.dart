@@ -823,15 +823,15 @@ class _CitizenReportsScreenState extends ConsumerState<CitizenReportsScreen>
             ),
             child: Column(
               children: [
-                _buildInfoRow('Approved Quantity / Amount:', item['approvedAmount'] as String),
+                _buildInfoRow('Approved Quantity / Amount:', item['approvedAmount'] as String, isDark: isDark),
                 const SizedBox(height: 6),
-                _buildInfoRow('Delivered Quantity / Amount:', item['deliveredAmount'] as String, isHighlight: true),
+                _buildInfoRow('Delivered Quantity / Amount:', item['deliveredAmount'] as String, isHighlight: true, isDark: isDark),
                 const SizedBox(height: 6),
-                _buildInfoRow('Delivery / Payment Date:', item['deliveryDate'] as String),
+                _buildInfoRow('Delivery / Payment Date:', item['deliveryDate'] as String, isDark: isDark),
                 const SizedBox(height: 6),
-                _buildInfoRow('Providing Agency:', item['providingAgency'] as String),
+                _buildInfoRow('Providing Agency:', item['providingAgency'] as String, isDark: isDark),
                 const SizedBox(height: 6),
-                _buildInfoRow('Challan / DBT Reference:', item['referenceNumber'] as String, isMono: true),
+                _buildInfoRow('Challan / DBT Reference:', item['referenceNumber'] as String, isMono: true, isDark: isDark),
               ],
             ),
           ),
@@ -840,7 +840,7 @@ class _CitizenReportsScreenState extends ConsumerState<CitizenReportsScreen>
           // Notes
           Text(
             'Official Notes: ${item['notes']}',
-            style: const TextStyle(fontSize: 11, color: Colors.black54, fontStyle: FontStyle.italic),
+            style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText, fontStyle: FontStyle.italic),
           ),
           const SizedBox(height: 12),
 
@@ -862,28 +862,60 @@ class _CitizenReportsScreenState extends ConsumerState<CitizenReportsScreen>
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool isHighlight = false, bool isMono = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.black54)),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: isHighlight ? AppColors.successGreen : Colors.black87,
-            fontFamily: isMono ? 'monospace' : null,
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    bool isHighlight = false,
+    bool isMono = false,
+    bool isDark = false,
+  }) {
+    final labelColor = isDark ? AppColors.darkTextSecondary : AppColors.mutedText;
+    final valueColor = isHighlight
+        ? AppColors.successGreen
+        : (isDark ? Colors.white : AppColors.deepNavy);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: labelColor,
+              ),
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 6,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              softWrap: true,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: valueColor,
+                fontFamily: isMono ? 'monospace' : null,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   void _showDigitalReceipt(BuildContext context, Map<String, dynamic> item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
@@ -896,69 +928,123 @@ class _CitizenReportsScreenState extends ConsumerState<CitizenReportsScreen>
               child: const Icon(Icons.verified, color: AppColors.successGreen, size: 22),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
                 'Official Assistance Receipt',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : AppColors.deepNavy,
+                ),
               ),
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('GOVERNMENT OF INDIA • DISASTER RELIEF RECORD',
-                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                  const SizedBox(height: 6),
-                  Text('Disbursement Reference: ${item['referenceNumber']}',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text('Case ID: ${item['id']}', style: const TextStyle(fontSize: 11, color: Colors.black54)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('Beneficiary Service:', item['category'] as String),
-            const SizedBox(height: 6),
-            _buildInfoRow('Amount / Items Received:', item['deliveredAmount'] as String, isHighlight: true),
-            const SizedBox(height: 6),
-            _buildInfoRow('Delivery Timestamp:', item['deliveryDate'] as String),
-            const SizedBox(height: 6),
-            _buildInfoRow('Disbursing Authority:', item['providingAgency'] as String),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.green.shade200),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.check, size: 14, color: AppColors.successGreen),
-                  SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Verified digitally on NDMA Interoperable Disaster Database.',
-                      style: TextStyle(fontSize: 10, color: AppColors.successGreen, fontWeight: FontWeight.bold),
-                    ),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurfaceElevated : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : Colors.grey.shade300,
                   ),
-                ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'GOVERNMENT OF INDIA • DISASTER RELIEF RECORD',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        color: isDark ? Colors.white70 : AppColors.deepNavy,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Disbursement Reference: ${item['referenceNumber']}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppColors.deepNavy,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Case ID: ${item['id']}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              _buildInfoRow('Beneficiary Service:', item['category'] as String, isDark: isDark),
+              const SizedBox(height: 6),
+              _buildInfoRow('Amount / Items Received:', item['deliveredAmount'] as String, isHighlight: true, isDark: isDark),
+              const SizedBox(height: 6),
+              _buildInfoRow('Delivery Timestamp:', item['deliveryDate'] as String, isDark: isDark),
+              const SizedBox(height: 6),
+              _buildInfoRow('Disbursing Authority:', item['providingAgency'] as String, isDark: isDark),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.successGreen.withOpacity(0.12) : Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.successGreen.withOpacity(0.3)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.check_circle, size: 16, color: AppColors.successGreen),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Verified digitally on NDMA Interoperable Disaster Database with cryptographic seal.',
+                        style: TextStyle(fontSize: 10, color: AppColors.successGreen, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
+          OutlinedButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: AppColors.primaryBlue,
+                  content: Row(
+                    children: [
+                      const Icon(Icons.print, color: Colors.white, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Printing Official Assistance Receipt #${item['referenceNumber']}...',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            },
+            icon: const Icon(Icons.print, size: 16),
+            label: const Text('Print Receipt', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(

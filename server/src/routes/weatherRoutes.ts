@@ -9,15 +9,10 @@ export const weatherRouter = Router();
  */
 weatherRouter.get('/', async (req: Request, res: Response) => {
   try {
-    const latStr = req.query.lat as string;
-    const lonStr = req.query.lon as string;
-
-    if (!latStr || !lonStr) {
-      return res.status(400).json({
-        error: 'BAD_REQUEST',
-        message: 'Query parameters "lat" and "lon" are mandatory (e.g. ?lat=28.61&lon=77.20)',
-      });
-    }
+    const defaultLat = parseFloat(process.env.FALLBACK_LATITUDE || '28.6480');
+    const defaultLon = parseFloat(process.env.FALLBACK_LONGITUDE || '77.3450');
+    const latStr = (req.query.lat as string) || String(defaultLat);
+    const lonStr = (req.query.lon as string) || String(defaultLon);
 
     const lat = parseFloat(latStr);
     const lon = parseFloat(lonStr);
