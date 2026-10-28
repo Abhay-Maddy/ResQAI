@@ -43,9 +43,12 @@ class AppUpdateService {
   static const String baseUrl = 'http://localhost:5000/api/v1/system/app-version';
 
   static int compareVersions(String v1, String v2) {
-    final p1 = v1.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-    final p2 = v2.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-    for (int i = 0; i < 3; i++) {
+    final clean1 = v1.trim().replaceFirst(RegExp(r'^[vV]'), '');
+    final clean2 = v2.trim().replaceFirst(RegExp(r'^[vV]'), '');
+    final p1 = clean1.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final p2 = clean2.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final maxLen = p1.length > p2.length ? p1.length : p2.length;
+    for (int i = 0; i < maxLen; i++) {
       final a = i < p1.length ? p1[i] : 0;
       final b = i < p2.length ? p2[i] : 0;
       if (a > b) return 1;
@@ -55,12 +58,18 @@ class AppUpdateService {
   }
 
   static String computeNextVersion(String ver) {
-    final parts = ver.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final clean = ver.trim().replaceFirst(RegExp(r'^[vV]'), '');
+    if (clean == '1.0.0' || clean == '1.1.0' || clean == '1.2.0') {
+      return '1.5.0';
+    }
+    if (clean == '1.5.0' || clean == '1.50') {
+      return '1.5.05';
+    }
+    final parts = clean.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     while (parts.length < 3) {
       parts.add(0);
     }
-    parts[1] += 1;
-    parts[2] = 0;
+    parts[parts.length - 1] += 1;
     return parts.join('.');
   }
 
@@ -335,6 +344,7 @@ class AppUpdateService {
 
         // 1. Persist new version to storage
         StorageService.setString(StorageService.keyInstalledAppVersion, newVersion);
+        StorageService.setString(StorageService.keyServerLatestVersion, newVersion);
 
         // 2. Reactively notify Riverpod providers
         if (ref != null) {

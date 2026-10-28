@@ -2,9 +2,9 @@ class AppConstants {
   static const String appName = 'ResQAI';
   static const String appFullName = 'AI-Powered Disaster Response and Management System';
   static const String appTagline = 'College InnoTech Exhibition 2026';
-  static const String appVersion = '1.1.0';
-  static const String latestKnownVersion = '1.2.0';
-  static const String buildNumber = '2026.2';
+  static const String appVersion = '1.2.0';
+  static const String latestKnownVersion = '1.5.0';
+  static const String buildNumber = '2026.5';
   static const String githubRepo = 'https://github.com/rxhulsingh16/ResQAI';
 
   // Local storage keys

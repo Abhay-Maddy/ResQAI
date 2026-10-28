@@ -116,9 +116,10 @@ systemRouter.post('/backup', authenticate, requireRole('ADMIN'), (req: Request, 
 
 
 function compareVersions(v1: string, v2: string): number {
-  const p1 = v1.split('.').map(Number);
-  const p2 = v2.split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
+  const p1 = v1.replace(/^[vV]/, '').split('.').map(Number);
+  const p2 = v2.replace(/^[vV]/, '').split('.').map(Number);
+  const len = Math.max(p1.length, p2.length);
+  for (let i = 0; i < len; i++) {
     const a = p1[i] || 0;
     const b = p2[i] || 0;
     if (a > b) return 1;
@@ -130,7 +131,7 @@ function compareVersions(v1: string, v2: string): number {
 // GET /api/v1/system/app-version
 // Check if app update exists
 systemRouter.get('/app-version', (req: Request, res: Response) => {
-  const clientVersion = (req.query.current as string) || '1.1.0';
+  const clientVersion = (req.query.current as string) || '1.2.0';
 
   let latestRecord: any = null;
   try {
@@ -140,7 +141,7 @@ systemRouter.get('/app-version', (req: Request, res: Response) => {
     }
   } catch (_) {}
 
-  const latestVersion = latestRecord?.version || process.env.LATEST_APP_VERSION || '1.2.0';
+  const latestVersion = latestRecord?.version || process.env.LATEST_APP_VERSION || '1.5.0';
   const releaseNotes = latestRecord?.release_notes || '• Disaster response intelligence updates\n• Telemetry & performance optimizations';
   const downloadUrl = latestRecord?.download_url || 'https://github.com/rxhulsingh16/ResQAI/releases/latest';
 
