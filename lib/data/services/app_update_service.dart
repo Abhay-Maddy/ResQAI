@@ -42,7 +42,7 @@ class AppUpdateInfo {
 class AppUpdateService {
   static const String baseUrl = 'http://localhost:5000/api/v1/system/app-version';
 
-  static int _compareVersions(String v1, String v2) {
+  static int compareVersions(String v1, String v2) {
     final p1 = v1.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final p2 = v2.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     for (int i = 0; i < 3; i++) {
@@ -54,6 +54,16 @@ class AppUpdateService {
     return 0;
   }
 
+  static String computeNextVersion(String ver) {
+    final parts = ver.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    while (parts.length < 3) {
+      parts.add(0);
+    }
+    parts[1] += 1;
+    parts[2] = 0;
+    return parts.join('.');
+  }
+
   static Future<AppUpdateInfo> checkForUpdate({
     String? currentVersion,
     bool simulateUpdate = false,
@@ -62,32 +72,46 @@ class AppUpdateService {
         StorageService.getString(StorageService.keyInstalledAppVersion) ??
         AppConstants.appVersion;
 
+    if (simulateUpdate) {
+      final simulatedNext = computeNextVersion(activeVersion);
+      return AppUpdateInfo(
+        currentVersion: activeVersion,
+        latestVersion: simulatedNext,
+        hasUpdate: true,
+        releaseNotes: '• Verified Disaster Telemetry Pipeline v$simulatedNext\n'
+            '• Real-time map layers & GPS accuracy enhancement\n'
+            '• Optimized memory consumption & cache performance\n'
+            '• Streamlined 3-line navigation and incident logging',
+        downloadUrl: 'https://github.com/rxhulsingh16/ResQAI',
+      );
+    }
+
     try {
-      final uri = Uri.parse('$baseUrl?current=$activeVersion${simulateUpdate ? "&simulate=true" : ""}');
+      final uri = Uri.parse('$baseUrl?current=$activeVersion');
       final response = await http.get(uri).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final latest = data['latestVersion']?.toString() ?? AppConstants.latestKnownVersion;
+        StorageService.setString(StorageService.keyServerLatestVersion, latest);
         return AppUpdateInfo.fromJson(data);
       }
     } catch (_) {}
 
     // Resilient offline / standalone mobile fallback
-    final String targetLatest = simulateUpdate
-        ? (activeVersion == '1.1.0' ? '1.2.0' : '1.1.0')
-        : '1.1.0';
+    final latestAvailable = StorageService.getString(StorageService.keyServerLatestVersion) ??
+        AppConstants.latestKnownVersion;
 
-    final hasUpdate = _compareVersions(targetLatest, activeVersion) > 0;
+    final hasUpdate = compareVersions(latestAvailable, activeVersion) > 0;
 
     if (hasUpdate) {
       return AppUpdateInfo(
         currentVersion: activeVersion,
-        latestVersion: targetLatest,
+        latestVersion: latestAvailable,
         hasUpdate: true,
-        releaseNotes: '• Live Weather Telemetry auto-refresh with 10-minute caching\n'
-            '• Blue dot precision GPS accuracy indicator\n'
-            '• Speed & memory optimizations for Web & Mobile\n'
-            '• New multi-channel emergency broadcast pipelines\n'
-            '• Three-line navigation menu for streamlined profile and settings',
+        releaseNotes: '• Verified Disaster Telemetry Pipeline v$latestAvailable\n'
+            '• Real-time map layers & GPS accuracy enhancement\n'
+            '• Optimized memory consumption & cache performance\n'
+            '• Streamlined 3-line navigation and incident logging',
         downloadUrl: 'https://github.com/rxhulsingh16/ResQAI',
       );
     }
@@ -133,7 +157,6 @@ class AppUpdateService {
       ),
     );
 
-    // Realistic network check delay
     await Future.delayed(const Duration(milliseconds: 600));
 
     final currentVer = ref != null
@@ -151,7 +174,7 @@ class AppUpdateService {
     if (!context.mounted) return;
 
     if (updateInfo.hasUpdate) {
-      // POPUP: Update exists -> Option to update
+      // POPUP: New version exists -> Prompt user to update
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -218,7 +241,7 @@ class AppUpdateService {
         ),
       );
     } else {
-      // POPUP: No any new update exists
+      // POPUP: Same version -> Do not update, confirm up to date
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -306,7 +329,7 @@ class AppUpdateService {
       ),
     );
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(milliseconds: 1800), () {
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
 

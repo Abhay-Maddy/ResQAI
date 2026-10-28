@@ -1246,29 +1246,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> with Sing
               ),
             ),
             const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              alignment: WrapAlignment.end,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (currentVersion != '1.0.0')
-                  TextButton.icon(
-                    icon: const Icon(Icons.restart_alt, size: 14, color: AppColors.warningOrange),
-                    label: const Text('Reset to v1.0.0 (Test Update Again)', style: TextStyle(fontSize: 11, color: AppColors.warningOrange)),
-                    onPressed: () {
-                      ref.read(appVersionProvider.notifier).updateVersion('1.0.0');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('App version set to v1.0.0. Click "Check for Updates" to test the update flow!'),
-                          backgroundColor: AppColors.primaryBlue,
-                        ),
-                      );
-                    },
-                  ),
                 TextButton.icon(
-                  icon: const Icon(Icons.science_outlined, size: 14),
+                  icon: const Icon(Icons.new_releases_outlined, size: 14),
                   label: Text(
-                    'Simulate Update Check (v${currentVersion == "1.1.0" ? "1.2.0" : "1.1.0"})',
+                    'Check for Next Release (v${AppUpdateService.computeNextVersion(currentVersion)})',
                     style: const TextStyle(fontSize: 11),
                   ),
                   onPressed: () => AppUpdateService.showUpdateCheckDialog(context, ref: ref, simulateUpdate: true),

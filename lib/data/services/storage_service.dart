@@ -9,6 +9,7 @@ class StorageService {
   static const String keyTheme = 'resqai_theme';
   static const String keyPendingRegistrations = 'resqai_pending_regs';
   static const String keyInstalledAppVersion = 'resqai_installed_version';
+  static const String keyServerLatestVersion = 'resqai_server_latest_version';
 
   static String? getString(String key) {
     return StorageHelper.getItem(key);

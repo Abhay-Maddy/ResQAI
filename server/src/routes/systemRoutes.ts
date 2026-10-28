@@ -115,34 +115,83 @@ systemRouter.post('/backup', authenticate, requireRole('ADMIN'), (req: Request, 
 });
 
 
-// GET /api/v1/system/app-version
-// Check if app update exists
-systemRouter.get('/app-version', (req: Request, res: Response) => {
-  const clientVersion = (req.query.current as string) || '1.0.0';
-  const simulate = req.query.simulate === 'true' || req.query.simulate_update === 'true';
-  const latestVersion = simulate ? '1.2.0' : (process.env.LATEST_APP_VERSION || '1.1.0');
-
-  const p1 = latestVersion.split('.').map(Number);
-  const p2 = clientVersion.split('.').map(Number);
-  let cmp = 0;
+function compareVersions(v1: string, v2: string): number {
+  const p1 = v1.split('.').map(Number);
+  const p2 = v2.split('.').map(Number);
   for (let i = 0; i < 3; i++) {
     const a = p1[i] || 0;
     const b = p2[i] || 0;
-    if (a > b) { cmp = 1; break; }
-    if (a < b) { cmp = -1; break; }
+    if (a > b) return 1;
+    if (a < b) return -1;
   }
+  return 0;
+}
+
+// GET /api/v1/system/app-version
+// Check if app update exists
+systemRouter.get('/app-version', (req: Request, res: Response) => {
+  const clientVersion = (req.query.current as string) || '1.1.0';
+
+  let latestRecord: any = null;
+  try {
+    latestRecord = db.prepare('SELECT * FROM app_releases WHERE is_latest = 1 ORDER BY released_at DESC LIMIT 1').get();
+    if (!latestRecord) {
+      latestRecord = db.prepare('SELECT * FROM app_releases ORDER BY released_at DESC LIMIT 1').get();
+    }
+  } catch (_) {}
+
+  const latestVersion = latestRecord?.version || process.env.LATEST_APP_VERSION || '1.2.0';
+  const releaseNotes = latestRecord?.release_notes || '• Disaster response intelligence updates\n• Telemetry & performance optimizations';
+  const downloadUrl = latestRecord?.download_url || 'https://github.com/rxhulsingh16/ResQAI/releases/latest';
+
+  const cmp = compareVersions(latestVersion, clientVersion);
   const hasUpdate = cmp > 0;
 
   res.json({
     currentVersion: clientVersion,
     latestVersion,
     hasUpdate,
-    downloadUrl: 'https://github.com/rxhulsingh16/ResQAI/releases/latest',
+    downloadUrl,
     releaseNotes: hasUpdate
-      ? '• Real-time flood telemetry streaming with 10-minute caching\n• Blue dot precision GPS accuracy indicator\n• Enhanced offline cache resilience and SOS packet compression'
+      ? releaseNotes
       : 'All disaster emergency pipelines and telemetry modules are up to date.',
-    releaseDate: '2026-10-28',
+    releaseDate: latestRecord?.released_at || new Date().toISOString(),
     mandatory: false,
     checkedAt: new Date().toISOString()
   });
+});
+
+// POST /api/v1/system/app-version/publish
+// Publish a new release version (e.g. 1.2.0, 1.3.0)
+systemRouter.post('/app-version/publish', (req: Request, res: Response) => {
+  const { version, releaseNotes, downloadUrl } = req.body;
+  if (!version || typeof version !== 'string') {
+    return res.status(400).json({ error: 'Valid version string required (e.g. "1.3.0")' });
+  }
+
+  try {
+    db.prepare('UPDATE app_releases SET is_latest = 0').run();
+    db.prepare(`
+      INSERT INTO app_releases (version, release_notes, download_url, is_latest, released_at)
+      VALUES (?, ?, ?, 1, datetime('now'))
+      ON CONFLICT(version) DO UPDATE SET
+        release_notes = excluded.release_notes,
+        download_url = excluded.download_url,
+        is_latest = 1,
+        released_at = datetime('now')
+    `).run(
+      version,
+      releaseNotes || `• Disaster response update v${version}\n• Critical life-safety protocol synchronization`,
+      downloadUrl || 'https://github.com/rxhulsingh16/ResQAI/releases/latest'
+    );
+
+    res.json({
+      message: `Version ${version} published successfully as latest release!`,
+      version,
+      isLatest: true,
+      publishedAt: new Date().toISOString()
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to publish release', details: err?.message });
+  }
 });

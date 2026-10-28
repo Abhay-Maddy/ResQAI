@@ -87,6 +87,26 @@ export function ensurePrdV3Schema(): void {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       UNIQUE(user_id, device_token)
     );
+
+    CREATE TABLE IF NOT EXISTS app_releases (
+      version TEXT PRIMARY KEY,
+      release_notes TEXT NOT NULL,
+      download_url TEXT NOT NULL DEFAULT 'https://github.com/rxhulsingh16/ResQAI/releases/latest',
+      is_latest INTEGER DEFAULT 0,
+      released_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
+
+  try {
+    const releaseCount = (db.prepare('SELECT count(*) as c FROM app_releases').get() as any)?.c || 0;
+    if (releaseCount === 0) {
+      db.prepare(`
+        INSERT INTO app_releases (version, release_notes, download_url, is_latest, released_at)
+        VALUES 
+          ('1.1.0', 'Initial baseline release with offline maps, live weather telemetry, and emergency response pipelines.', 'https://github.com/rxhulsingh16/ResQAI', 0, datetime('now', '-7 days')),
+          ('1.2.0', '• Three-line navigation menu for streamlined mobile UX\n• Instant SOS dispatch with direct location sharing\n• Real-time notification badge sync with unread counter\n• Enhanced offline cache resilience & battery telemetry', 'https://github.com/rxhulsingh16/ResQAI', 1, datetime('now'))
+      `).run();
+    }
+  } catch (_) {}
 }
 
