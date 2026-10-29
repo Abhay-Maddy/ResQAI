@@ -188,11 +188,11 @@ class _CitizenHelpRequestScreenState extends ConsumerState<CitizenHelpRequestScr
                             children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  gradient: isLastStep ? AppColors.pinkGradient : AppColors.greenGradient,
+                                  gradient: isLastStep ? AppColors.redGradient : AppColors.greenGradient,
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: (isLastStep ? AppColors.primaryPink : AppColors.primaryGreen).withOpacity(0.35),
+                                      color: (isLastStep ? AppColors.primaryRed : AppColors.primaryGreen).withOpacity(0.35),
                                       blurRadius: 10,
                                       offset: const Offset(0, 3),
                                     ),

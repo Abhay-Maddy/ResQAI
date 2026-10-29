@@ -91,10 +91,10 @@ class HomePortalScreen extends ConsumerWidget {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          gradient: AppColors.pinkGradient,
+                          gradient: AppColors.redGradient,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
-                            BoxShadow(color: AppColors.primaryPink.withOpacity(0.35), blurRadius: 10, offset: const Offset(0, 3)),
+                            BoxShadow(color: AppColors.primaryRed.withOpacity(0.35), blurRadius: 10, offset: const Offset(0, 3)),
                           ],
                         ),
                         child: ElevatedButton.icon(

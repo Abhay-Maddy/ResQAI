@@ -137,7 +137,7 @@ class _VolunteerDashboardScreenState extends ConsumerState<VolunteerDashboardScr
                 children: [
                   Expanded(child: _buildStatCard('ACCEPTED TASKS', '${acceptedTasks.length}', AppColors.primaryGreen, isDark)),
                   const SizedBox(width: 10),
-                  Expanded(child: _buildStatCard('COMPLETED', '${completedTasks.length}', AppColors.primaryPink, isDark)),
+                  Expanded(child: _buildStatCard('COMPLETED', '${completedTasks.length}', AppColors.primaryRed, isDark)),
                   const SizedBox(width: 10),
                   Expanded(child: _buildStatCard('SERVICE HRS', '${completedTasks.length * 4 + 12}h', const Color(0xFF0284C7), isDark)),
                 ],
@@ -147,7 +147,7 @@ class _VolunteerDashboardScreenState extends ConsumerState<VolunteerDashboardScr
                 children: [
                   Expanded(child: _buildStatCard('ACCEPTED TASKS', '${acceptedTasks.length}', AppColors.primaryGreen, isDark)),
                   const SizedBox(width: 14),
-                  Expanded(child: _buildStatCard('COMPLETED MISSIONS', '${completedTasks.length}', AppColors.primaryPink, isDark)),
+                  Expanded(child: _buildStatCard('COMPLETED MISSIONS', '${completedTasks.length}', AppColors.primaryRed, isDark)),
                   const SizedBox(width: 14),
                   Expanded(child: _buildStatCard('TOTAL SERVICE HOURS', '${completedTasks.length * 4 + 12} hrs', const Color(0xFF0284C7), isDark)),
                 ],
@@ -183,10 +183,10 @@ class _VolunteerDashboardScreenState extends ConsumerState<VolunteerDashboardScr
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryPink.withOpacity(0.12),
+                            color: AppColors.primaryRed.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text('EN ROUTE', style: TextStyle(color: AppColors.primaryPink, fontWeight: FontWeight.bold, fontSize: 10)),
+                          child: const Text('EN ROUTE', style: TextStyle(color: AppColors.primaryRed, fontWeight: FontWeight.bold, fontSize: 10)),
                         ),
                       ],
                     ),

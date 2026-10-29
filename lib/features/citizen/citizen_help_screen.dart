@@ -1,3 +1,5 @@
+import '../../data/services/app_update_service.dart';
+import '../../data/services/app_version_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
@@ -190,11 +192,11 @@ class _CitizenHelpScreenState extends ConsumerState<CitizenHelpScreen> {
             subtitle: 'Immediate life extraction',
             desc: 'Trapped, rising flood, severe injury. Rapid 2-tap GPS dispatch.',
             badge: 'IMMEDIATE',
-            badgeColor: AppColors.primaryPink,
+            badgeColor: AppColors.primaryRed,
             icon: Icons.emergency,
             buttonText: 'Activate SOS',
-            buttonColor: AppColors.primaryPink,
-            gradient: AppColors.pinkGradient,
+            buttonColor: AppColors.primaryRed,
+            gradient: AppColors.redGradient,
             onTap: () => Navigator.pushNamed(context, AppRoutes.citizenSos),
           ),
           _TriageAction(
@@ -578,52 +580,240 @@ class _CitizenHelpScreenState extends ConsumerState<CitizenHelpScreen> {
     );
   }
 
-  Widget _buildHelplinesBanner(BuildContext context, bool isDark, bool isMobile) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.deepNavy,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.contact_phone, color: Colors.white, size: 18),
-              SizedBox(width: 8),
-              Text('24x7 Official Emergency Helplines', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-            ],
+  bool _isCheckingUpdates = false;
+
+  void _callHelpline(BuildContext context, String name, String number) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.phone_in_talk, color: AppColors.emergencyRed, size: 24),
+            const SizedBox(width: 8),
+            Text(name),
+          ],
+        ),
+        content: Text('Dial official toll-free statutory emergency helpline: $number\n\nDispatch connects immediately to nearest state control room.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            children: [
-              _buildHelplineChip('NDRF Control: 1078'),
-              _buildHelplineChip('National Emergency: 112'),
-              _buildHelplineChip('Disaster Mgmt: 1070'),
-              _buildHelplineChip('Ambulance: 108'),
-              _buildHelplineChip('Fire Services: 101'),
-              _buildHelplineChip('Childline: 1098'),
-            ],
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.emergencyRed,
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.call, size: 16),
+            label: Text('Call $number'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: AppColors.primaryBlue,
+                  content: Text('Dialing $name ($number)... Keep line clear for dispatch operator.'),
+                ),
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHelplineChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white24),
+  Widget _buildHelplinesBanner(BuildContext context, bool isDark, bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. Helplines card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.deepNavy,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.contact_phone, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('24x7 Official Emergency Helplines (Tap to Connect)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  _buildInteractiveHelplineChip(context, 'NDRF Control', '1078'),
+                  _buildInteractiveHelplineChip(context, 'National Emergency', '112'),
+                  _buildInteractiveHelplineChip(context, 'Disaster Mgmt', '1070'),
+                  _buildInteractiveHelplineChip(context, 'Ambulance', '108'),
+                  _buildInteractiveHelplineChip(context, 'Fire Services', '101'),
+                  _buildInteractiveHelplineChip(context, 'Childline', '1098'),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        // 2. Expandable Frequently Asked Questions (FAQ) Section
+        _buildFaqSection(isDark),
+        const SizedBox(height: 18),
+
+        // 3. App Version & Update Card (Workstream C Requirement)
+        _buildAppVersionCard(context, isDark, isMobile),
+      ],
+    );
+  }
+
+  Widget _buildInteractiveHelplineChip(BuildContext context, String name, String number) {
+    return InkWell(
+      onTap: () => _callHelpline(context, name, number),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.14),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.phone, size: 12, color: Colors.white),
+            const SizedBox(width: 4),
+            Text(
+              '$name: $number',
+              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
       ),
-      child: Text(
-        label,
-        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+    );
+  }
+
+  Widget _buildFaqSection(bool isDark) {
+    final faqs = [
+      {
+        'q': 'How does the 2-Tap Emergency SOS function work?',
+        'a': 'Tapping Instant SOS arms your device GPS coordinates and transmits high-priority distress alerts directly to the NDRF/SDRF tactical command center and nearby field patrol units within seconds, even on 2G connections.',
+      },
+      {
+        'q': 'Who receives my request for food, water, and medicines?',
+        'a': 'Requests are routed simultaneously to all verified DARPAN-registered NGOs and the District EOC. Any active responder can accept, mark in-transit, and deliver with live timeline tracking.',
+      },
+      {
+        'q': 'How do I report a missing family member?',
+        'a': 'Use the Report Missing Person form. The report is distributed to search and rescue (SAR) teams. Once located, both the reporting family and the search authority must confirm before the case is closed.',
+      },
+      {
+        'q': 'How do SDRF disaster damage claims and ex-gratia payouts work?',
+        'a': 'Citizens file loss reports with photos. Revenue Patwari and SDMA officers inspect and approve the statutory ex-gratia amount. Funds are credited via Direct Benefit Transfer (DBT), after which you verify receipt.',
+      },
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      ),
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        leading: const Icon(Icons.help_center_outlined, color: AppColors.primaryBlue),
+        title: const Text(
+          'Frequently Asked Questions & Emergency Protocols',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        subtitle: const Text('Statutory disaster rights, relief delivery & tracking', style: TextStyle(fontSize: 11, color: Colors.grey)),
+        children: faqs.map((f) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(f['q']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryBlue)),
+              const SizedBox(height: 3),
+              Text(f['a']!, style: const TextStyle(fontSize: 12, height: 1.4)),
+              const Divider(height: 12),
+            ],
+          ),
+        )).toList(),
+      ),
+    );
+  }
+
+  Widget _buildAppVersionCard(BuildContext context, bool isDark, bool isMobile) {
+    final currentVersion = ref.watch(appVersionProvider);
+
+    return InkWell(
+      onTap: _isCheckingUpdates
+          ? null
+          : () async {
+              setState(() => _isCheckingUpdates = true);
+              try {
+                await AppUpdateService.checkForUpdates(context, ref: ref);
+              } finally {
+                if (mounted) setState(() => _isCheckingUpdates = false);
+              }
+            },
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurfaceCard : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: isDark ? AppColors.darkBorder : Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryGreen.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: _isCheckingUpdates
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen),
+                    )
+                  : const Icon(Icons.system_update_alt, color: AppColors.primaryGreen, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ResQAI v$currentVersion (Build 150)',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Production Stable • Disaster Response Framework • Tap to check updates',
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primaryGreen.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _isCheckingUpdates ? 'Checking...' : 'Check Updates',
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryGreen),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

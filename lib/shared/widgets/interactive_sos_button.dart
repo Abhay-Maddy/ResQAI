@@ -284,7 +284,7 @@ class _InteractiveSosButtonState extends State<InteractiveSosButton>
                         end: Alignment.bottomRight,
                       )
                     : const LinearGradient(
-                        colors: [Color(0xFFF43F5E), Color(0xFFE11D48)],
+                        colors: [AppColors.primaryRed, AppColors.primaryRed],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -297,7 +297,7 @@ class _InteractiveSosButtonState extends State<InteractiveSosButton>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (_isArmed ? Colors.red : AppColors.primaryPink).withOpacity(0.45),
+                    color: (_isArmed ? Colors.red : AppColors.primaryRed).withOpacity(0.45),
                     blurRadius: _isArmed ? 16 : 10,
                     offset: const Offset(0, 4),
                   ),
@@ -442,7 +442,7 @@ class _InteractiveSosButtonState extends State<InteractiveSosButton>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.primaryPink.withOpacity(rippleOpacity),
+                      color: AppColors.primaryRed.withOpacity(rippleOpacity),
                       width: 2.5,
                     ),
                   ),
@@ -452,7 +452,7 @@ class _InteractiveSosButtonState extends State<InteractiveSosButton>
                   height: size * (1.0 + (_rippleAnimation.value * 0.25)),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primaryPink.withOpacity(rippleOpacity * 0.2),
+                    color: AppColors.primaryRed.withOpacity(rippleOpacity * 0.2),
                   ),
                 ),
 
@@ -479,12 +479,12 @@ class _InteractiveSosButtonState extends State<InteractiveSosButton>
                                 center: Alignment(-0.2, -0.2),
                               )
                             : const RadialGradient(
-                                colors: [Color(0xFFF43F5E), Color(0xFFBE123C)],
+                                colors: [AppColors.primaryRed, Color(0xFFBE123C)],
                                 center: Alignment(-0.2, -0.2),
                               ),
                         boxShadow: [
                           BoxShadow(
-                            color: (_isArmed ? Colors.red : AppColors.primaryPink).withOpacity(0.55),
+                            color: (_isArmed ? Colors.red : AppColors.primaryRed).withOpacity(0.55),
                             blurRadius: 24,
                             spreadRadius: 2,
                             offset: const Offset(0, 6),

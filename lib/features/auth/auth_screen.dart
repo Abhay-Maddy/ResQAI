@@ -217,12 +217,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   // Emergency Guest SOS Button with Pink/Red urgency
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.brightPink,
-                      side: const BorderSide(color: AppColors.brightPink, width: 1.6),
+                      foregroundColor: AppColors.primaryRed,
+                      side: const BorderSide(color: AppColors.primaryRed, width: 1.6),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    icon: const Icon(Icons.flash_on, size: 18, color: AppColors.brightPink),
+                    icon: const Icon(Icons.flash_on, size: 18, color: AppColors.primaryRed),
                     label: const Text(
                       'Continue as Guest (Instant SOS Only - No ID Required)',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -248,7 +248,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }) {
     final isSelected = _activePortal == portal;
     Color activeColor = AppColors.primaryGreen;
-    if (portal == AuthPortal.governmentAdmin) activeColor = AppColors.primaryPink;
+    if (portal == AuthPortal.governmentAdmin) activeColor = AppColors.primaryRed;
     if (portal == AuthPortal.volunteerNgo) activeColor = const Color(0xFF0D9488);
 
     return ElevatedButton(
@@ -732,11 +732,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           decoration: BoxDecoration(
             gradient: _isAdminSuperAccess
                 ? const LinearGradient(colors: [Color(0xFF4338CA), Color(0xFF6366F1)])
-                : AppColors.pinkGradient,
+                : AppColors.redGradient,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: (_isAdminSuperAccess ? Colors.indigo : AppColors.primaryPink).withOpacity(0.35),
+                color: (_isAdminSuperAccess ? Colors.indigo : AppColors.primaryRed).withOpacity(0.35),
                 blurRadius: 10,
                 offset: const Offset(0, 3),
               ),

@@ -53,7 +53,7 @@ class _GovernmentCommandCentreScreenState extends ConsumerState<GovernmentComman
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF131D31) : const Color(0xFFE8EEF8),
+                color: isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.primaryBlue.withOpacity(0.4)),
               ),
@@ -258,11 +258,11 @@ class _GovernmentCommandCentreScreenState extends ConsumerState<GovernmentComman
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: AppColors.pinkGradient,
+                      gradient: AppColors.redGradient,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryPink.withOpacity(0.3),
+                          color: AppColors.primaryRed.withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -399,7 +399,7 @@ class _GovernmentCommandCentreScreenState extends ConsumerState<GovernmentComman
                                   padding: const EdgeInsets.only(right: 6),
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primaryPink,
+                                      backgroundColor: AppColors.primaryRed,
                                       foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                       minimumSize: Size.zero,
@@ -419,7 +419,7 @@ class _GovernmentCommandCentreScreenState extends ConsumerState<GovernmentComman
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text('NDRF Boat Unit 4 dispatched to "' + item.title + '"!'),
-                                          backgroundColor: AppColors.primaryPink,
+                                          backgroundColor: AppColors.primaryRed,
                                         ),
                                       );
                                     },

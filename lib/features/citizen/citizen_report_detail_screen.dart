@@ -55,6 +55,10 @@ class CitizenReportDetailScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
                 ],
 
+                // 1.C WORKFLOW CONNECTIVITY: CITIZEN VERIFICATION & DISPUTE CONSOLE (Workstream D)
+                _buildConnectedWorkflowActionCard(context, ref, incident, currentUser, isDark, isMobile),
+                const SizedBox(height: 20),
+
                 // 2. 10-STAGE VERIFICATION TIMELINE
                 _buildVerificationTimeline(context, incident, isDark),
                 const SizedBox(height: 20),
@@ -336,11 +340,438 @@ class CitizenReportDetailScreen extends ConsumerWidget {
   }
 }
 
+  Widget _buildConnectedWorkflowActionCard(
+    BuildContext context,
+    WidgetRef ref,
+    IncidentModel incident,
+    UserModel? currentUser,
+    bool isDark,
+    bool isMobile,
+  ) {
+    final isFoodOrAid = incident.source == 'CITIZEN_HELP_REQUEST' || incident.reliefRequirements.isNotEmpty;
+    final isDamageClaim = incident.source == 'CITIZEN_DAMAGE_CLAIM' || incident.estimatedLossInr != null;
+    final isMissingPerson = incident.category == IncidentCategory.missingPerson || incident.missingPersonsCount > 0;
+    final isSos = incident.source == 'ONE_TAP_SOS';
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primaryGreen.withOpacity(0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.sync_alt, color: AppColors.primaryGreen, size: 22),
+              const SizedBox(width: 8),
+              const Text(
+                'Live End-to-End Workflow Verification',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  incident.status.label.toUpperCase(),
+                  style: const TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold, fontSize: 10),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // D1. Food / Aid / Supply Verification
+          if (isFoodOrAid) ...[
+            Text(
+              'Current Status: ${incident.assistanceDeliveryStatus ?? "Processing at Regional NGO Hub"}.',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            if (incident.acceptedBy != null)
+              Text('Accepted by: ${incident.acceptedRole ?? "NGO"} ${incident.acceptedBy}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 10),
+            if (incident.citizenReceiptConfirmed)
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.successGreen.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: AppColors.successGreen, size: 16),
+                    SizedBox(width: 6),
+                    Text('Citizen has verified receipt of supplies. Case Closed ✓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.successGreen)),
+                  ],
+                ),
+              )
+            else if (incident.citizenReceiptDisputed)
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.emergencyRed.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning, color: AppColors.emergencyRed, size: 16),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text('Disputed by Citizen: "${incident.citizenDisputeReason ?? "Not received"}". Reopened for review.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.emergencyRed)),
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryGreen,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: const Icon(Icons.check, size: 16),
+                    label: const Text('Confirm "I Received It"', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    onPressed: () {
+                      ref.read(incidentsProvider.notifier).verifyReceiptByCitizen(
+                        incident.id,
+                        confirmed: true,
+                        citizenName: currentUser?.name ?? 'Citizen',
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: AppColors.successGreen,
+                          content: Text('✓ Thank you! Receipt confirmed. Incident closed successfully.'),
+                        ),
+                      );
+                    },
+                  ),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.emergencyRed,
+                      side: const BorderSide(color: AppColors.emergencyRed),
+                    ),
+                    icon: const Icon(Icons.error_outline, size: 16),
+                    label: const Text('Not Received / Raise Dispute', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    onPressed: () {
+                      ref.read(incidentsProvider.notifier).verifyReceiptByCitizen(
+                        incident.id,
+                        confirmed: false,
+                        disputeReason: 'Supplies have not arrived at given coordinates.',
+                        citizenName: currentUser?.name ?? 'Citizen',
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: AppColors.emergencyRed,
+                          content: Text('Dispute recorded. Case reopened and escalated to NGO & SDRF Command!'),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ],
+
+          // D2. Missing Persons Joint Verification
+          if (isMissingPerson) ...[
+            const Text(
+              'Joint Verification Protocol (Requires Family + Search Authority):',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _buildVerificationBadge('Family Confirmed', incident.foundConfirmedByCitizen),
+                const SizedBox(width: 12),
+                _buildVerificationBadge('Authority Verified', incident.foundConfirmedByAuthority),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (incident.foundConfirmedByCitizen && incident.foundConfirmedByAuthority)
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.successGreen.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.verified, color: AppColors.successGreen, size: 18),
+                    SizedBox(width: 6),
+                    Text('PERSON FOUND SAFE • Jointly Confirmed & Case Closed ✓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.successGreen)),
+                  ],
+                ),
+              )
+            else
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  if (!incident.foundConfirmedByCitizen)
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.family_restroom, size: 16),
+                      label: const Text('Family: Confirm Person Found Safe', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () {
+                        ref.read(incidentsProvider.notifier).confirmMissingPersonFoundByCitizen(
+                          incident.id,
+                          familyNotes: 'Family confirmed Rameshwar is safe at transit relief camp.',
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: AppColors.successGreen,
+                            content: Text('Family verification recorded!'),
+                          ),
+                        );
+                      },
+                    ),
+                  if (!incident.foundConfirmedByAuthority)
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primaryBlue,
+                        side: const BorderSide(color: AppColors.primaryBlue),
+                      ),
+                      icon: const Icon(Icons.security, size: 16),
+                      label: const Text('Authority: Verify Person Identity', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () {
+                        ref.read(incidentsProvider.notifier).confirmMissingPersonFoundByAuthority(
+                          incident.id,
+                          officerName: currentUser?.name ?? 'Inspector Sharma (NDRF)',
+                          officerRole: 'SAR Officer',
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: AppColors.primaryBlue,
+                            content: Text('Official search authority verification recorded!'),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+          ],
+
+          // D3. Damage Claim DBT Disbursement Verification
+          if (isDamageClaim && !isFoodOrAid && !isMissingPerson) ...[
+            Text(
+              'Statutory Relief Status: ${incident.assistanceDeliveryStatus ?? "Under Field Assessment"}',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            if (incident.assistanceDeliveryStatus == 'DISBURSED' || incident.assistanceDeliveredInr != null) ...[
+              if (incident.citizenReceiptConfirmed)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.successGreen.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.check_circle, color: AppColors.successGreen, size: 16),
+                      SizedBox(width: 6),
+                      Text('Citizen verified DBT grant receipt in bank account. Case Closed ✓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.successGreen)),
+                    ],
+                  ),
+                )
+              else if (incident.citizenReceiptDisputed)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.emergencyRed.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning, color: AppColors.emergencyRed, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text('Disputed: "${incident.citizenDisputeReason ?? "Funds not received"}". Sent to Finance audit.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.emergencyRed)),
+                      ),
+                    ],
+                  ),
+                )
+              else ...[
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  children: [
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.successGreen,
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.verified, size: 16),
+                      label: const Text('Confirm "Money Received via Bank"', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () {
+                        ref.read(incidentsProvider.notifier).confirmClaimReceiptByCitizen(
+                          incident.id,
+                          received: true,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: AppColors.successGreen,
+                            content: Text('✓ Ex-gratia bank credit confirmed! Formal clearance recorded.'),
+                          ),
+                        );
+                      },
+                    ),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.emergencyRed,
+                        side: const BorderSide(color: AppColors.emergencyRed),
+                      ),
+                      icon: const Icon(Icons.report_problem_outlined, size: 16),
+                      label: const Text('Not Received / Raise Dispute', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () {
+                        ref.read(incidentsProvider.notifier).confirmClaimReceiptByCitizen(
+                          incident.id,
+                          received: false,
+                          disputeReason: 'DBT bank credit not reflected in account after 48h.',
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: AppColors.emergencyRed,
+                            content: Text('Dispute recorded. Case escalated to State Disaster Response Fund finance desk.'),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ],
+
+          // D5. SOS Joint Rescue Confirmation
+          if (isSos) ...[
+            const Text(
+              'Emergency Rescue Joint Protocol:',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _buildVerificationBadge('Responder Arrived/Extracted', incident.sosRescuedConfirmedByResponder),
+                const SizedBox(width: 12),
+                _buildVerificationBadge('Citizen Safe Confirmed', incident.sosRescuedConfirmedByCitizen),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (incident.sosRescuedConfirmedByCitizen && incident.sosRescuedConfirmedByResponder)
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.successGreen.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: AppColors.successGreen, size: 18),
+                    SizedBox(width: 6),
+                    Text('RESCUE MISSION COMPLETED & CLOSED BY BOTH PARTIES ✓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.successGreen)),
+                  ],
+                ),
+              )
+            else
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  if (!incident.sosRescuedConfirmedByCitizen)
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.shield, size: 16),
+                      label: const Text('Citizen: Confirm "I am Rescued & Safe"', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () {
+                        ref.read(incidentsProvider.notifier).confirmSosRescuedByCitizen(incident.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: AppColors.successGreen,
+                            content: Text('✓ Safe rescue confirmation logged!'),
+                          ),
+                        );
+                      },
+                    ),
+                  if (!incident.sosRescuedConfirmedByResponder)
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primaryRed,
+                        side: const BorderSide(color: AppColors.primaryRed),
+                      ),
+                      icon: const Icon(Icons.done_all, size: 16),
+                      label: const Text('Responder: Confirm Extraction Complete', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      onPressed: () {
+                        ref.read(incidentsProvider.notifier).confirmSosRescuedByResponder(
+                          incident.id,
+                          unitId: 'NDRF-Boat-04',
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: AppColors.primaryRed,
+                            content: Text('Responder extraction recorded!'),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerificationBadge(String title, bool isDone) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDone ? AppColors.successGreen.withOpacity(0.15) : Colors.grey.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDone ? AppColors.successGreen : Colors.grey.shade400),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(isDone ? Icons.check_circle : Icons.radio_button_unchecked, size: 14, color: isDone ? AppColors.successGreen : Colors.grey),
+          const SizedBox(width: 6),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: isDone ? AppColors.successGreen : Colors.grey.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCommandActionConsole(BuildContext context, WidgetRef ref, IncidentModel incident, bool isDark, bool isMobile) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF131D31) : const Color(0xFFEBF3FB),
+        color: isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.primaryBlue.withOpacity(0.5), width: 1.5),
         boxShadow: [
@@ -446,7 +877,7 @@ class CitizenReportDetailScreen extends ConsumerWidget {
               if (incident.status != IncidentStatus.helpAssigned && incident.status != IncidentStatus.resolved)
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPink,
+                    backgroundColor: AppColors.primaryRed,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -471,7 +902,7 @@ class CitizenReportDetailScreen extends ConsumerWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('NDRF Boat Unit dispatched to incident location!'),
-                        backgroundColor: AppColors.primaryPink,
+                        backgroundColor: AppColors.primaryRed,
                       ),
                     );
                   },
