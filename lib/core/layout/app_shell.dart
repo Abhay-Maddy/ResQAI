@@ -949,19 +949,26 @@ class _AppShellState extends ConsumerState<AppShell> {
         return const [
           _NavItem('Home', Icons.home, AppRoutes.ngoDashboard, ''),
           _NavItem('Campaigns', Icons.volunteer_activism, AppRoutes.ngoCampaigns, ''),
-          _NavItem('Finances', Icons.receipt_long, AppRoutes.ngoFinances, ''),
-          _NavItem('Map', Icons.map, AppRoutes.ngoCoverageMap, ''),
-          _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
+          _NavItem('Reports', Icons.assessment_outlined, AppRoutes.ngoReports, ''),
+          _NavItem('Notifications', Icons.notifications_none, AppRoutes.citizenNotifications, ''),
+          _NavItem('Profile', Icons.person_outline, AppRoutes.profile, ''),
         ];
       case UserRole.govtOfficial:
       case UserRole.incidentCommander:
+        return const [
+          _NavItem('Dashboard', Icons.home, AppRoutes.governmentCommandCentre, ''),
+          _NavItem('Incidents', Icons.warning_amber_rounded, AppRoutes.governmentIncidents, ''),
+          _NavItem('SDRF', Icons.account_balance, AppRoutes.governmentFinancialTransparency, ''),
+          _NavItem('Reports', Icons.assessment_outlined, AppRoutes.governmentAnalytics, ''),
+          _NavItem('Profile', Icons.person_outline, AppRoutes.profile, ''),
+        ];
       case UserRole.admin:
         return const [
-          _NavItem('Command', Icons.radar, AppRoutes.governmentCommandCentre, ''),
-          _NavItem('Incidents', Icons.assignment_late, AppRoutes.governmentIncidents, ''),
-          _NavItem('SDRF', Icons.account_balance, AppRoutes.governmentFinancialTransparency, ''),
-          _NavItem('AI', Icons.psychology, AppRoutes.intelligenceDashboard, ''),
-          _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
+          _NavItem('Overview', Icons.home, AppRoutes.masterAdmin, ''),
+          _NavItem('Users', Icons.people_outline, '/admin/users', ''),
+          _NavItem('Incidents', Icons.warning_amber_rounded, AppRoutes.governmentIncidents, ''),
+          _NavItem('Organizations', Icons.business_outlined, AppRoutes.transparencyOrgs, ''),
+          _NavItem('Profile', Icons.person_outline, AppRoutes.profile, ''),
         ];
       case UserRole.rescueTeam:
       case UserRole.fieldResponder:
@@ -1002,8 +1009,10 @@ class _AppShellState extends ConsumerState<AppShell> {
         break;
       case UserRole.govtOfficial:
       case UserRole.incidentCommander:
-      case UserRole.admin:
         Navigator.pushReplacementNamed(context, AppRoutes.governmentCommandCentre);
+        break;
+      case UserRole.admin:
+        Navigator.pushReplacementNamed(context, AppRoutes.masterAdmin);
         break;
       case UserRole.rescueTeam:
       case UserRole.fieldResponder:

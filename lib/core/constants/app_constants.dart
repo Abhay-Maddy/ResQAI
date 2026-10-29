@@ -14,6 +14,9 @@ class AppConstants {
   static const String keyUserRole = 'resqai_user_role';
   static const String keyOfflineDrafts = 'resqai_offline_drafts';
 
+  // API Server Base URL
+  static const String apiBaseUrl = 'http://localhost:5000/api/v1';
+
   // Disclaimers (Safety & Emergency)
   static const String safetyNotice = 
       'NOTICE: ResQAI is an AI-assisted decision support system for disaster management and coordination. '

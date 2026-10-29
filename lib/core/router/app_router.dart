@@ -28,6 +28,7 @@ import '../../features/intelligence/anomalies_screen.dart';
 import '../../features/intelligence/scenario_simulation_screen.dart';
 import '../../features/intelligence/model_performance_screen.dart';
 import '../../features/ngo/ngo_dashboard_screen.dart';
+import '../../features/admin/master_admin_dashboard_screen.dart';
 import '../../features/ngo/ngo_management_screen.dart';
 import '../../features/volunteer/volunteer_dashboard_screen.dart';
 import '../../features/volunteer/volunteer_portal_screen.dart';
@@ -132,6 +133,9 @@ class AppRoutes {
   static const String medicalHospitals = '/medical/hospitals';
   static const String medicalResources = '/medical/resources';
 
+  // Admin
+  static const String masterAdmin = '/admin/dashboard';
+
   // AI Intelligence
   static const String intelligenceDashboard = '/intelligence/dashboard';
   static const String intelligenceRiskForecast = '/intelligence/risk-forecast';
@@ -171,8 +175,9 @@ class AppRouter {
         return AppRoutes.ngoDashboard;
       case UserRole.govtOfficial:
       case UserRole.incidentCommander:
-      case UserRole.admin:
         return AppRoutes.governmentCommandCentre;
+      case UserRole.admin:
+        return AppRoutes.masterAdmin;
       case UserRole.rescueTeam:
       case UserRole.fieldResponder:
         return AppRoutes.responderDashboard;
@@ -387,22 +392,42 @@ class AppRouter {
         page = const CitizenDonationsScreen();
         break;
 
+      // Admin
+      case AppRoutes.masterAdmin:
+      case '/admin':
+      case '/admin/users':
+        page = const MasterAdminDashboardScreen();
+        break;
+
       // NGO
       case AppRoutes.ngoDashboard:
       case AppRoutes.ngoOperations:
       case AppRoutes.ngoVolunteers:
       case AppRoutes.ngoVerification:
-      case AppRoutes.ngoReports:
         page = const NgoDashboardScreen();
         break;
       case AppRoutes.ngoCampaigns:
-      case AppRoutes.ngoDonations:
+        final tabIndex = settings.arguments is int ? settings.arguments as int : 0;
+        page = NgoManagementScreen(initialTabIndex: tabIndex);
+        break;
       case AppRoutes.ngoFinances:
       case AppRoutes.ngoExpenses:
+        page = const NgoManagementScreen(initialTabIndex: 1);
+        break;
       case AppRoutes.ngoResources:
-      case AppRoutes.ngoBeneficiaries:
+        page = const NgoManagementScreen(initialTabIndex: 2);
+        break;
+      case AppRoutes.ngoDonations:
+        page = const NgoManagementScreen(initialTabIndex: 3);
+        break;
       case AppRoutes.ngoCoverageMap:
-        page = const NgoManagementScreen();
+        page = const NgoManagementScreen(initialTabIndex: 4);
+        break;
+      case AppRoutes.ngoBeneficiaries:
+        page = const NgoManagementScreen(initialTabIndex: 5);
+        break;
+      case AppRoutes.ngoReports:
+        page = const NgoManagementScreen(initialTabIndex: 6);
         break;
 
       // Volunteer

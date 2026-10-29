@@ -5,173 +5,215 @@ import '../../core/theme/app_colors.dart';
 import '../../core/router/app_router.dart';
 import '../../core/layout/app_shell.dart';
 import '../../data/repositories/incident_repository.dart';
-import '../../data/services/notification_client_service.dart';
 import 'ngo_management_screen.dart';
 
-class NgoDashboardScreen extends ConsumerWidget {
+class NgoDashboardScreen extends ConsumerStatefulWidget {
   const NgoDashboardScreen({super.key});
 
-  void _showShareReportDialog(BuildContext context, WidgetRef ref) {
-    final titleCtrl = TextEditingController();
-    final bodyCtrl = TextEditingController();
+  @override
+  ConsumerState<NgoDashboardScreen> createState() => _NgoDashboardScreenState();
+}
 
-    showDialog(
+class _NgoDashboardScreenState extends ConsumerState<NgoDashboardScreen> {
+  int _selectedFilterIndex = 0; // 0: Campaigns, 1: Finance Ledger, 2: Relief Inventory
+
+  void _showNewActionSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.rate_review, color: AppColors.primaryRed, size: 22),
-            SizedBox(width: 8),
-            Text('Share NGO Situation Report',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Headline / Operation Name',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
-            TextField(
-              controller: titleCtrl,
-              decoration: InputDecoration(
-                hintText: 'e.g. 500 Food Packets Dispatched in Sector 4',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text('Details & Relief Metrics',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
-            TextField(
-              controller: bodyCtrl,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText:
-                    'Detail beneficiary counts, items delivered and warehouse reserve status...',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                contentPadding: const EdgeInsets.all(12),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
-              foregroundColor: Colors.white,
-            ),
-            icon: const Icon(Icons.send, size: 16),
-            label: const Text('Publish to EOC & Citizens',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            onPressed: () {
-              final title = titleCtrl.text.trim();
-              final body = bodyCtrl.text.trim();
-              if (title.isEmpty || body.isEmpty) return;
-
-              ref.read(notificationsProvider.notifier).addAlertNotification(
-                    title: '📋 NGO SitRep: $title',
-                    body: body,
-                    severity: 'INFO',
-                    source: 'Goonj Foundation Relief Mission',
-                    type: 'NGO_REPORT',
-                    direction: 'SENT',
-                    status: 'PUBLISHED',
-                  );
-
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                      'NGO report successfully broadcasted to Incident Command & Citizens.'),
-                  backgroundColor: AppColors.primaryGreen,
+      backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  'NGO Relief Actions',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-              );
-            },
+              ),
+              const SizedBox(height: 12),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGreen.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.campaign, color: AppColors.primaryGreen, size: 22),
+                ),
+                title: const Text('Launch Relief Campaign', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Publish verified relief drive with target budget', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamed(context, AppRoutes.ngoCampaigns, arguments: 0);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.warningOrange.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.receipt_long, color: AppColors.warningOrange, size: 22),
+                ),
+                title: const Text('Record Audited Expense', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Attach vendor invoice and GSTIN verification', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamed(context, AppRoutes.ngoFinances, arguments: 1);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.local_shipping, color: AppColors.primaryBlue, size: 22),
+                ),
+                title: const Text('Log Delivery Distribution', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Record household aid handover with signed challan', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamed(context, AppRoutes.ngoBeneficiaries, arguments: 5);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.emerald600.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.inventory_2, color: AppColors.emerald600, size: 22),
+                ),
+                title: const Text('Update Warehouse Inventory', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Add rations, tarpaulins, water purification units', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamed(context, AppRoutes.ngoResources, arguments: 2);
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final campaigns = ref.watch(ngoCampaignsProvider);
     final incidents = ref.watch(incidentsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
 
-    final totalRaised =
-        campaigns.fold<double>(0, (sum, c) => sum + c.raisedAmount);
-    final totalSpent =
-        campaigns.fold<double>(0, (sum, c) => sum + c.spentAmount);
+    final totalRaised = campaigns.fold<double>(0, (sum, c) => sum + c.raisedAmount);
+    final totalSpent = campaigns.fold<double>(0, (sum, c) => sum + c.spentAmount);
+    final totalCommitted = campaigns.fold<double>(0, (sum, c) => sum + c.committedAmount);
+    final totalAvailable = (totalRaised - (totalSpent + totalCommitted)).clamp(0.0, double.infinity);
 
     final openRequests = incidents.take(3).toList();
 
     return AppShell(
       currentRoute: AppRoutes.ngoDashboard,
-      title: 'NGO Operations Command',
-      breadcrumbs: const ['NGO', 'Dashboard'],
+      title: 'ResQAI',
+      breadcrumbs: const ['NGO', 'Transparency Portal'],
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primaryGreen,
+        foregroundColor: Colors.white,
+        elevation: 3,
+        icon: const Icon(Icons.add, size: 20),
+        label: const Text('New Action', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        onPressed: () => _showNewActionSheet(context),
+      ),
       child: SingleChildScrollView(
-        padding:
-            EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32, vertical: 24),
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top DARPAN Verification Header
+            // 1. Top DARPAN Verification Header Card (Screenshot 5 Left)
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                    color:
-                        isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2)),
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppColors.successGreen.withOpacity(0.12),
-                      shape: BoxShape.circle,
+                      color: AppColors.emerald50,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.verified_user,
-                        color: AppColors.successGreen, size: 28),
+                    child: const Icon(Icons.corporate_fare, color: AppColors.primaryGreen, size: 26),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Goonj Foundation Relief Mission (DARPAN: DL/2021/0088192)',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 17),
-                        ),
-                        const SizedBox(height: 4),
                         Text(
-                          'Authorized Relief Operator • Designated Operation Zones: East Delhi & Yamuna Basin',
+                          'NGO Transparency Portal',
                           style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.mutedText),
+                            fontWeight: FontWeight.bold,
+                            fontSize: isMobile ? 15 : 17,
+                            color: isDark ? Colors.white : AppColors.deepNavy,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'DARPAN: DL/2019/0001234 • Goonj Wing',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.emerald50,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.emerald200),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle, color: AppColors.emerald700, size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          'DARPAN VERIFIED',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.emerald700,
+                          ),
                         ),
                       ],
                     ),
@@ -179,302 +221,475 @@ class NgoDashboardScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            // Quick Operations Action Row
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryRed,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.rate_review, size: 18),
-                    label: const Text('Share Situation Report',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 13)),
-                    onPressed: () => _showShareReportDialog(context, ref),
+            // 2. Interactive Filter Tabs (Campaigns, Finance Ledger, Relief Inventory)
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    width: 1.2,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryGreen,
-                      side: const BorderSide(
-                          color: AppColors.primaryGreen, width: 1.5),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Row(
+                children: [
+                  _buildFilterTab(
+                    label: 'Campaigns (${campaigns.length})',
+                    icon: Icons.campaign_outlined,
+                    isSelected: _selectedFilterIndex == 0,
+                    onTap: () {
+                      setState(() => _selectedFilterIndex = 0);
+                    },
+                  ),
+                  _buildFilterTab(
+                    label: 'Finance Ledger (5)',
+                    icon: Icons.receipt_long_outlined,
+                    isSelected: _selectedFilterIndex == 1,
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoutes.ngoFinances, arguments: 1);
+                    },
+                  ),
+                  _buildFilterTab(
+                    label: 'Relief Inventory',
+                    icon: Icons.inventory_2_outlined,
+                    isSelected: _selectedFilterIndex == 2,
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoutes.ngoResources, arguments: 2);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 3. Hero Campaign Card (Yamuna Flood Relief 2024)
+            InkWell(
+              onTap: () => Navigator.pushNamed(context, AppRoutes.ngoCampaigns, arguments: 0),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
                     ),
-                    icon: const Icon(Icons.volunteer_activism, size: 18),
-                    label: const Text('New Relief Campaign',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 13)),
-                    onPressed: () =>
-                        Navigator.pushNamed(context, AppRoutes.ngoCampaigns),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left Thumbnail Box
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            width: 64,
+                            height: 64,
+                            color: AppColors.emerald50,
+                            child: const Icon(
+                              Icons.volunteer_activism,
+                              color: AppColors.primaryGreen,
+                              size: 32,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Yamuna Flood Relief 2024',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.emerald50,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: AppColors.emerald200),
+                                    ),
+                                    child: const Text(
+                                      'Active',
+                                      style: TextStyle(
+                                        color: AppColors.emerald700,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                                  const SizedBox(width: 4),
+                                  const Text('Delhi NCR', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                                  const SizedBox(width: 10),
+                                  const Icon(Icons.calendar_today_outlined, size: 13, color: Colors.grey),
+                                  const SizedBox(width: 4),
+                                  const Expanded(
+                                    child: Text(
+                                      'Jan 10, 2024 – Mar 31, 2024',
+                                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // 3 Metric Pills
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildMetricPill(
+                            icon: Icons.people_outline,
+                            label: '2,590',
+                            sub: 'Families Assisted',
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildMetricPill(
+                            icon: Icons.person_outline,
+                            label: '12',
+                            sub: 'Active Volunteers',
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildMetricPill(
+                            icon: Icons.night_shelter_outlined,
+                            label: '18',
+                            sub: 'Relief Camps',
+                            isDark: isDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // 4. Financial Summary (Screenshot 5 Left)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Financial Summary',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.ngoFinances, arguments: 1),
+                  child: const Text(
+                    'View All',
+                    style: TextStyle(
+                      color: AppColors.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
 
-            // 4-Card Metrics Grid
-            if (isMobile) ...[
-              Row(
-                children: [
-                  Expanded(
-                      child: _buildKpiCard(
-                          'DONATIONS AUDITED',
-                          '₹${totalRaised.toStringAsFixed(0)}',
-                          AppColors.primaryGreen,
-                          isDark)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                      child: _buildKpiCard(
-                          'RELIEF DISBURSED',
-                          '₹${totalSpent.toStringAsFixed(0)}',
-                          AppColors.primaryRed,
-                          isDark)),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                      child: _buildKpiCard(
-                          'ACTIVE CAMPAIGNS',
-                          '${campaigns.length}',
-                          AppColors.primaryBlue,
-                          isDark)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                      child: _buildKpiCard(
-                          'OPEN REQUESTS',
-                          '${incidents.length}',
-                          AppColors.warningOrange,
-                          isDark)),
-                ],
-              ),
-            ] else ...[
-              Row(
-                children: [
-                  Expanded(
-                      child: _buildKpiCard(
-                          'DONATIONS AUDITED',
-                          '₹${totalRaised.toStringAsFixed(0)}',
-                          AppColors.primaryGreen,
-                          isDark)),
-                  const SizedBox(width: 14),
-                  Expanded(
-                      child: _buildKpiCard(
-                          'RELIEF DISBURSED',
-                          '₹${totalSpent.toStringAsFixed(0)}',
-                          AppColors.primaryRed,
-                          isDark)),
-                  const SizedBox(width: 14),
-                  Expanded(
-                      child: _buildKpiCard(
-                          'ACTIVE CAMPAIGNS',
-                          '${campaigns.length}',
-                          AppColors.primaryBlue,
-                          isDark)),
-                  const SizedBox(width: 14),
-                  Expanded(
-                      child: _buildKpiCard(
-                          'OPEN REQUESTS',
-                          '${incidents.length}',
-                          AppColors.warningOrange,
-                          isDark)),
-                ],
-              ),
-            ],
-            const SizedBox(height: 24),
+            // 2x2 Grid of Financial Cards
+            Row(
+              children: [
+                Expanded(
+                  child: _buildFinanceCard(
+                    title: 'Verified Received',
+                    amount: '₹${(totalRaised / 100000).toStringAsFixed(1)} L',
+                    sub: 'Grants & Donations',
+                    icon: Icons.account_balance_wallet_outlined,
+                    iconColor: AppColors.emerald600,
+                    bgColor: AppColors.emerald50,
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildFinanceCard(
+                    title: 'Verified Spent',
+                    amount: '₹${(totalSpent / 100000).toStringAsFixed(1)} L',
+                    sub: 'Field Expenses',
+                    icon: Icons.payment_outlined,
+                    iconColor: AppColors.criticalRed,
+                    bgColor: const Color(0xFFFEF2F2),
+                    isDark: isDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildFinanceCard(
+                    title: 'Committed Orders',
+                    amount: '₹${(totalCommitted / 100000).toStringAsFixed(1)} L',
+                    sub: 'Purchase Orders',
+                    icon: Icons.shopping_bag_outlined,
+                    iconColor: AppColors.warningOrange,
+                    bgColor: const Color(0xFFFFFBEB),
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildFinanceCard(
+                    title: 'Uncommitted Cash',
+                    amount: '₹${(totalAvailable / 100000).toStringAsFixed(1)} L',
+                    sub: 'Available for Relief',
+                    icon: Icons.account_balance_outlined,
+                    iconColor: AppColors.primaryGreen,
+                    bgColor: AppColors.emerald50,
+                    isDark: isDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 22),
 
-            // Live Citizen Aid Requests & Emergency Queue
+            // 5. Recent Activities Section (Screenshot 5 Left)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Recent Activities',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.ngoBeneficiaries, arguments: 5),
+                  child: const Text(
+                    'View All',
+                    style: TextStyle(
+                      color: AppColors.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
             Container(
-              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                    color:
-                        isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Nearby Citizen Aid Requirements',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16)),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryRed.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text('${incidents.length} Pending Delivery',
-                            style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryRed)),
-                      ),
-                    ],
+                  _buildActivityTile(
+                    icon: Icons.local_shipping_outlined,
+                    iconColor: AppColors.primaryBlue,
+                    bgColor: const Color(0xFFEFF6FF),
+                    title: '500 Relief Kits Delivered',
+                    subtitle: 'Shahdara, Delhi',
+                    time: '2 hours ago',
+                    isDark: isDark,
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.ngoBeneficiaries, arguments: 5),
                   ),
-                  const SizedBox(height: 12),
-                  for (final inc in openRequests) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryGreen.withOpacity(0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.inventory_2_outlined,
-                                color: AppColors.primaryGreen, size: 18),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(inc.title,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13)),
-                                const SizedBox(height: 2),
-                                Text('${inc.address} • ${inc.category.label}',
-                                    style: const TextStyle(
-                                        fontSize: 11, color: Colors.grey)),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (inc.status == IncidentStatus.helpAssigned)
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.successGreen,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                    minimumSize: Size.zero,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  onPressed: () {
-                                    ref.read(incidentsProvider.notifier).updateStatus(inc.id, IncidentStatus.resolved);
-                                    ref.read(notificationsProvider.notifier).addAlertNotification(
-                                      title: '✓ Relief Supplies Delivered (${inc.id})',
-                                      body: 'Goonj Foundation marked supplies delivered to site. Citizen verification pending.',
-                                      severity: 'INFO',
-                                      source: 'Goonj NGO',
-                                      type: 'AID_DELIVERY',
-                                      direction: 'SENT',
-                                      status: 'DELIVERED',
-                                    );
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Supplies delivered for "${inc.title}"! Citizen notified for verification.'),
-                                        backgroundColor: AppColors.successGreen,
-                                      ),
-                                    );
-                                  },
-                                  child: const Text('Mark Done ✓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                                )
-                              else
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primaryGreen,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    minimumSize: Size.zero,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  onPressed: () {
-                                    ref.read(incidentsProvider.notifier).updateStatus(
-                                      inc.id,
-                                      IncidentStatus.helpAssigned,
-                                      team: 'Goonj Foundation Relief Mission',
-                                    );
-                                    ref.read(notificationsProvider.notifier).addAlertNotification(
-                                      title: '📦 Relief Supplies Dispatched (${inc.id})',
-                                      body: 'Goonj Foundation has accepted request and dispatched rations/supplies.',
-                                      severity: 'INFO',
-                                      source: 'Goonj NGO',
-                                      type: 'AID_DELIVERY',
-                                      direction: 'SENT',
-                                      status: 'IN_TRANSIT',
-                                    );
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Aid request for "${inc.title}" accepted! Dispatched Goonj relief team.'),
-                                        backgroundColor: AppColors.primaryGreen,
-                                      ),
-                                    );
-                                  },
-                                  child: const Text('Accept & Supply', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 12),
-                  ],
+                  const Divider(height: 1),
+                  _buildActivityTile(
+                    icon: Icons.person_add_outlined,
+                    iconColor: AppColors.primaryGreen,
+                    bgColor: AppColors.emerald50,
+                    title: 'New Volunteer Joined',
+                    subtitle: 'Ananya Sharma',
+                    time: '5 hours ago',
+                    isDark: isDark,
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.ngoVolunteers),
+                  ),
+                  const Divider(height: 1),
+                  _buildActivityTile(
+                    icon: Icons.receipt_long_outlined,
+                    iconColor: AppColors.warningOrange,
+                    bgColor: const Color(0xFFFFFBEB),
+                    title: 'Donation Received',
+                    subtitle: '₹50,000 from CSR Partner',
+                    time: '1 day ago',
+                    isDark: isDark,
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.ngoFinances, arguments: 1),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // Quick Operations Navigation
-            Row(
-              children: [
-                Expanded(
-                  child: _buildNavCard(
-                    context,
-                    title: 'Relief Campaigns',
-                    subtitle: 'Manage fundraising & target relief packets',
-                    icon: Icons.volunteer_activism,
-                    route: AppRoutes.ngoCampaigns,
-                    isDark: isDark,
+            // 6. Citizen Humanitarian Aid Request Queue
+            if (openRequests.isNotEmpty) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Active Aid Intake Queue',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildNavCard(
-                    context,
-                    title: 'Financial Ledger',
-                    subtitle: 'Log tax invoices, vendor receipts & GSTIN proof',
-                    icon: Icons.receipt_long,
-                    route: AppRoutes.ngoFinances,
-                    isDark: isDark,
-                  ),
-                ),
-                if (!isMobile) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildNavCard(
-                      context,
-                      title: 'Warehouse Reserves',
-                      subtitle: 'Inventory counts, rations & medical packs',
-                      icon: Icons.inventory_2,
-                      route: AppRoutes.ngoResources,
-                      isDark: isDark,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryRed.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${openRequests.length} Pending Delivery',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryRed,
+                      ),
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 10),
+              for (final inc in openRequests) ...[
+                Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryGreen.withOpacity(0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.inventory_2_outlined, color: AppColors.primaryGreen, size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              inc.title,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              inc.address,
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGreen,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          minimumSize: Size.zero,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: () {
+                          ref.read(incidentsProvider.notifier).updateStatus(
+                                inc.id,
+                                IncidentStatus.helpAssigned,
+                                team: 'Goonj Foundation Relief Mission',
+                              );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Accepted aid request "${inc.title}". Logistics dispatched.'),
+                              backgroundColor: AppColors.primaryGreen,
+                            ),
+                          );
+                        },
+                        child: const Text('Accept & Supply', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
               ],
+            ],
+            const SizedBox(height: 70), // Spacing for FAB
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterTab({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? AppColors.primaryGreen : Colors.transparent,
+              width: 2.4,
+            ),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? AppColors.primaryGreen : Colors.grey,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? AppColors.primaryGreen : Colors.grey,
+              ),
             ),
           ],
         ),
@@ -482,70 +697,154 @@ class NgoDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildKpiCard(String label, String value, Color color, bool isDark) {
+  Widget _buildMetricPill({
+    required IconData icon,
+    required String label,
+    required String sub,
+    required bool isDark,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 6,
-              offset: const Offset(0, 2)),
-        ],
+        color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightBg,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey)),
-          const SizedBox(height: 8),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.w900, color: color)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: AppColors.primaryGreen),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            sub,
+            style: const TextStyle(fontSize: 10, color: Colors.grey),
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildNavCard(
-    BuildContext context, {
+  Widget _buildFinanceCard({
     required String title,
-    required String subtitle,
+    required String amount,
+    required String sub,
     required IconData icon,
-    required String route,
+    required Color iconColor,
+    required Color bgColor,
     required bool isDark,
   }) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, route),
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: isDark ? iconColor.withOpacity(0.15) : bgColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: iconColor, size: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            amount,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : AppColors.deepNavy,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            sub,
+            style: const TextStyle(fontSize: 10, color: Colors.grey),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityTile({
+    required IconData icon,
+    required Color iconColor,
+    required Color bgColor,
+    required String title,
+    required String subtitle,
+    required String time,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
           children: [
-            Icon(icon, color: AppColors.primaryGreen, size: 24),
-            const SizedBox(height: 10),
-            Text(title,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            const SizedBox(height: 4),
-            Text(subtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark ? iconColor.withOpacity(0.15) : bgColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: iconColor, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              time,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
           ],
         ),
       ),
