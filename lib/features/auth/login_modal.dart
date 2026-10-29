@@ -499,7 +499,16 @@ class _LoginModalState extends ConsumerState<LoginModal> with SingleTickerProvid
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.shield, color: Colors.white, size: 24),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Image.asset(
+                        'assets/images/app_icon.png',
+                        width: 24,
+                        height: 24,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.shield, color: Colors.white, size: 24),
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

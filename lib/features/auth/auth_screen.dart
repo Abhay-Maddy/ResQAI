@@ -103,13 +103,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 children: [
                   // Header
                   Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryBlue.withOpacity(0.12),
-                        shape: BoxShape.circle,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/images/app_icon.png',
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryBlue.withOpacity(0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.shield, color: AppColors.primaryBlue, size: 34),
+                        ),
                       ),
-                      child: const Icon(Icons.shield, color: AppColors.primaryBlue, size: 34),
                     ),
                   ),
                   const SizedBox(height: 12),

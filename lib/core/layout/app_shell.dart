@@ -188,13 +188,22 @@ class _AppShellState extends ConsumerState<AppShell> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          'assets/images/app_icon.png',
+                          width: 26,
+                          height: 26,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBlue.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.shield_outlined, color: AppColors.primaryBlue, size: 18),
+                          ),
                         ),
-                        child: const Icon(Icons.shield_outlined, color: AppColors.primaryBlue, size: 18),
                       ),
                       const SizedBox(width: 8),
                       Column(
