@@ -66,7 +66,8 @@ class ResQAIApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: isDark ? AppTheme.darkTheme : AppTheme.lightTheme,
       navigatorKey: AppRouter.navigatorKey,
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.bootstrap,
+      locale: Locale(ref.watch(languageProvider)),
       onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }

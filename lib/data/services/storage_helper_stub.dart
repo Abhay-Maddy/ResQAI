@@ -47,7 +47,13 @@ class StorageHelper {
   }
 
   static void clear() {
+    _ensureLoaded();
     _memoryStorage.clear();
     _save();
+    try {
+      if (_storageFile != null && _storageFile!.existsSync()) {
+        _storageFile!.deleteSync();
+      }
+    } catch (_) {}
   }
 }

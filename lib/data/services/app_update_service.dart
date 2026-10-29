@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -42,9 +41,15 @@ class AppUpdateInfo {
 class AppUpdateService {
   static const String baseUrl = 'http://localhost:5000/api/v1/system/app-version';
 
+  static String normalizeVersion(String v) {
+    var clean = v.trim().replaceFirst(RegExp(r'^[vV]'), '');
+    if (clean == '1.50') clean = '1.5.0';
+    return clean;
+  }
+
   static int compareVersions(String v1, String v2) {
-    final clean1 = v1.trim().replaceFirst(RegExp(r'^[vV]'), '');
-    final clean2 = v2.trim().replaceFirst(RegExp(r'^[vV]'), '');
+    final clean1 = normalizeVersion(v1);
+    final clean2 = normalizeVersion(v2);
     final p1 = clean1.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final p2 = clean2.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final maxLen = p1.length > p2.length ? p1.length : p2.length;
@@ -58,12 +63,15 @@ class AppUpdateService {
   }
 
   static String computeNextVersion(String ver) {
-    final clean = ver.trim().replaceFirst(RegExp(r'^[vV]'), '');
+    final clean = normalizeVersion(ver);
     if (clean == '1.0.0' || clean == '1.1.0' || clean == '1.2.0') {
       return '1.5.0';
     }
-    if (clean == '1.5.0' || clean == '1.50') {
+    if (clean == '1.5.0') {
       return '1.5.05';
+    }
+    if (clean == '1.5.05') {
+      return '1.5.06';
     }
     final parts = clean.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     while (parts.length < 3) {

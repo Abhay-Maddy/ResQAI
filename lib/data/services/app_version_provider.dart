@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
+import 'app_update_service.dart';
 import 'storage_service.dart';
 
 class AppVersionNotifier extends StateNotifier<String> {
@@ -9,9 +10,17 @@ class AppVersionNotifier extends StateNotifier<String> {
     try {
       final saved = StorageService.getString(StorageService.keyInstalledAppVersion);
       if (saved != null && saved.trim().isNotEmpty) {
-        return saved.trim();
+        final trimmed = saved.trim();
+        // If the compiled APK binary is newer than the cached version on disk,
+        // automatically promote to the binary version and persist.
+        if (AppUpdateService.compareVersions(AppConstants.appVersion, trimmed) > 0) {
+          StorageService.setString(StorageService.keyInstalledAppVersion, AppConstants.appVersion);
+          return AppConstants.appVersion;
+        }
+        return trimmed;
       }
     } catch (_) {}
+    StorageService.setString(StorageService.keyInstalledAppVersion, AppConstants.appVersion);
     return AppConstants.appVersion;
   }
 
@@ -21,9 +30,16 @@ class AppVersionNotifier extends StateNotifier<String> {
     } catch (_) {}
     state = newVersion;
   }
+
+  void resetVersion(String version) {
+    try {
+      StorageService.setString(StorageService.keyInstalledAppVersion, version);
+      StorageService.setString(StorageService.keyServerLatestVersion, version);
+    } catch (_) {}
+    state = version;
+  }
 }
 
 final appVersionProvider = StateNotifierProvider<AppVersionNotifier, String>((ref) {
   return AppVersionNotifier();
 });
-

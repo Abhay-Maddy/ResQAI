@@ -15,7 +15,7 @@ class AuthNotifier extends StateNotifier<UserModel?> {
         return UserModel.fromJson(decoded);
       }
     } catch (_) {}
-    return defaultCitizen;
+    return null;
   }
 
   static final UserModel defaultCitizen = UserModel(
@@ -168,9 +168,17 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     _persistUser(user);
   }
 
+  void setUser(UserModel user) {
+    state = user;
+    _persistUser(user);
+  }
+
   void logout() {
     state = null;
-    StorageService.remove(StorageService.keyCurrentUser);
+    try {
+      StorageService.remove(StorageService.keyCurrentUser);
+      StorageService.remove(StorageService.keyActiveRole);
+    } catch (_) {}
   }
 
   void updateProfile(UserModel updated) {
