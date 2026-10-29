@@ -1412,7 +1412,7 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: campaigns.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 14),
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (context, index) {
               final c = campaigns[index];
               final percentRaised = (c.raisedAmount / c.targetAmount * 100).clamp(0, 100).toInt();
@@ -1555,7 +1555,7 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: txs.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final tx = txs[index];
               final isCredit = tx.transactionType == 'DONATION_RECEIVED';
@@ -1645,7 +1645,7 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _inventory.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final item = _inventory[index];
 
@@ -1716,7 +1716,7 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: deliveries.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final d = deliveries[index];
 
@@ -1787,7 +1787,7 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: donations.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final don = donations[index];
 
