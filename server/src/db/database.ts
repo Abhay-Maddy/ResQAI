@@ -430,6 +430,17 @@ export function ensurePrdV2Columns() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS ivr_call_logs (
+      id TEXT PRIMARY KEY,
+      call_sid TEXT,
+      caller_phone TEXT NOT NULL,
+      digits_pressed TEXT,
+      selected_emergency TEXT,
+      incident_id TEXT REFERENCES incidents(id),
+      status TEXT NOT NULL DEFAULT 'COMPLETED',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS voice_notes (
       id TEXT PRIMARY KEY,
       caller_phone TEXT NOT NULL,
