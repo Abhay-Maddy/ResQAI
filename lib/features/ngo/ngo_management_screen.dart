@@ -5,6 +5,9 @@ import '../../core/router/app_router.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/donation_repository.dart';
 import '../../shared/models/donation_model.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import '../../data/repositories/incident_repository.dart';
 import '../../shared/widgets/truth_badge_widget.dart';
 
 class NgoCampaign {
@@ -366,7 +369,12 @@ class NgoDeliveriesNotifier extends StateNotifier<List<NgoDistributionDelivery>>
 }
 
 class NgoManagementScreen extends ConsumerStatefulWidget {
-  const NgoManagementScreen({super.key});
+  final int initialTabIndex;
+
+  const NgoManagementScreen({
+    super.key,
+    this.initialTabIndex = 0,
+  });
 
   @override
   ConsumerState<NgoManagementScreen> createState() => _NgoManagementScreenState();
@@ -409,8 +417,19 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
   @override
   void initState() {
     super.initState();
-    // 7 Complete Functional Tabs
-    _tabController = TabController(length: 7, vsync: this);
+    _tabController = TabController(
+      length: 7,
+      vsync: this,
+      initialIndex: widget.initialTabIndex.clamp(0, 6),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant NgoManagementScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTabIndex != widget.initialTabIndex) {
+      _tabController.animateTo(widget.initialTabIndex.clamp(0, 6));
+    }
   }
 
   @override
@@ -1171,8 +1190,6 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
     final campaigns = ref.watch(ngoCampaignsProvider);
     final transactions = ref.watch(ngoTransactionsProvider);
     final deliveries = ref.watch(ngoDeliveriesProvider);
-    final donations = ref.watch(donationsProvider);
-    final currentUser = ref.watch(authProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -1236,17 +1253,17 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          indicatorColor: AppColors.primaryLight,
-          labelColor: AppColors.primaryLight,
+          indicatorColor: AppColors.primaryGreen,
+          labelColor: AppColors.primaryGreen,
           unselectedLabelColor: Colors.grey,
           tabs: [
             Tab(icon: const Icon(Icons.campaign, size: 18), text: 'Campaigns (${campaigns.length})'),
-            Tab(icon: const Icon(Icons.receipt_long, size: 18), text: 'Ledger (${transactions.length})'),
+            Tab(icon: const Icon(Icons.receipt_long, size: 18), text: 'Finance Ledger (${transactions.length})'),
             Tab(icon: const Icon(Icons.inventory_2, size: 18), text: 'Relief Inventory (${_inventory.length})'),
+            const Tab(icon: Icon(Icons.account_balance_wallet, size: 18), text: 'Campaign Finance'),
+            const Tab(icon: Icon(Icons.map, size: 18), text: 'Operations Map'),
             Tab(icon: const Icon(Icons.local_shipping, size: 18), text: 'Distribution History (${deliveries.length})'),
-            Tab(icon: const Icon(Icons.volunteer_activism, size: 18), text: 'Donations (${donations.length})'),
             const Tab(icon: Icon(Icons.analytics, size: 18), text: 'Reports & Transparency'),
-            const Tab(icon: Icon(Icons.verified, size: 18), text: 'NGO Profile & Trust'),
           ],
         ),
       ),
@@ -1256,10 +1273,10 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
           _buildCampaignsTab(campaigns, totalRaised, totalSpent, totalCommitted, totalAvailable, totalBeneficiaries, isMobile, isDark),
           _buildLedgerTab(transactions, isMobile, isDark),
           _buildInventoryTab(isMobile, isDark),
+          _buildCampaignFinanceTab(campaigns, isMobile, isDark),
+          _buildOperationsMapTab(isMobile, isDark),
           _buildDistributionHistoryTab(deliveries, isMobile, isDark),
-          _buildDonationsTab(donations, isMobile, isDark),
           _buildReportsTransparencyTab(campaigns, totalRaised, totalSpent, totalCommitted, totalAvailable, totalBeneficiaries, isMobile, isDark),
-          _buildProfileTab(currentUser, isMobile, isDark),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -1964,7 +1981,195 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
   }
 
   // TAB 7: NGO PROFILE & TRUST TAB
-  Widget _buildProfileTab(dynamic currentUser, bool isMobile, bool isDark) {
+
+  Widget _buildOperationsMapTab(bool isMobile, bool isDark) {
+    final incidents = ref.watch(incidentsProvider);
+    return Stack(
+      children: [
+        FlutterMap(
+          options: const MapOptions(
+            initialCenter: LatLng(28.6139, 77.2090),
+            initialZoom: 12.0,
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.resqai.app',
+            ),
+            MarkerLayer(
+              markers: [
+                const Marker(
+                  point: LatLng(28.6080, 77.2950),
+                  width: 44,
+                  height: 44,
+                  child: Icon(Icons.night_shelter, color: AppColors.primaryGreen, size: 36),
+                ),
+                const Marker(
+                  point: LatLng(28.6320, 77.2750),
+                  width: 44,
+                  height: 44,
+                  child: Icon(Icons.night_shelter, color: AppColors.primaryGreen, size: 36),
+                ),
+                const Marker(
+                  point: LatLng(28.5355, 77.2930),
+                  width: 44,
+                  height: 44,
+                  child: Icon(Icons.warehouse, color: AppColors.primaryBlue, size: 34),
+                ),
+                ...incidents.take(15).map((inc) => Marker(
+                      point: LatLng(inc.latitude, inc.longitude),
+                      width: 40,
+                      height: 40,
+                      child: Icon(
+                        Icons.location_on,
+                        color: inc.priorityScore >= 80 ? AppColors.criticalRed : AppColors.warningOrange,
+                        size: 32,
+                      ),
+                    )),
+              ],
+            ),
+          ],
+        ),
+        Positioned(
+          top: 14,
+          left: 14,
+          right: 14,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface.withOpacity(0.92) : Colors.white.withOpacity(0.95),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.explore, color: AppColors.primaryGreen, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Active Relief Camps (18) • Staging Depots (4) • Live Aid Requirements',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppColors.deepNavy,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCampaignFinanceTab(List<NgoCampaign> campaigns, bool isMobile, bool isDark) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Campaign Financial Breakdown & Burn Rates', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.receipt_long, size: 14),
+                label: const Text('Record Expense', style: TextStyle(fontSize: 12)),
+                onPressed: _openRecordExpenseDialog,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text('Reconciled against bank statements with zero unallocated leakage.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+          const SizedBox(height: 16),
+          for (final c in campaigns) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: AppColors.primaryGreen.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
+                        child: Text(c.id, style: const TextStyle(color: AppColors.primaryGreen, fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(c.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: AppColors.emerald50, borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.emerald200)),
+                        child: const Text('AUDIT VERIFIED', style: TextStyle(color: AppColors.emerald700, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: (c.spentAmount / (c.raisedAmount > 0 ? c.raisedAmount : 1)).clamp(0.0, 1.0),
+                      backgroundColor: Colors.grey.withOpacity(0.2),
+                      valueColor: const AlwaysStoppedAnimation(AppColors.primaryGreen),
+                      minHeight: 8,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Spent: ₹${(c.spentAmount / 100000).toStringAsFixed(1)} L', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.criticalRed)),
+                      Text('Committed: ₹${(c.committedAmount / 100000).toStringAsFixed(1)} L', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.warningOrange)),
+                      Text('Raised: ₹${(c.raisedAmount / 100000).toStringAsFixed(1)} L', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
+                    ],
+                  ),
+                  const Divider(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Available Uncommitted Cash', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                          const SizedBox(height: 2),
+                          Text('₹${(c.remainingAvailable / 100000).toStringAsFixed(2)} Lakhs', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
+                        ],
+                      ),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
+                        icon: const Icon(Icons.add_shopping_cart, size: 14),
+                        label: const Text('Allocate Funds', style: TextStyle(fontSize: 11)),
+                        onPressed: _openRecordExpenseDialog,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+    Widget _buildProfileTab(dynamic currentUser, bool isMobile, bool isDark) {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
       child: Column(

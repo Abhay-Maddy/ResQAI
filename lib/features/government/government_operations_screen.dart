@@ -454,13 +454,8 @@ class _GovernmentOperationsScreenState extends ConsumerState<GovernmentOperation
     return Container(
       padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primaryDark, AppColors.darkSurfaceCard],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: const Color(0xFF064E3B),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primaryLight.withOpacity(0.4)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -618,10 +613,11 @@ class _GovernmentOperationsScreenState extends ConsumerState<GovernmentOperation
   // 2. STATE DISASTER RESPONSE FUND (SDRF) FINANCIAL LEDGER
   Widget _buildSdrfFinancialCard(bool isMobile, bool isDark) {
     return Card(
-      color: AppColors.darkSurfaceCard,
+      color: isDark ? AppColors.darkSurface : Colors.white,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppColors.darkBorder),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
       ),
       child: Padding(
         padding: EdgeInsets.all(isMobile ? 16 : 20),
@@ -671,10 +667,10 @@ class _GovernmentOperationsScreenState extends ConsumerState<GovernmentOperation
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    _buildFinanceStat('SDRF Allocated', '₹${(_allocatedFunds / 100000).toStringAsFixed(1)} L', 'State Govt Sanction', Colors.blue, cardWidth),
-                    _buildFinanceStat('District Released', '₹${(_releasedFunds / 100000).toStringAsFixed(1)} L', 'Transferred to Collector', Colors.indigoAccent, cardWidth),
-                    _buildFinanceStat('Agency Received', '₹${(_receivedFunds / 100000).toStringAsFixed(1)} L', 'DDMA / NDRF / Camps', Colors.orange, cardWidth),
-                    _buildFinanceStat('Verified Spent', '₹${(_spentFunds / 100000).toStringAsFixed(2)} L', 'Audited Invoices (100%)', AppColors.verifiedGreen, cardWidth),
+                    _buildFinanceStat('SDRF Allocated', '₹${(_allocatedFunds / 100000).toStringAsFixed(1)} L', 'State Govt Sanction', Colors.blue, cardWidth, isDark),
+                    _buildFinanceStat('District Released', '₹${(_releasedFunds / 100000).toStringAsFixed(1)} L', 'Transferred to Collector', Colors.indigoAccent, cardWidth, isDark),
+                    _buildFinanceStat('Agency Received', '₹${(_receivedFunds / 100000).toStringAsFixed(1)} L', 'DDMA / NDRF / Camps', Colors.orange, cardWidth, isDark),
+                    _buildFinanceStat('Verified Spent', '₹${(_spentFunds / 100000).toStringAsFixed(2)} L', 'Audited Invoices (100%)', AppColors.verifiedGreen, cardWidth, isDark),
                   ],
                 );
               },
@@ -685,14 +681,14 @@ class _GovernmentOperationsScreenState extends ConsumerState<GovernmentOperation
     );
   }
 
-  Widget _buildFinanceStat(String label, String amount, String sub, Color color, double width) {
+  Widget _buildFinanceStat(String label, String amount, String sub, Color color, double width, bool isDark) {
     return Container(
       width: width,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.35)),
+        color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? color.withOpacity(0.35) : color.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -709,7 +705,7 @@ class _GovernmentOperationsScreenState extends ConsumerState<GovernmentOperation
             ),
           ),
           const SizedBox(height: 4),
-          Text(sub, style: const TextStyle(fontSize: 11, color: Colors.white70)),
+          Text(sub, style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.grey[700])),
         ],
       ),
     );
@@ -762,10 +758,11 @@ class _GovernmentOperationsScreenState extends ConsumerState<GovernmentOperation
         else
           ...pendingCases.map((inc) => Card(
                 margin: const EdgeInsets.only(bottom: 12),
-                color: AppColors.darkSurfaceCard,
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.darkBorder),
+                  side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -997,10 +994,11 @@ class _GovernmentOperationsScreenState extends ConsumerState<GovernmentOperation
         const SizedBox(height: 10),
         ...shelters.map((s) => Card(
               margin: const EdgeInsets.only(bottom: 8),
-              color: AppColors.darkSurfaceCard,
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
-                side: const BorderSide(color: AppColors.darkBorder),
+                side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
