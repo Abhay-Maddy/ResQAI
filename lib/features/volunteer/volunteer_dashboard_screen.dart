@@ -6,11 +6,18 @@ import '../../core/layout/app_shell.dart';
 import '../../data/repositories/auth_repository.dart';
 import 'volunteer_portal_screen.dart';
 
-class VolunteerDashboardScreen extends ConsumerWidget {
+class VolunteerDashboardScreen extends ConsumerStatefulWidget {
   const VolunteerDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<VolunteerDashboardScreen> createState() => _VolunteerDashboardScreenState();
+}
+
+class _VolunteerDashboardScreenState extends ConsumerState<VolunteerDashboardScreen> {
+  bool _isAvailableForDispatch = true;
+
+  @override
+  Widget build(BuildContext context) {
     final tasks = ref.watch(volunteerTasksProvider);
     final user = ref.watch(authProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -29,83 +36,132 @@ class VolunteerDashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top Welcome & Service Hours
+            // Top Welcome & Availability Status
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.volunteer_activism, color: AppColors.primaryBlue, size: 28),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryGreen.withOpacity(0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.volunteer_activism, color: AppColors.primaryGreen, size: 28),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Volunteer: ${user?.name ?? 'Ananya Deshmukh (Registered Volunteer)'}',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Verified Skills: First Aid Certified, Bilingual • Service Radius: 8.0 km',
+                              style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Volunteer: ${user?.name ?? 'Ananya Deshmukh (Registered Volunteer)'}',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Verified Skills: First Aid Certified, Hindi/English Bilingual • Service Radius: 8.0 km',
-                          style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 14),
+                  const Divider(height: 1),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: _isAvailableForDispatch ? AppColors.primaryGreen : Colors.grey,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _isAvailableForDispatch ? 'STATUS: AVAILABLE FOR DISPATCH' : 'STATUS: CURRENTLY OFF-DUTY',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: _isAvailableForDispatch ? AppColors.primaryGreen : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Switch(
+                        value: _isAvailableForDispatch,
+                        activeColor: AppColors.primaryGreen,
+                        onChanged: (val) {
+                          setState(() => _isAvailableForDispatch = val);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(val ? 'You are marked Available for emergency missions!' : 'You are now Off-Duty.'),
+                              backgroundColor: val ? AppColors.primaryGreen : Colors.grey.shade700,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: 20),
 
             // Service Hours & Missions Stats
             if (isMobile)
-              Column(
+              Row(
                 children: [
-                  _buildStatCard('ACCEPTED TASKS', '${acceptedTasks.length}', AppColors.primaryBlue, isDark),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(child: _buildStatCard('COMPLETED', '${completedTasks.length}', AppColors.successGreen, isDark)),
-                      const SizedBox(width: 10),
-                      Expanded(child: _buildStatCard('SERVICE HOURS', '${completedTasks.length * 4 + 12} hrs', Colors.purple, isDark)),
-                    ],
-                  ),
+                  Expanded(child: _buildStatCard('ACCEPTED TASKS', '${acceptedTasks.length}', AppColors.primaryGreen, isDark)),
+                  const SizedBox(width: 10),
+                  Expanded(child: _buildStatCard('COMPLETED', '${completedTasks.length}', AppColors.primaryPink, isDark)),
+                  const SizedBox(width: 10),
+                  Expanded(child: _buildStatCard('SERVICE HRS', '${completedTasks.length * 4 + 12}h', const Color(0xFF0284C7), isDark)),
                 ],
               )
             else
               Row(
                 children: [
-                  Expanded(child: _buildStatCard('ACCEPTED TASKS', '${acceptedTasks.length}', AppColors.primaryBlue, isDark)),
+                  Expanded(child: _buildStatCard('ACCEPTED TASKS', '${acceptedTasks.length}', AppColors.primaryGreen, isDark)),
                   const SizedBox(width: 14),
-                  Expanded(child: _buildStatCard('COMPLETED MISSIONS', '${completedTasks.length}', AppColors.successGreen, isDark)),
+                  Expanded(child: _buildStatCard('COMPLETED MISSIONS', '${completedTasks.length}', AppColors.primaryPink, isDark)),
                   const SizedBox(width: 14),
-                  Expanded(child: _buildStatCard('SERVICE HOURS', '${completedTasks.length * 4 + 12} hrs', Colors.purple, isDark)),
+                  Expanded(child: _buildStatCard('TOTAL SERVICE HOURS', '${completedTasks.length * 4 + 12} hrs', const Color(0xFF0284C7), isDark)),
                 ],
               ),
             const SizedBox(height: 24),
 
-            // Next Immediate Assignment Card
+            // Next Immediate Assignment Card with Status Flow
             if (acceptedTasks.isNotEmpty) ...[
-              const Text('ACTIVE ASSIGNMENT IN PROGRESS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.8)),
+              const Text('ACTIVE MISSION PROGRESSION', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.8)),
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkSurface : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primaryBlue.withOpacity(0.4)),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.primaryGreen.withOpacity(0.4)),
+                  boxShadow: [
+                    BoxShadow(color: AppColors.primaryGreen.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2)),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,25 +177,50 @@ class VolunteerDashboardScreen extends ConsumerWidget {
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: AppColors.primaryBlue.withOpacity(0.12), borderRadius: BorderRadius.circular(4)),
-                          child: const Text('EN ROUTE', style: TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.bold, fontSize: 10)),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryPink.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text('EN ROUTE', style: TextStyle(color: AppColors.primaryPink, fontWeight: FontWeight.bold, fontSize: 10)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text('Location: ${acceptedTasks.first.location}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                     const SizedBox(height: 14),
+
+                    // 3-Stage Progression Indicator
+                    Row(
+                      children: [
+                        _buildStepIndicator('Assigned', true, true),
+                        _buildStepDivider(true),
+                        _buildStepIndicator('On the way', true, false),
+                        _buildStepDivider(false),
+                        _buildStepIndicator('Completed', false, false),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
                     Wrap(
                       spacing: 10,
                       runSpacing: 8,
                       children: [
                         OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primaryGreen,
+                            side: const BorderSide(color: AppColors.primaryGreen),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
                           icon: const Icon(Icons.navigation, size: 16),
                           label: const Text('Navigate Route'),
                           onPressed: () => Navigator.pushNamed(context, AppRoutes.disasterMap),
                         ),
                         ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.successGreen, foregroundColor: Colors.white),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryGreen,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
                           icon: const Icon(Icons.check, size: 16),
                           label: const Text('Complete & Upload Proof'),
                           onPressed: () => Navigator.pushNamed(context, AppRoutes.volunteerTasks),
@@ -153,16 +234,30 @@ class VolunteerDashboardScreen extends ConsumerWidget {
             ],
 
             // Opportunities Navigator
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            Container(
+              decoration: BoxDecoration(
+                gradient: AppColors.greenGradient,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryGreen.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-              icon: const Icon(Icons.search),
-              label: const Text('Discover Nearby Volunteer Opportunities', style: TextStyle(fontWeight: FontWeight.bold)),
-              onPressed: () => Navigator.pushNamed(context, AppRoutes.volunteerTasks),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                icon: const Icon(Icons.search),
+                label: const Text('Discover Nearby Volunteer Opportunities', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.volunteerTasks),
+              ),
             ),
           ],
         ),
@@ -170,20 +265,44 @@ class VolunteerDashboardScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildStepIndicator(String label, bool isCompleted, bool isPast) {
+    final color = isCompleted ? AppColors.primaryGreen : Colors.grey.shade400;
+    return Column(
+      children: [
+        Icon(isCompleted ? Icons.check_circle : Icons.radio_button_unchecked, size: 18, color: color),
+        const SizedBox(height: 2),
+        Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+      ],
+    );
+  }
+
+  Widget _buildStepDivider(bool isActive) {
+    return Expanded(
+      child: Container(
+        height: 2,
+        color: isActive ? AppColors.primaryGreen : Colors.grey.shade300,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+      ),
+    );
+  }
+
   Widget _buildStatCard(String label, String value, Color color, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color)),
+          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color)),
         ],
       ),
     );

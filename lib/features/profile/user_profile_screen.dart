@@ -12,6 +12,7 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../../shared/models/user_model.dart';
 import '../auth/auth_screen.dart';
+import '../../core/utils/i18n.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
@@ -793,7 +794,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> with Sing
                           spacing: 6,
                           runSpacing: 4,
                           children: [
-                            _buildPill(user.role.title, AppColors.primaryBlue),
+                            _buildPill(user.role.title, AppColors.primaryPink),
                             _buildPill('ID: ${user.citizenId}', Colors.grey),
                             if (user.district.isNotEmpty) _buildPill('📍 ${user.district}', AppColors.successGreen),
                           ],
@@ -1043,14 +1044,15 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> with Sing
 
   Widget _buildPill(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.25), width: 0.8),
       ),
       child: Text(
         text,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -1200,13 +1202,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> with Sing
               title: const Text('Interface Language', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
               subtitle: const Text('Bilingual English & Hindi disaster prompts'),
               trailing: DropdownButton<String>(
-                value: _selectedLanguage,
+                value: ref.watch(languageProvider),
                 items: const [
                   DropdownMenuItem(value: 'en', child: Text('English')),
                   DropdownMenuItem(value: 'hi', child: Text('हिंदी (Hindi)')),
                 ],
                 onChanged: (val) {
-                  if (val != null) setState(() => _selectedLanguage = val);
+                  if (val != null) {
+                    setState(() => _selectedLanguage = val);
+                    ref.read(languageProvider.notifier).setLanguage(val);
+                  }
                 },
               ),
             ),
@@ -1235,10 +1240,12 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> with Sing
               ),
               trailing: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
+                  backgroundColor: AppColors.primaryPink,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  elevation: 2,
+                  shadowColor: AppColors.primaryPink.withOpacity(0.3),
                 ),
                 icon: const Icon(Icons.sync, size: 16),
                 label: const Text('Check for Updates', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
