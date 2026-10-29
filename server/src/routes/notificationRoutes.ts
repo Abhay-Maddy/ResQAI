@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/rbacMiddleware';
+import { FcmPushService } from '../services/fcmPushService';
 import {
   registerDeviceToken,
   removeDeviceToken,
@@ -86,4 +87,32 @@ notificationRouter.post('/mark-all-read', authenticate, (req: Request, res: Resp
 notificationRouter.delete('/:id', authenticate, (req: Request, res: Response) => {
   deleteNotification(String(req.params.id), req.user!.userId);
   return res.json({ success: true });
+});
+// POST /api/v1/notifications/subscribe-topic — Subscribe device/user to disaster topic (e.g. 'patna-flood-zone')
+notificationRouter.post('/subscribe-topic', authenticate, (req: Request, res: Response) => {
+  const { topic } = req.body;
+  if (!topic) {
+    return res.status(400).json({ error: 'BAD_REQUEST', message: 'topic string is required' });
+  }
+  return res.json({ success: true, message: Subscribed to topic: , topic });
+});
+
+// POST /api/v1/notifications/topic-broadcast — Broadcast high-priority push to entire sector/topic
+notificationRouter.post('/topic-broadcast', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { topic, title, body, severity = 'high' } = req.body;
+    if (!topic || !title || !body) {
+      return res.status(400).json({ error: 'BAD_REQUEST', message: 'topic, title, and body are required' });
+    }
+    const result = await FcmPushService.sendToTopic(topic, {
+      title,
+      body,
+      priority: severity === 'high' ? 'high' : 'normal',
+      channelId: 'resqai_emergency_channel',
+      data: { topic, dispatchedBy: req.user!.userId }
+    });
+    return res.json({ success: true, message: 'Topic push alert dispatched', data: result });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'TOPIC_BROADCAST_FAILED', message: err.message });
+  }
 });

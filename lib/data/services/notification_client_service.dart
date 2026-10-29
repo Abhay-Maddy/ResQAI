@@ -287,6 +287,43 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
     } catch (_) {}
   }
 
+  Future<bool> registerDeviceToken(String deviceToken, {String deviceType = 'FCM_MOBILE'}) async {
+    try {
+      final user = ref.read(authProvider);
+      final resp = await http.post(
+        Uri.parse('$apiBaseUrl/notifications/register-device'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (user != null) 'x-user-id': user.id,
+        },
+        body: jsonEncode({
+          'deviceToken': deviceToken,
+          'deviceType': deviceType,
+        }),
+      ).timeout(const Duration(seconds: 4));
+      return resp.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> subscribeToTopic(String topic) async {
+    try {
+      final user = ref.read(authProvider);
+      final resp = await http.post(
+        Uri.parse('$apiBaseUrl/notifications/subscribe-topic'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (user != null) 'x-user-id': user.id,
+        },
+        body: jsonEncode({'topic': topic}),
+      ).timeout(const Duration(seconds: 4));
+      return resp.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> _syncDeleteServer(String id) async {
     try {
       final user = ref.read(authProvider);
