@@ -232,7 +232,7 @@ class _CitizenSosScreenState extends ConsumerState<CitizenSosScreen>
       if (shouldCancel == true) {
         _countdownTimer?.cancel();
         if (_incidentRef != null) {
-          ref.read(incidentsProvider.notifier).updateStatus(_incidentRef!, IncidentStatus.rejected);
+          ref.read(incidentsProvider.notifier).updateStatus(_incidentRef!, IncidentStatus.closed);
         }
         setState(() {
           _isArmed = false;

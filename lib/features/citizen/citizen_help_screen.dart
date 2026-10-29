@@ -755,7 +755,7 @@ class _CitizenHelpScreenState extends ConsumerState<CitizenHelpScreen> {
           : () async {
               setState(() => _isCheckingUpdates = true);
               try {
-                await AppUpdateService.checkForUpdates(context, ref: ref);
+                await AppUpdateService.showUpdateCheckDialog(context, ref: ref);
               } finally {
                 if (mounted) setState(() => _isCheckingUpdates = false);
               }

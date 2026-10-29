@@ -1,3 +1,4 @@
+import '../../data/repositories/incident_repository.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
@@ -771,10 +772,10 @@ class SideDrawer extends ConsumerWidget {
       case UserRole.incidentCommander:
         items.addAll([
           {'title': 'Command Center', 'icon': Icons.account_balance, 'route': AppRoutes.governmentCommandCentre},
-          {'title': 'Emergency Operations', 'icon': Icons.shield, 'route': AppRoutes.governmentOperations},
+          {'title': 'Emergency Operations', 'icon': Icons.shield, 'route': AppRoutes.governmentCommandCentre},
           {'title': 'Financial Transparency', 'icon': Icons.payments, 'route': AppRoutes.governmentFinancialTransparency},
           {'title': 'Tactical Map', 'icon': Icons.map, 'route': AppRoutes.disasterMap},
-          {'title': 'Public Transparency Portal', 'icon': Icons.public, 'route': AppRoutes.publicTransparency},
+          {'title': 'Public Transparency Portal', 'icon': Icons.public, 'route': AppRoutes.transparency},
           {'title': 'Profile', 'icon': Icons.person, 'route': AppRoutes.profile},
         ]);
         break;
@@ -783,7 +784,7 @@ class SideDrawer extends ConsumerWidget {
         items.addAll([
           {'title': 'Home', 'icon': Icons.home, 'route': AppRoutes.home},
           {'title': 'Disaster Map', 'icon': Icons.map, 'route': AppRoutes.disasterMap},
-          {'title': 'Sign In', 'icon': Icons.login, 'route': AppRoutes.auth},
+          {'title': 'Sign In', 'icon': Icons.login, 'route': AppRoutes.login},
         ]);
     }
 

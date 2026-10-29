@@ -245,7 +245,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                 ],
               ],
             ),
-          ),
+          )),
       actions: [
         // Live IMD / NDRF status indicator
         if (!isMobile)
