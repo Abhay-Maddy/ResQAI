@@ -10,6 +10,7 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../router/app_router.dart';
 import '../../features/profile/user_profile_screen.dart';
+import '../../shared/models/user_model.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -80,7 +81,7 @@ class _AppShellState extends ConsumerState<AppShell> {
           ),
         ],
       ),
-      bottomNavigationBar: isMobile ? _buildMobileBottomBar(context, activeRole) : null,
+      bottomNavigationBar: isMobile ? _buildMobileBottomBar(context, activeRole, currentUser) : null,
       floatingActionButton: widget.floatingActionButton,
     );
   }
@@ -736,12 +737,12 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 
-  Widget _buildMobileBottomBar(BuildContext context, UserRole role) {
+  Widget _buildMobileBottomBar(BuildContext context, UserRole role, UserModel? currentUser) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark ? AppColors.darkSurface : Colors.white;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
-    final primaryActions = _getMobilePrimaryActions(role);
+    final primaryActions = _getMobilePrimaryActions(role, currentUser);
 
     return Container(
       decoration: BoxDecoration(
@@ -853,10 +854,19 @@ class _AppShellState extends ConsumerState<AppShell> {
     }
   }
 
-  List<_NavItem> _getMobilePrimaryActions(UserRole role) {
+  List<_NavItem> _getMobilePrimaryActions(UserRole role, UserModel? currentUser) {
+    if (currentUser == null) {
+      return const [
+        _NavItem('Home', Icons.home, AppRoutes.home, ''),
+        _NavItem('Alerts', Icons.campaign_outlined, AppRoutes.citizenAlerts, ''),
+        _NavItem('Map', Icons.map_outlined, AppRoutes.disasterMap, ''),
+        _NavItem('Sign In', Icons.login, AppRoutes.login, ''),
+      ];
+    }
+
     switch (role) {
       case UserRole.citizen:
-        return [
+        return const [
           _NavItem('Home', Icons.home, AppRoutes.citizenDashboard, ''),
           _NavItem('Help Hub', Icons.support_agent_outlined, AppRoutes.citizenHelp, ''),
           _NavItem('SOS', Icons.emergency, AppRoutes.citizenSos, ''),
@@ -864,34 +874,52 @@ class _AppShellState extends ConsumerState<AppShell> {
           _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
         ];
       case UserRole.volunteer:
-        return [
+        return const [
           _NavItem('Home', Icons.home, AppRoutes.volunteerDashboard, ''),
           _NavItem('Tasks', Icons.checklist, AppRoutes.volunteerTasks, ''),
           _NavItem('Map', Icons.navigation, AppRoutes.volunteerMap, ''),
           _NavItem('Profile', Icons.person, AppRoutes.volunteerProfile, ''),
         ];
       case UserRole.ngoLead:
-        return [
+        return const [
           _NavItem('Home', Icons.home, AppRoutes.ngoDashboard, ''),
           _NavItem('Campaigns', Icons.volunteer_activism, AppRoutes.ngoCampaigns, ''),
           _NavItem('Finances', Icons.receipt_long, AppRoutes.ngoFinances, ''),
           _NavItem('Map', Icons.map, AppRoutes.ngoCoverageMap, ''),
+          _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
         ];
       case UserRole.govtOfficial:
       case UserRole.incidentCommander:
       case UserRole.admin:
-        return [
+        return const [
           _NavItem('Command', Icons.radar, AppRoutes.governmentCommandCentre, ''),
           _NavItem('Incidents', Icons.assignment_late, AppRoutes.governmentIncidents, ''),
           _NavItem('SDRF', Icons.account_balance, AppRoutes.governmentFinancialTransparency, ''),
           _NavItem('AI', Icons.psychology, AppRoutes.intelligenceDashboard, ''),
+          _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
+        ];
+      case UserRole.rescueTeam:
+      case UserRole.fieldResponder:
+        return const [
+          _NavItem('Command', Icons.radar, AppRoutes.responderDashboard, ''),
+          _NavItem('Incidents', Icons.emergency, AppRoutes.citizenSos, ''),
+          _NavItem('Map', Icons.map, AppRoutes.disasterMap, ''),
+          _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
+        ];
+      case UserRole.doctor:
+        return const [
+          _NavItem('Medical', Icons.dashboard_outlined, AppRoutes.medicalDashboard, ''),
+          _NavItem('Triage', Icons.medical_services_outlined, AppRoutes.medicalRequests, ''),
+          _NavItem('Hospitals', Icons.local_hospital_outlined, AppRoutes.medicalHospitals, ''),
+          _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
         ];
       default:
-        return [
-          _NavItem('Home', Icons.home, AppRoutes.home, ''),
-          _NavItem('Map', Icons.map, AppRoutes.disasterMap, ''),
+        return const [
+          _NavItem('Home', Icons.home, AppRoutes.citizenDashboard, ''),
+          _NavItem('Help Hub', Icons.support_agent_outlined, AppRoutes.citizenHelp, ''),
           _NavItem('SOS', Icons.emergency, AppRoutes.citizenSos, ''),
-          _NavItem('Transparency', Icons.account_balance, AppRoutes.transparency, ''),
+          _NavItem('Requests', Icons.assignment_outlined, AppRoutes.citizenReports, ''),
+          _NavItem('Profile', Icons.person_outline, AppRoutes.citizenProfile, ''),
         ];
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/services/storage_service.dart';
 
 class I18nService {
   static const Map<String, Map<String, String>> _strings = {
@@ -81,7 +82,15 @@ class I18nService {
   }
 }
 
-final languageProvider = StateProvider<String>((ref) => 'en');
+final languageProvider = StateProvider<String>((ref) {
+  try {
+    final saved = StorageService.getString(StorageService.keyLanguage);
+    if (saved != null && saved.isNotEmpty) {
+      return saved;
+    }
+  } catch (_) {}
+  return 'en';
+});
 final currentLanguageTextProvider = Provider.family<String, String>((ref, key) {
   final lang = ref.watch(languageProvider);
   return I18nService.text(key, lang);

@@ -1246,9 +1246,28 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> with Sing
               ),
             ),
             const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              alignment: WrapAlignment.end,
               children: [
+                if (currentVersion != AppConstants.appVersion)
+                  TextButton.icon(
+                    icon: const Icon(Icons.restart_alt, size: 14, color: AppColors.warningOrange),
+                    label: Text(
+                      'Reset to v${AppConstants.appVersion} (Test Update Again)',
+                      style: const TextStyle(fontSize: 11, color: AppColors.warningOrange),
+                    ),
+                    onPressed: () {
+                      ref.read(appVersionProvider.notifier).resetVersion(AppConstants.appVersion);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('App version reset to v${AppConstants.appVersion}. Tap "Check for Updates" to test the update flow.'),
+                          backgroundColor: AppColors.primaryBlue,
+                        ),
+                      );
+                    },
+                  ),
                 TextButton.icon(
                   icon: const Icon(Icons.new_releases_outlined, size: 14),
                   label: Text(

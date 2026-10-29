@@ -42,9 +42,11 @@ import '../../data/services/storage_service.dart';
 import '../../shared/models/user_model.dart';
 import '../../core/constants/app_constants.dart';
 import '../../shared/widgets/access_denied_screen.dart';
+import '../auth/app_bootstrap_gate.dart';
 
 class AppRoutes {
   // Public
+  static const String bootstrap = '/bootstrap';
   static const String home = '/';
   static const String login = '/login';
   static const String register = '/register';
@@ -143,13 +145,38 @@ class AppRoutes {
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+  static String getHomeRouteForRole(UserRole role) {
+    switch (role) {
+      case UserRole.citizen:
+        return AppRoutes.citizenDashboard;
+      case UserRole.volunteer:
+        return AppRoutes.volunteerDashboard;
+      case UserRole.ngoLead:
+        return AppRoutes.ngoDashboard;
+      case UserRole.govtOfficial:
+      case UserRole.incidentCommander:
+      case UserRole.admin:
+        return AppRoutes.governmentCommandCentre;
+      case UserRole.rescueTeam:
+      case UserRole.fieldResponder:
+        return AppRoutes.responderDashboard;
+      case UserRole.doctor:
+        return AppRoutes.medicalDashboard;
+      case UserRole.analyst:
+        return AppRoutes.intelligenceDashboard;
+      default:
+        return AppRoutes.citizenDashboard;
+    }
+  }
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final uri = Uri.parse(settings.name ?? AppRoutes.home);
     final path = uri.path;
 
     // PRD v3.0 Section 8 & SEC-1, SEC-2, SEC-6: Route Guards and Role Separation
     // 1. Identify if route is Public or Protected
-    final isPublicRoute = path == AppRoutes.home ||
+    final isPublicRoute = path == AppRoutes.bootstrap ||
+        path == AppRoutes.home ||
         path == AppRoutes.login ||
         path == AppRoutes.register ||
         path == AppRoutes.forgotPassword ||
@@ -265,6 +292,9 @@ class AppRouter {
     Widget page;
     switch (path) {
       // Public
+      case AppRoutes.bootstrap:
+        page = const AppBootstrapGate();
+        break;
       case AppRoutes.home:
         page = const CitizenDashboardScreen();
         break;

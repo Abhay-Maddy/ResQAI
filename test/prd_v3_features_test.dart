@@ -14,6 +14,10 @@ import 'package:resqai/features/auth/auth_screen.dart';
 import 'package:resqai/features/citizen/widgets/live_weather_card.dart';
 import 'package:resqai/features/citizen/widgets/sos_confirmation_dialog.dart';
 import 'package:resqai/features/profile/user_profile_screen.dart';
+import 'package:resqai/data/services/app_update_service.dart';
+import 'package:resqai/data/services/app_version_provider.dart';
+import 'package:resqai/data/repositories/incident_repository.dart';
+import 'package:resqai/core/layout/app_shell.dart';
 
 void main() {
   group('PRD v3.0 Acceptance Tests (Frontend)', () {
@@ -242,5 +246,104 @@ void main() {
         expect(find.textContaining('Download My Data (DPDP'), findsOneWidget);
       },
     );
+    test('Update System: Version comparison, normalization and next version calculation', () {
+      expect(AppUpdateService.normalizeVersion('1.50'), '1.5.0');
+      expect(AppUpdateService.normalizeVersion('v1.50'), '1.5.0');
+      expect(AppUpdateService.normalizeVersion('1.5.0'), '1.5.0');
+
+      // Equal versions
+      expect(AppUpdateService.compareVersions('1.5.0', '1.5.0'), 0);
+      expect(AppUpdateService.compareVersions('1.50', '1.5.0'), 0);
+      expect(AppUpdateService.compareVersions('1.5.05', '1.5.05'), 0);
+
+      // Newer releases
+      expect(AppUpdateService.compareVersions('1.5.05', '1.5.0'), greaterThan(0));
+      expect(AppUpdateService.compareVersions('1.5.0', '1.2.0'), greaterThan(0));
+      expect(AppUpdateService.compareVersions('1.2.0', '1.5.0'), lessThan(0));
+
+      // Next candidate calculation
+      expect(AppUpdateService.computeNextVersion('1.2.0'), '1.5.0');
+      expect(AppUpdateService.computeNextVersion('1.5.0'), '1.5.05');
+      expect(AppUpdateService.computeNextVersion('1.50'), '1.5.05');
+      expect(AppUpdateService.computeNextVersion('1.5.05'), '1.5.06');
+    });
+
+    test('Update System: Compiled binary version overrides stale cached version', () {
+      // Simulate phone having old 1.0.0 in storage
+      StorageService.setString(StorageService.keyInstalledAppVersion, '1.0.0');
+
+      final notifier = AppVersionNotifier();
+      // Should auto-upgrade to AppConstants.appVersion (1.5.0)
+      expect(notifier.state, AppConstants.appVersion);
+      expect(StorageService.getString(StorageService.keyInstalledAppVersion), AppConstants.appVersion);
+    });
+
+    testWidgets('Workstream 1: Guest user bottom navigation is strictly isolated from Government Command Center', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      StorageService.clear();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authProvider.overrideWith((ref) => AuthNotifier()..logout()),
+            activeRoleProvider.overrideWith((ref) => UserRole.citizen),
+          ],
+          child: const MaterialApp(
+            home: AppShell(
+              currentRoute: AppRoutes.home,
+              child: SizedBox(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Guest must see Sign In, Map, Alerts
+      expect(find.text('Sign In'), findsOneWidget);
+      expect(find.text('Map'), findsOneWidget);
+
+      // Guest must NEVER see Command Center tabs
+      expect(find.text('Command'), findsNothing);
+      expect(find.text('SDRF'), findsNothing);
+      expect(find.text('AI'), findsNothing);
+    });
+
+    testWidgets('3-Line Menu: UserProfileScreen 3-line menu bar opens bottom sheet with all 6 options', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final user = AuthNotifier.defaultCitizen;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authProvider.overrideWith((ref) => AuthNotifier()..loginAs(user)),
+          ],
+          child: const MaterialApp(
+            home: UserProfileScreen(initialTabIndex: 0),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the 3-line navigation menu bar
+      final menuBar = find.textContaining('NAVIGATION MENU (☰)');
+      expect(menuBar, findsOneWidget);
+      await tester.tap(menuBar);
+      await tester.pumpAndSettle();
+
+      // Verify all 6 menu options are present in the bottom sheet
+      expect(find.text('Three-Line Menu (☰)'), findsOneWidget);
+      expect(find.text('Profile Settings'), findsWidgets);
+      expect(find.text('Personal Security'), findsOneWidget);
+      expect(find.text('Life-Safety Channels'), findsOneWidget);
+      expect(find.text('Settings & Updates'), findsOneWidget);
+      expect(find.text('Hidden Settings & Privacy'), findsOneWidget);
+      expect(find.text('Helplines & Disaster Protocols'), findsOneWidget);
+    });
   });
 }

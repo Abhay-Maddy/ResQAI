@@ -6,9 +6,22 @@ import '../../shared/models/shelter_model.dart';
 import '../../shared/models/volunteer_model.dart';
 import '../../shared/models/rumor_model.dart';
 import '../services/demo_data_service.dart';
+import '../services/storage_service.dart';
 
 // User and Role State
-final activeRoleProvider = StateProvider<UserRole>((ref) => UserRole.incidentCommander);
+final activeRoleProvider = StateProvider<UserRole>((ref) {
+  try {
+    final savedRole = StorageService.getString(StorageService.keyActiveRole);
+    if (savedRole != null && savedRole.isNotEmpty) {
+      for (final r in UserRole.values) {
+        if (r.name == savedRole || r.title == savedRole) {
+          return r;
+        }
+      }
+    }
+  } catch (_) {}
+  return UserRole.citizen;
+});
 
 // Incidents State Notifier
 class IncidentsNotifier extends StateNotifier<List<IncidentModel>> {
