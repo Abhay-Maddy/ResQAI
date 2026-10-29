@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/router/app_router.dart';
 import '../../core/layout/app_shell.dart';
@@ -359,28 +360,72 @@ class NgoDashboardScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryGreen,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                              minimumSize: Size.zero,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                            ),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'Aid request for "${inc.title}" accepted! Dispatched Goonj relief team.'),
-                                  backgroundColor: AppColors.primaryGreen,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (inc.status == IncidentStatus.helpAssigned)
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.successGreen,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                    minimumSize: Size.zero,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  onPressed: () {
+                                    ref.read(incidentsProvider.notifier).updateStatus(inc.id, IncidentStatus.resolved);
+                                    ref.read(notificationsProvider.notifier).addAlertNotification(
+                                      title: '✓ Relief Supplies Delivered (${inc.id})',
+                                      body: 'Goonj Foundation marked supplies delivered to site. Citizen verification pending.',
+                                      severity: 'INFO',
+                                      source: 'Goonj NGO',
+                                      type: 'AID_DELIVERY',
+                                      direction: 'SENT',
+                                      status: 'DELIVERED',
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Supplies delivered for "${inc.title}"! Citizen notified for verification.'),
+                                        backgroundColor: AppColors.successGreen,
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Mark Done ✓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                )
+                              else
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryGreen,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    minimumSize: Size.zero,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  onPressed: () {
+                                    ref.read(incidentsProvider.notifier).updateStatus(
+                                      inc.id,
+                                      IncidentStatus.helpAssigned,
+                                      team: 'Goonj Foundation Relief Mission',
+                                    );
+                                    ref.read(notificationsProvider.notifier).addAlertNotification(
+                                      title: '📦 Relief Supplies Dispatched (${inc.id})',
+                                      body: 'Goonj Foundation has accepted request and dispatched rations/supplies.',
+                                      severity: 'INFO',
+                                      source: 'Goonj NGO',
+                                      type: 'AID_DELIVERY',
+                                      direction: 'SENT',
+                                      status: 'IN_TRANSIT',
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Aid request for "${inc.title}" accepted! Dispatched Goonj relief team.'),
+                                        backgroundColor: AppColors.primaryGreen,
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Accept & Supply', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                                 ),
-                              );
-                            },
-                            child: const Text('Accept & Supply',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 11)),
+                            ],
                           ),
                         ],
                       ),
