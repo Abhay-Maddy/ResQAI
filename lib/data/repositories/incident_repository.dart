@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
 import '../../shared/models/incident_model.dart';
@@ -11,6 +12,18 @@ import '../services/storage_service.dart';
 // User and Role State
 final activeRoleProvider = StateProvider<UserRole>((ref) {
   try {
+    final userJson = StorageService.getString(StorageService.keyCurrentUser);
+    if (userJson != null && userJson.isNotEmpty) {
+      final decoded = jsonDecode(userJson) as Map<String, dynamic>;
+      final roleStr = decoded['role']?.toString();
+      if (roleStr != null) {
+        for (final r in UserRole.values) {
+          if (r.name == roleStr || r.title == roleStr) {
+            return r;
+          }
+        }
+      }
+    }
     final savedRole = StorageService.getString(StorageService.keyActiveRole);
     if (savedRole != null && savedRole.isNotEmpty) {
       for (final r in UserRole.values) {

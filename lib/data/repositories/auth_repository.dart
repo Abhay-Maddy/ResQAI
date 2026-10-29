@@ -189,6 +189,7 @@ class AuthNotifier extends StateNotifier<UserModel?> {
   void _persistUser(UserModel user) {
     try {
       StorageService.setString(StorageService.keyCurrentUser, jsonEncode(user.toJson()));
+      StorageService.setString(StorageService.keyActiveRole, user.role.name);
     } catch (_) {}
   }
 }

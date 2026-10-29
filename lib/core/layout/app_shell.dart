@@ -48,7 +48,13 @@ class _AppShellState extends ConsumerState<AppShell> {
     final isTablet = width >= 768 && width < 1024;
     final isMobile = width < 768;
 
-    final navItems = _getNavItemsForRole(activeRole);
+    // Authoritative role resolution: non-admins are strictly locked to their authenticated role.
+    // Only Master Admin can dynamically preview other role dashboards.
+    final effectiveRole = (currentUser != null && currentUser.role != UserRole.admin)
+        ? currentUser.role
+        : activeRole;
+
+    final navItems = _getNavItemsForRole(effectiveRole);
     final isProfileScreen = widget.currentRoute == AppRoutes.citizenProfile ||
         widget.currentRoute == AppRoutes.volunteerProfile ||
         widget.currentRoute == AppRoutes.profile ||
@@ -56,17 +62,17 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     return Scaffold(
       key: _scaffoldKey,
-      drawer: isDesktop ? null : _buildDrawer(context, navItems, activeRole, currentUser),
+      drawer: isDesktop ? null : _buildDrawer(context, navItems, effectiveRole, currentUser),
       appBar: (isMobile && widget.hideMobileAppBar)
           ? null
-          : _buildAppBar(context, isDesktop, isTablet, isMobile, currentUser, activeRole),
+          : _buildAppBar(context, isDesktop, isTablet, isMobile, currentUser, effectiveRole),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (isDesktop)
             SizedBox(
               width: 260,
-              child: _buildDesktopSidebar(context, navItems, activeRole, currentUser),
+              child: _buildDesktopSidebar(context, navItems, effectiveRole, currentUser),
             ),
           Expanded(
             child: Container(
@@ -86,7 +92,7 @@ class _AppShellState extends ConsumerState<AppShell> {
           ),
         ],
       ),
-      bottomNavigationBar: (isMobile && !isProfileScreen) ? _buildMobileBottomBar(context, activeRole, currentUser) : null,
+      bottomNavigationBar: (isMobile && !isProfileScreen) ? _buildMobileBottomBar(context, effectiveRole, currentUser) : null,
       floatingActionButton: widget.floatingActionButton,
     );
   }
