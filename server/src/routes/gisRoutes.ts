@@ -3,6 +3,7 @@ import { db } from '../db/database';
 import { authenticate, requireRole } from '../middleware/rbacMiddleware';
 import { logAuditEvent } from '../services/auditService';
 import { verifyAccessToken } from '../services/authService';
+import { PolygonGeofenceService } from '../services/polygonGeofenceService';
 
 export const gisRouter = Router();
 
@@ -390,5 +391,68 @@ responderRouter.post('/tasks/:assignmentId/status', (req: Request, res: Response
     status,
     incidentStatus,
     teamStatus
+  });
+});
+// GET /api/v1/gis/inundation-polygons — Fetch active GeoJSON inundation & containment polygons
+gisRouter.get('/inundation-polygons', (_req: Request, res: Response) => {
+  const polygons = PolygonGeofenceService.getAllPolygons();
+  res.json({
+    success: true,
+    count: polygons.length,
+    features: polygons.map(p => ({
+      type: 'Feature',
+      id: p.id,
+      properties: {
+        name: p.name,
+        zoneType: p.type,
+        severity: p.severity,
+        waterDepthMeters: p.waterDepthMeters,
+        description: p.description
+      },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [p.coordinates.map(c => [c[1], c[0]])] // GeoJSON [lng, lat]
+      }
+    }))
+  });
+});
+
+// POST /api/v1/gis/geofence-check — Check if a point is inside an active flood polygon
+gisRouter.post('/geofence-check', (req: Request, res: Response) => {
+  const lat = Number(req.body.lat ?? req.body.latitude);
+  const lng = Number(req.body.lng ?? req.body.longitude);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    return res.status(400).json({ error: 'BAD_REQUEST', message: 'Valid latitude and longitude required' });
+  }
+
+  const result = PolygonGeofenceService.checkGeofence({ lat, lng });
+  res.json({
+    success: true,
+    latitude: lat,
+    longitude: lng,
+    ...result
+  });
+});
+
+// POST /api/v1/gis/evacuation-corridor — Calculate hazard-avoiding evacuation corridor
+gisRouter.post('/evacuation-corridor', (req: Request, res: Response) => {
+  const originLat = Number(req.body.origin?.lat ?? req.body.startLat);
+  const originLng = Number(req.body.origin?.lng ?? req.body.startLng);
+  const destLat = Number(req.body.destination?.lat ?? req.body.endLat);
+  const destLng = Number(req.body.destination?.lng ?? req.body.endLng);
+
+  if (isNaN(originLat) || isNaN(originLng) || isNaN(destLat) || isNaN(destLng)) {
+    return res.status(400).json({ error: 'BAD_REQUEST', message: 'Origin and destination coordinates required' });
+  }
+
+  const corridor = PolygonGeofenceService.computeSafeCorridor(
+    { lat: originLat, lng: originLng },
+    { lat: destLat, lng: destLng }
+  );
+
+  res.json({
+    success: true,
+    corridor
   });
 });
