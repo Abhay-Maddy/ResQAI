@@ -110,15 +110,16 @@ if (webDir) {
   });
 }
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
+const HOST = '0.0.0.0';
 
 // Initialize Database & Seed data
 initDatabase()
   .then(() => {
     console.log('[ResQAI Server] Database initialized with relational schema & seed users.');
     if (process.env.NODE_ENV !== 'test') {
-      server.listen(PORT, () => {
-        console.log(`[ResQAI Server] Running on http://localhost:${PORT}`);
+      server.listen(PORT, HOST, () => {
+        console.log(`[ResQAI Server] Running on http://${HOST}:${PORT}`);
       });
     }
   })

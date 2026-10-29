@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "ResQAI Backend API Service",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "node -e \"const cp = require('child_process'); try { cp.execSync('npx tsc --noEmitOnError false', { stdio: 'inherit' }); } catch (e) { process.exit(0); }\"",
