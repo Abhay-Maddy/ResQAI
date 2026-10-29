@@ -145,10 +145,10 @@ class _CitizenHelpScreenState extends ConsumerState<CitizenHelpScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.12),
+              color: AppColors.primaryGreen.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.support_agent, color: AppColors.primaryBlue, size: 28),
+            child: const Icon(Icons.support_agent, color: AppColors.primaryGreen, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -190,10 +190,11 @@ class _CitizenHelpScreenState extends ConsumerState<CitizenHelpScreen> {
             subtitle: 'Immediate life extraction',
             desc: 'Trapped, rising flood, severe injury. Rapid 2-tap GPS dispatch.',
             badge: 'IMMEDIATE',
-            badgeColor: AppColors.emergencyRed,
+            badgeColor: AppColors.primaryPink,
             icon: Icons.emergency,
             buttonText: 'Activate SOS',
-            buttonColor: AppColors.emergencyRed,
+            buttonColor: AppColors.primaryPink,
+            gradient: AppColors.pinkGradient,
             onTap: () => Navigator.pushNamed(context, AppRoutes.citizenSos),
           ),
           _TriageAction(
@@ -201,10 +202,11 @@ class _CitizenHelpScreenState extends ConsumerState<CitizenHelpScreen> {
             subtitle: 'Essential relief supplies',
             desc: 'Food packets, clean water, medicines, tarpaulins, evacuation.',
             badge: '5-STEP FORM',
-            badgeColor: AppColors.primaryBlue,
+            badgeColor: AppColors.primaryGreen,
             icon: Icons.handshake_outlined,
             buttonText: 'Request Supplies',
-            buttonColor: AppColors.primaryBlue,
+            buttonColor: AppColors.primaryGreen,
+            gradient: AppColors.greenGradient,
             onTap: () => Navigator.pushNamed(context, AppRoutes.citizenHelpRequest),
           ),
           _TriageAction(
@@ -216,6 +218,11 @@ class _CitizenHelpScreenState extends ConsumerState<CitizenHelpScreen> {
             icon: Icons.assignment_turned_in_outlined,
             buttonText: 'File Loss Claim',
             buttonColor: AppColors.warningOrange,
+            gradient: const LinearGradient(
+              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             onTap: () => Navigator.pushNamed(context, AppRoutes.citizenNewReport),
           ),
         ];
@@ -321,20 +328,32 @@ class _CitizenHelpScreenState extends ConsumerState<CitizenHelpScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
+          Container(
             width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: action.gradient,
+              color: action.gradient == null ? action.buttonColor : null,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: action.buttonColor.withOpacity(0.32),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: action.buttonColor,
+                backgroundColor: action.gradient != null ? Colors.transparent : action.buttonColor,
+                shadowColor: Colors.transparent,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: action.onTap,
               child: Text(
                 action.buttonText,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.2),
               ),
             ),
           ),
@@ -372,11 +391,11 @@ class _CitizenHelpScreenState extends ConsumerState<CitizenHelpScreen> {
                 child: FilterChip(
                   label: Text(filter),
                   selected: isSel,
-                  selectedColor: AppColors.primaryBlue.withOpacity(0.18),
+                  selectedColor: AppColors.primaryGreen.withOpacity(0.18),
                   labelStyle: TextStyle(
                     fontSize: 12,
                     fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                    color: isSel ? AppColors.primaryBlue : (isDark ? Colors.white70 : Colors.black87),
+                    color: isSel ? AppColors.primaryGreen : (isDark ? Colors.white70 : Colors.black87),
                   ),
                   onSelected: (v) => setState(() => _selectedFilter = filter),
                 ),
@@ -744,6 +763,7 @@ class _TriageAction {
   final IconData icon;
   final String buttonText;
   final Color buttonColor;
+  final Gradient? gradient;
   final VoidCallback onTap;
 
   _TriageAction({
@@ -755,6 +775,7 @@ class _TriageAction {
     required this.icon,
     required this.buttonText,
     required this.buttonColor,
+    this.gradient,
     required this.onTap,
   });
 }
