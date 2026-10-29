@@ -582,7 +582,7 @@ class _MedicalDoctorPortalScreenState extends ConsumerState<MedicalDoctorPortalS
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: cases.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final c = cases[index];
               final isRed = c.triageCategory.contains('RED');
@@ -707,7 +707,7 @@ class _MedicalDoctorPortalScreenState extends ConsumerState<MedicalDoctorPortalS
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _hospitals.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 14),
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (context, index) {
               final h = _hospitals[index];
               final occupancyRate = (h.occupiedBeds / h.totalBeds * 100).toInt();

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { db } from '../db/database';
 import { authenticate, requireRole } from '../middleware/rbacMiddleware';
 import { logAuditEvent } from '../services/auditService';
+import { AiVisionDamageService } from '../services/aiVisionDamageService';
 
 export const claimRouter = Router();
 
@@ -652,4 +653,23 @@ claimRouter.get('/stats/public', (req: Request, res: Response) => {
     aggregatesByWard: aggregated
   });
 });
+// POST /api/v1/claims/ai-inspect — AI Vision Structural Damage Inspection from Photos
+claimRouter.post('/ai-inspect', async (req: Request, res: Response) => {
+  try {
+    const { photo_base64, photo_url, claim_id, damage_description } = req.body;
+    const result = await AiVisionDamageService.inspectDamagePhoto({
+      photoBase64: photo_base64,
+      photoUrl: photo_url,
+      claimId: claim_id,
+      damageDescription: damage_description
+    });
 
+    res.json({
+      success: true,
+      message: 'AI Vision structural damage inspection completed',
+      data: result
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
