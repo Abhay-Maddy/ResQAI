@@ -8,6 +8,8 @@ import '../../shared/models/user_model.dart';
 import '../../core/router/app_router.dart';
 import '../../core/layout/app_shell.dart';
 import 'government_operations_screen.dart';
+import '../../shared/models/incident_model.dart';
+import '../../data/services/notification_client_service.dart';
 
 class GovernmentCommandCentreScreen extends ConsumerStatefulWidget {
   const GovernmentCommandCentreScreen({super.key});
@@ -376,11 +378,66 @@ class _GovernmentCommandCentreScreenState extends ConsumerState<GovernmentComman
                               ],
                             ),
                           ),
-                          OutlinedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '${AppRoutes.citizenReports}/${item.id}');
-                            },
-                            child: const Text('Review & Sanction Grant', style: TextStyle(fontSize: 12)),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (item.assignedTeam != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  margin: const EdgeInsets.only(right: 8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryGreen.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    item.assignedTeam!,
+                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primaryGreen),
+                                  ),
+                                )
+                              else
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryPink,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                      minimumSize: Size.zero,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
+                                    onPressed: () {
+                                      ref.read(incidentsProvider.notifier).updateStatus(item.id, IncidentStatus.helpAssigned, team: 'NDRF 8th Bn Inflatable Boat Unit');
+                                      ref.read(notificationsProvider.notifier).addAlertNotification(
+                                        title: '🚨 Official NDRF Rescue Dispatched (' + item.id + ')',
+                                        body: 'NDRF Unit 4 dispatched by SDMA Incident Command to ' + item.address + '.',
+                                        severity: 'CRITICAL',
+                                        source: 'SDMA Command',
+                                        type: 'SOS',
+                                        direction: 'SENT',
+                                        status: 'DISPATCHED',
+                                      );
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('NDRF Boat Unit 4 dispatched to "' + item.title + '"!'),
+                                          backgroundColor: AppColors.primaryPink,
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('Deploy NDRF', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                  ),
+                                ),
+                              OutlinedButton(
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '${AppRoutes.citizenReports}/${item.id}');
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  minimumSize: Size.zero,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                                child: const Text('Review & Sanction', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
                           ),
                         ],
                       ),

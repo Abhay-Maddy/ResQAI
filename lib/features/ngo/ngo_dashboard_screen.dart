@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/router/app_router.dart';
 import '../../core/layout/app_shell.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../../data/services/notification_client_service.dart';
 import 'ngo_management_screen.dart';
+import '../../shared/models/incident_model.dart';
 
 class NgoDashboardScreen extends ConsumerWidget {
   const NgoDashboardScreen({super.key});
@@ -272,23 +274,104 @@ class NgoDashboardScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryGreen,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              minimumSize: Size.zero,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Aid request for "${inc.title}" accepted! Dispatched Goonj relief team.'),
+                          Builder(
+                            builder: (context) {
+                              final isAssignedToGoonj = inc.assignedTeam?.contains('Goonj') ?? false;
+                              final isDelivered = inc.status == IncidentStatus.resolved || inc.assistanceDeliveryStatus == 'DELIVERED';
+
+                              if (isDelivered) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryGreen.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.check_circle, size: 13, color: AppColors.primaryGreen),
+                                      SizedBox(width: 4),
+                                      Text('Delivered ✓', style: TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold, fontSize: 11)),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              if (isAssignedToGoonj) {
+                                return Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primaryPink.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Text('Goonj En Route', style: TextStyle(color: AppColors.primaryPink, fontWeight: FontWeight.bold, fontSize: 10)),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primaryGreen,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        minimumSize: Size.zero,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      onPressed: () {
+                                        ref.read(incidentsProvider.notifier).updateStatus(inc.id, IncidentStatus.resolved, team: 'Goonj NGO Rapid Relief Team');
+                                        ref.read(notificationsProvider.notifier).addAlertNotification(
+                                          title: '✅ Relief Delivered by NGO (${inc.id})',
+                                          body: 'Goonj Relief Team has delivered relief supplies to ${inc.address}.',
+                                          severity: 'SUCCESS',
+                                          source: 'Goonj NGO Operations',
+                                          type: 'REQUIREMENT',
+                                          direction: 'SENT',
+                                          status: 'DELIVERED',
+                                        );
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Relief for "${inc.title}" verified as Delivered! Updated on Public Ledger.'),
+                                            backgroundColor: AppColors.primaryGreen,
+                                          ),
+                                        );
+                                      },
+                                      child: const Text('Mark Done ✓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                    ),
+                                  ],
+                                );
+                              }
+
+                              return ElevatedButton(
+                                style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryGreen,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  minimumSize: Size.zero,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
+                                onPressed: () {
+                                  ref.read(incidentsProvider.notifier).updateStatus(inc.id, IncidentStatus.helpAssigned, team: 'Goonj NGO Rapid Relief Team');
+                                  ref.read(notificationsProvider.notifier).addAlertNotification(
+                                    title: '🤝 Aid Requirement Accepted by NGO (${inc.id})',
+                                    body: 'Goonj NGO has mobilized supplies for "${inc.title}" at ${inc.address}. Assigned to Goonj Rapid Relief.',
+                                    severity: 'INFO',
+                                    source: 'Goonj NGO Operations',
+                                    type: 'REQUIREMENT',
+                                    direction: 'SENT',
+                                    status: 'ACCEPTED & DISPATCHED',
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Aid request for "${inc.title}" accepted! Dispatched Goonj relief team.'),
+                                      backgroundColor: AppColors.primaryGreen,
+                                    ),
+                                  );
+                                },
+                                child: const Text('Accept & Supply', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                               );
                             },
-                            child: const Text('Accept & Supply', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                           ),
                         ],
                       ),

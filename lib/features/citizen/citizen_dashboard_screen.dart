@@ -20,6 +20,7 @@ import 'widgets/sos_confirmation_dialog.dart';
 import '../../data/services/notification_client_service.dart';
 import '../notifications/notifications_screen.dart';
 import '../../data/repositories/donation_repository.dart';
+import '../../shared/widgets/interactive_sos_button.dart';
 
 class CitizenDashboardScreen extends ConsumerStatefulWidget {
   const CitizenDashboardScreen({super.key});
@@ -53,6 +54,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
 
   // Live Header Weather telemetry state
   WeatherModel? _headerWeather;
+
+  String? _activeSosIncidentId;
 
   // Double-tap SOS state
   late AnimationController _pulseController;
@@ -683,6 +686,7 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     });
 
     final randomId = 'RQ-SOS-${Random().nextInt(9000) + 1000}';
+    setState(() => _activeSosIncidentId = randomId);
 
     // Persist incident in Riverpod state & backend
     try {

@@ -4,6 +4,9 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../../shared/models/incident_model.dart';
+import '../../shared/models/user_model.dart';
+import '../../data/repositories/auth_repository.dart';
+import '../../data/services/notification_client_service.dart';
 import '../../core/router/app_router.dart';
 import '../../core/layout/app_shell.dart';
 
@@ -20,6 +23,9 @@ class CitizenReportDetailScreen extends ConsumerWidget {
       orElse: () => incidents.first,
     );
 
+    final currentUser = ref.watch(authProvider);
+    final activeRole = ref.watch(activeRoleProvider);
+    final isAdminOrGov = currentUser?.role == UserRole.admin || activeRole == UserRole.admin || currentUser?.role == UserRole.govtOfficial || activeRole == UserRole.govtOfficial;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -42,6 +48,12 @@ class CitizenReportDetailScreen extends ConsumerWidget {
                 // 1. TOP HEADER BANNER
                 _buildHeaderBanner(context, incident, isDark, isMobile),
                 const SizedBox(height: 20),
+
+                // 1.B SDMA COMMAND ACTION CONSOLE (WHEN VIEWED BY ADMIN / GOV)
+                if (isAdminOrGov) ...[
+                  _buildCommandActionConsole(context, ref, incident, isDark, isMobile),
+                  const SizedBox(height: 20),
+                ],
 
                 // 2. 10-STAGE VERIFICATION TIMELINE
                 _buildVerificationTimeline(context, incident, isDark),
@@ -323,3 +335,178 @@ class CitizenReportDetailScreen extends ConsumerWidget {
     );
   }
 }
+
+  Widget _buildCommandActionConsole(BuildContext context, WidgetRef ref, IncidentModel incident, bool isDark, bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF131D31) : const Color(0xFFEBF3FB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primaryBlue.withOpacity(0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(color: AppColors.primaryBlue.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.admin_panel_settings, color: AppColors.primaryBlue, size: 22),
+              const SizedBox(width: 8),
+              const Text(
+                'SDMA & Incident Command Decision Console',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('AUTHORITY DESK', style: TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold, fontSize: 10)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Authorized SDMA Officers can verify ground claims, deploy rescue units, or sanction statutory DBT relief grants.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              // 1. Sanction DBT Relief Grant
+              if (incident.governmentAssistanceApproved != true)
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.account_balance, size: 16),
+                  label: const Text('Sanction Statutory Relief (DBT)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  onPressed: () {
+                    const amount = 50000.0;
+                    ref.read(incidentsProvider.notifier).recordAssistanceSanction(
+                      incident.id,
+                      amount: amount,
+                      category: 'SDRF Gratuitous Relief Grant',
+                      reviewerName: 'Dr. Rajeshwar Singh (ADM Relief)',
+                      reviewerId: 'GOV-DEL-001',
+                    );
+                    ref.read(incidentsProvider.notifier).recordAssistanceDisbursal(
+                      incident.id,
+                      amount,
+                      bankRef: 'DBT-SDRF-' + DateTime.now().millisecondsSinceEpoch.toString(),
+                    );
+                    ref.read(notificationsProvider.notifier).addAlertNotification(
+                      title: '💰 Statutory Relief Sanctioned (Case #' + incident.id + ')',
+                      body: 'SDMA Relief Board sanctioned ₹50,000 Gratuitous Grant via Direct Benefit Transfer (DBT) to citizen account.',
+                      severity: 'SUCCESS',
+                      source: 'SDMA Incident Command',
+                      type: 'SYSTEM',
+                      direction: 'SENT',
+                      status: 'DISBURSED',
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Statutory Relief of ₹50,000 sanctioned & disbursed to citizen DBT account!'),
+                        backgroundColor: AppColors.primaryGreen,
+                      ),
+                    );
+                  },
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGreen.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primaryGreen),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle, color: AppColors.primaryGreen, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        '₹' + (incident.sanctionedAmountInr?.toStringAsFixed(0) ?? "50000") + ' Disbursed via DBT ✓',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // 2. Deploy NDRF / SDRF Unit
+              if (incident.status != IncidentStatus.helpAssigned && incident.status != IncidentStatus.resolved)
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryPink,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.directions_boat, size: 16),
+                  label: const Text('Deploy NDRF Boat Unit', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  onPressed: () {
+                    ref.read(incidentsProvider.notifier).updateStatus(
+                      incident.id,
+                      IncidentStatus.helpAssigned,
+                      team: 'NDRF 8th Bn Inflatable Boat Unit',
+                    );
+                    ref.read(notificationsProvider.notifier).addAlertNotification(
+                      title: '🚨 NDRF Team Dispatched (Case #' + incident.id + ')',
+                      body: 'NDRF 8th Bn Inflatable Boat Unit dispatched to ' + incident.address + '.',
+                      severity: 'CRITICAL',
+                      source: 'SDMA Incident Command',
+                      type: 'SOS',
+                      direction: 'SENT',
+                      status: 'DISPATCHED',
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('NDRF Boat Unit dispatched to incident location!'),
+                        backgroundColor: AppColors.primaryPink,
+                      ),
+                    );
+                  },
+                ),
+
+              // 3. Mark Physically Verified
+              if (incident.status == IncidentStatus.received || incident.status == IncidentStatus.underReview)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.fact_check, size: 16),
+                  label: const Text('Mark Ground-Verified', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  onPressed: () {
+                    ref.read(incidentsProvider.notifier).recordVerificationDecision(
+                      incident.id,
+                      newStatus: IncidentStatus.verified,
+                      reviewerId: 'ADM-DEL-04',
+                      reviewerName: 'Dr. Rajeshwar Singh (ADM Relief)',
+                      reviewerRole: 'District Magistrate Relief Desk',
+                      notes: 'Field patwari verified structural damage and flood height on site.',
+                      reason: 'Physical site visit confirmed genuine humanitarian distress.',
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Case verified and confirmed genuine by Field Inspection!'),
+                        backgroundColor: AppColors.primaryGreen,
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
