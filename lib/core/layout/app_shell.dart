@@ -747,38 +747,68 @@ class _AppShellState extends ConsumerState<AppShell> {
     return Container(
       decoration: BoxDecoration(
         color: surfaceColor,
-        border: Border(top: BorderSide(color: borderColor)),
+        border: Border(top: BorderSide(color: borderColor, width: 1.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: primaryActions.map((action) {
-          final isSelected = widget.currentRoute == action.route;
-          return InkWell(
-            onTap: () => Navigator.pushNamed(context, action.route),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    action.icon,
-                    size: 20,
-                    color: isSelected ? AppColors.primaryBlue : (isDark ? AppColors.darkTextSecondary : AppColors.mutedText),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: primaryActions.map((action) {
+              final isSelected = widget.currentRoute == action.route;
+              return InkWell(
+                onTap: () => Navigator.pushNamed(context, action.route),
+                borderRadius: BorderRadius.circular(16),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: EdgeInsets.symmetric(
+                    vertical: 6,
+                    horizontal: isSelected ? 12 : 8,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    action.label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? AppColors.primaryBlue : (isDark ? AppColors.darkTextSecondary : AppColors.mutedText),
-                    ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? (isDark
+                            ? AppColors.primaryGreen.withOpacity(0.2)
+                            : AppColors.lightGreen)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        action.icon,
+                        size: 22,
+                        color: isSelected
+                            ? AppColors.primaryGreen
+                            : (isDark ? AppColors.darkTextSecondary : AppColors.mutedText),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        action.label,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          color: isSelected
+                              ? AppColors.primaryGreen
+                              : (isDark ? AppColors.darkTextSecondary : AppColors.mutedText),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }

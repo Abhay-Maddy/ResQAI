@@ -550,24 +550,40 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _showDonationModal(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.successGreen,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: AppColors.pinkGradient,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryPink.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  icon: const Icon(Icons.favorite, size: 16),
-                  label: const Text('Donate Relief Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showDonationModal(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.favorite, size: 16),
+                    label: const Text('Donate Relief Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
               OutlinedButton(
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenDonate),
                 style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primaryGreen,
+                  side: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: const Text('Browse Campaigns', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
               ),
@@ -1083,17 +1099,17 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                         : AppColors.lightBorder,
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('🌧️', style: TextStyle(fontSize: 13)),
-                    SizedBox(width: 4),
+                    const Text('🌧️', style: TextStyle(fontSize: 13)),
+                    const SizedBox(width: 4),
                     Text(
                       '28°C Rain',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: Color.fromARGB(255, 255, 255, 255),
+                        color: isDark ? Colors.white : AppColors.deepNavy,
                       ),
                     ),
                   ],
@@ -1213,7 +1229,7 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
   Widget _buildSosAndFormButtons(BuildContext context, bool isDark) {
     return Row(
       children: [
-        // 1. Instant SOS Hero Button
+        // 1. Instant SOS Hero Button with Vibrant Pink/Red Emergency Gradient
         Expanded(
           flex: 6,
           child: AnimatedBuilder(
@@ -1222,54 +1238,68 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
               final scale = _isArmed ? _pulseAnimation.value : 1.0;
               return Transform.scale(
                 scale: scale,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isArmed ? const Color(0xFFDC2626) : AppColors.emergencyRed,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    elevation: _isArmed ? 8 : 4,
-                    shadowColor: AppColors.emergencyRed.withOpacity(0.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(
-                        color: _isArmed ? Colors.yellowAccent : Colors.transparent,
-                        width: _isArmed ? 2.0 : 0,
-                      ),
-                    ),
-                  ),
-                  onPressed: _onSosTap,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _isArmed ? Icons.warning_amber : Icons.emergency,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _isArmed ? 'CONFIRM SOS ($_remainingSeconds s)' : 'INSTANT SOS',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        _isArmed ? 'Tap again to transmit distress' : 'One-Tap Emergency Alert',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.white.withOpacity(0.9),
-                          fontWeight: FontWeight.w500,
-                        ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: _isArmed
+                        ? const LinearGradient(colors: [Color(0xFFDC2626), Color(0xFF991B1B)])
+                        : const LinearGradient(colors: [Color(0xFFF43F5E), Color(0xFFE11D48)]),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_isArmed ? const Color(0xFFDC2626) : AppColors.primaryPink).withOpacity(0.35),
+                        blurRadius: _isArmed ? 14 : 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
+                  ),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(
+                          color: _isArmed ? Colors.yellowAccent : Colors.white.withOpacity(0.25),
+                          width: _isArmed ? 2.0 : 1.0,
+                        ),
+                      ),
+                    ),
+                    onPressed: _onSosTap,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _isArmed ? Icons.warning_amber : Icons.emergency,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _isArmed ? 'CONFIRM SOS ($_remainingSeconds s)' : 'INSTANT SOS',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          _isArmed ? 'Tap again to transmit distress' : 'One-Tap Emergency Alert',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.white.withOpacity(0.95),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -1278,26 +1308,26 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
         ),
         const SizedBox(width: 10),
 
-        // 2. Fill Emergency Form Button
+        // 2. Fill Emergency Form Button with Mint/Emerald Theme
         Expanded(
           flex: 5,
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
-              backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-              foregroundColor: AppColors.primaryBlue,
-              side: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
-              padding: const EdgeInsets.symmetric(vertical: 18),
+              backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightGreen,
+              foregroundColor: AppColors.primaryGreen,
+              side: const BorderSide(color: AppColors.primaryGreen, width: 1.6),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
             onPressed: () {
               Navigator.pushNamed(context, AppRoutes.citizenHelpRequest);
             },
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.assignment_outlined, size: 18),
@@ -1311,10 +1341,13 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                     ),
                   ],
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
                   'Detailed Request (Trapped/Med)',
-                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                  ),
                 ),
               ],
             ),
@@ -2355,39 +2388,78 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-  // 5. SHORTCUTS ROW: [Report Damage] & [Find Shelter]
+  // 5. SHORTCUTS: 4 High-Impact Emergency Action Cards
   Widget _buildShortcutsRow(BuildContext context, bool isDark) {
-    return Row(
+    return Column(
       children: [
-        // Left Card: Report Damage
-        Expanded(
-          child: _buildShortcutCard(
-            context,
-            icon: Icons.assignment_late_outlined,
-            iconColor: const Color(0xFF1570EF),
-            iconBg: const Color(0xFFEFF8FF),
-            title: 'Report Damage',
-            subtitle: 'Homes, roads, utilities',
-            onTap: () =>
-                Navigator.pushNamed(context, AppRoutes.citizenNewReport),
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: 12),
+        Row(
+          children: [
+            // Card 1: Report Damage (Pink accent)
+            Expanded(
+              child: _buildShortcutCard(
+                context,
+                icon: Icons.assignment_late_outlined,
+                iconColor: AppColors.brightPink,
+                iconBg: AppColors.softPink,
+                title: 'Report Damage',
+                subtitle: 'Homes, roads, hazards',
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.citizenNewReport),
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: 12),
 
-        // Right Card: Find Shelter
-        Expanded(
-          child: _buildShortcutCard(
-            context,
-            icon: Icons.night_shelter_outlined,
-            iconColor: const Color(0xFF12B76A),
-            iconBg: const Color(0xFFECFDF3),
-            title: 'Find Shelter',
-            subtitle: 'Nearby safe locations',
-            onTap: () =>
-                Navigator.pushNamed(context, AppRoutes.citizenShelters),
-            isDark: isDark,
-          ),
+            // Card 2: Find Shelter (Emerald Green)
+            Expanded(
+              child: _buildShortcutCard(
+                context,
+                icon: Icons.night_shelter_outlined,
+                iconColor: AppColors.primaryGreen,
+                iconBg: AppColors.lightGreen,
+                title: 'Find Shelter',
+                subtitle: 'Nearby safe camps',
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.citizenShelters),
+                isDark: isDark,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            // Card 3: Request Relief (Vibrant Pink)
+            Expanded(
+              child: _buildShortcutCard(
+                context,
+                icon: Icons.volunteer_activism_outlined,
+                iconColor: AppColors.primaryPink,
+                iconBg: AppColors.softPink,
+                title: 'Request Aid',
+                subtitle: 'Food, rations & relief',
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.citizenHelpRequest),
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Card 4: Emergency Contacts & Helplines
+            Expanded(
+              child: _buildShortcutCard(
+                context,
+                icon: Icons.contact_phone_outlined,
+                iconColor: const Color(0xFF0284C7),
+                iconBg: const Color(0xFFF0F9FF),
+                title: 'Helplines',
+                subtitle: '112, 1070 & contacts',
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.citizenEmergencyContacts),
+                isDark: isDark,
+              ),
+            ),
+          ],
         ),
       ],
     );
