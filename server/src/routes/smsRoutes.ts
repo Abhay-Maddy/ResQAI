@@ -182,23 +182,36 @@ router.get('/provider-status', (_req: Request, res: Response) => {
   });
 });
 
+export function escapeXml(unsafe: string): string {
+  return String(unsafe).replace(/[<>&'"]/g, (c) => {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '\'': return '&apos;';
+      case '"': return '&quot;';
+      default: return c;
+    }
+  });
+}
+
 // POST /api/v1/sms/ivr/incoming — Interactive Voice Response (IVR) Entrypoint (TwiML / JSON)
 router.post('/ivr/incoming', (req: Request, res: Response) => {
   try {
     const callerPhone = req.body.From || req.body.caller_phone || req.body.Caller || '+910000000000';
-    const callSid = req.body.CallSid || CALL-;
+    const callSid = req.body.CallSid || req.body.call_sid || `CALL-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
     // Return TwiML Voice Response if twilio format requested or accepted
     if (req.headers.accept?.includes('xml') || req.body.CallSid) {
       res.type('text/xml');
-      return res.send(<?xml version="1.0" encoding="UTF-8"?>
+      return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Gather numDigits="1" action="/api/v1/sms/ivr/selection" method="POST" timeout="10">
     <Say language="hi-IN">Namaste. Aap ResQAI Aapatkaaleen Seva par hain. Baadh ya paani aane par ek dabayein. Medical emergency ke liye do dabayein. Khana aur paani ke liye teen dabayein. Malbe me dabe hone par chaar dabayein.</Say>
     <Say language="en-IN">For Flood emergency, press 1. For Medical emergency, press 2. For Food and water, press 3. For Collapse or Trapped victim, press 4.</Say>
   </Gather>
   <Say language="hi-IN">Humein aapka input nahi mila. Kripya 112 par call karein.</Say>
-</Response>);
+</Response>`);
     }
 
     res.json({
@@ -223,7 +236,7 @@ router.post('/ivr/selection', (req: Request, res: Response) => {
   try {
     const digits = String(req.body.Digits || req.body.digits || '1').trim();
     const callerPhone = req.body.From || req.body.caller_phone || req.body.Caller || '+919999988888';
-    const callSid = req.body.CallSid || CALL-;
+    const callSid = req.body.CallSid || req.body.call_sid || `CALL-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
     let category = 'FLOOD';
     let urgency: 'CRITICAL' | 'HIGH' | 'MEDIUM' = 'CRITICAL';
@@ -257,17 +270,17 @@ router.post('/ivr/selection', (req: Request, res: Response) => {
         break;
       default:
         category = 'OTHER';
-        title = IVR Hotline: Emergency (Input );
+        title = `IVR Hotline: Emergency (Input ${digits})`;
         urgency = 'HIGH';
         priorityScore = 65;
         break;
     }
 
-    const incidentId = INC-IVR-;
-    const logId = IVR-;
+    const incidentId = `INC-IVR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const logId = `IVR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     // Auto-create incident from IVR
-    db.prepare(
+    db.prepare(`
       INSERT INTO incidents (
         id, title, category, status, urgency, priority_score,
         latitude, longitude, location_name, area_id, people_affected,
@@ -277,23 +290,24 @@ router.post('/ivr/selection', (req: Request, res: Response) => {
         25.5941, 85.1376, 'Hotline Caller Jurisdiction (Auto-Triaged)', 'area-a', 2,
         datetime('now'), datetime('now'), 15, 0
       )
-    ).run(incidentId, title, category, urgency, priorityScore);
+    `).run(incidentId, title, category, urgency, priorityScore);
 
     // Save IVR call log
-    db.prepare(
+    db.prepare(`
       INSERT INTO ivr_call_logs (
         id, call_sid, caller_phone, digits_pressed, selected_emergency, incident_id, status, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, 'COMPLETED', datetime('now'))
-    ).run(logId, callSid, callerPhone, digits, category, incidentId);
+    `).run(logId, callSid, callerPhone, digits, category, incidentId);
 
     if (req.headers.accept?.includes('xml') || req.body.CallSid) {
       res.type('text/xml');
-      return res.send(<?xml version="1.0" encoding="UTF-8"?>
+      const safeIncidentId = escapeXml(incidentId);
+      return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say language="hi-IN">Aapki soochana darj kar li gayi hai. Aapatkaaleen ticket number hai: . Sahayata dal ko suchit kiya ja raha hai.</Say>
-  <Say language="en-IN">Your emergency has been registered under ticket number . Rescue teams are notified.</Say>
+  <Say language="hi-IN">Aapki soochana darj kar li gayi hai. Aapatkaaleen ticket number hai: ${safeIncidentId}. Sahayata dal ko suchit kiya ja raha hai.</Say>
+  <Say language="en-IN">Your emergency has been registered under ticket number ${safeIncidentId}. Rescue teams are notified.</Say>
   <Hangup/>
-</Response>);
+</Response>`);
     }
 
     res.json({

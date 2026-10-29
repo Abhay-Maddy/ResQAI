@@ -94,7 +94,7 @@ notificationRouter.post('/subscribe-topic', authenticate, (req: Request, res: Re
   if (!topic) {
     return res.status(400).json({ error: 'BAD_REQUEST', message: 'topic string is required' });
   }
-  return res.json({ success: true, message: Subscribed to topic: , topic });
+  return res.json({ success: true, message: `Subscribed to topic: ${topic}`, topic });
 });
 
 // POST /api/v1/notifications/topic-broadcast — Broadcast high-priority push to entire sector/topic
