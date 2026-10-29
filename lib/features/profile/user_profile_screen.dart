@@ -12,6 +12,7 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/incident_repository.dart';
 import '../../shared/models/user_model.dart';
 import '../auth/auth_screen.dart';
+import '../../core/utils/i18n.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
@@ -1201,13 +1202,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> with Sing
               title: const Text('Interface Language', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
               subtitle: const Text('Bilingual English & Hindi disaster prompts'),
               trailing: DropdownButton<String>(
-                value: _selectedLanguage,
+                value: ref.watch(languageProvider),
                 items: const [
                   DropdownMenuItem(value: 'en', child: Text('English')),
                   DropdownMenuItem(value: 'hi', child: Text('हिंदी (Hindi)')),
                 ],
                 onChanged: (val) {
-                  if (val != null) setState(() => _selectedLanguage = val);
+                  if (val != null) {
+                    setState(() => _selectedLanguage = val);
+                    ref.read(languageProvider.notifier).setLanguage(val);
+                  }
                 },
               ),
             ),

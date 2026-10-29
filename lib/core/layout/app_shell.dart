@@ -321,8 +321,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               onPressed: () {
-                final next = lang == 'en' ? 'hi' : 'en';
-                ref.read(languageProvider.notifier).state = next;
+                ref.read(languageProvider.notifier).toggleLanguage();
               },
               child: Text(
                 lang == 'en' ? 'हि' : 'EN',

@@ -19,6 +19,7 @@ import '../../data/services/weather_service.dart';
 import 'widgets/sos_confirmation_dialog.dart';
 import '../../data/services/notification_client_service.dart';
 import '../notifications/notifications_screen.dart';
+import '../../data/repositories/donation_repository.dart';
 
 class CitizenDashboardScreen extends ConsumerStatefulWidget {
   const CitizenDashboardScreen({super.key});
@@ -420,6 +421,31 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
 
   void _completeDonation(BuildContext context, int amount, String campaign, String donorName) {
     final receiptNum = '80G-RQ-${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+
+    // Wire to donationsProvider & notificationsProvider
+    try {
+      ref.read(donationsProvider.notifier).createVerifiedDonation(
+        campaignId: 'CMP-RELIEF-01',
+        campaignTitle: campaign,
+        ngoName: 'Goonj Foundation Relief Mission',
+        ngoId: 'NGO-DARPAN-DL-024810',
+        amount: amount.toDouble(),
+        donorName: donorName.isEmpty ? 'Citizen Donor' : donorName,
+        donorEmail: 'citizen@resqai.org',
+        donorPhone: '+91 98765 43210',
+        isAnonymous: false,
+        paymentMethod: 'UPI (Razorpay Verified)',
+      );
+      ref.read(notificationsProvider.notifier).addAlertNotification(
+        title: '🎉 Relief Contribution of ₹$amount Verified',
+        body: 'Your 80G tax-exempt donation towards $campaign was recorded on the audited NGO ledger. Receipt: $receiptNum',
+        severity: 'INFO',
+        source: 'ResQAI Transparency & Payment Gateway',
+        type: 'DONATION',
+        direction: 'RECEIVED',
+      );
+    } catch (_) {}
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -680,6 +706,15 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
               status: IncidentStatus.verified,
             ),
           );
+      ref.read(notificationsProvider.notifier).addAlertNotification(
+        title: '🚨 Urgent SOS Transmitted ($randomId)',
+        body: 'Distress dispatch transmitted to EOC Queue & NDRF Teams for $_selectedLocality. Live GPS fix active.',
+        severity: 'CRITICAL',
+        source: 'Citizen Distress Telemetry',
+        type: 'SOS',
+        direction: 'SENT',
+        status: 'DISPATCHED TO EOC',
+      );
     } catch (_) {}
 
     await Future.delayed(const Duration(milliseconds: 600));

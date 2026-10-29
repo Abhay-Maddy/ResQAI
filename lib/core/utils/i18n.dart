@@ -38,6 +38,22 @@ class I18nService {
       'reference_id': 'Reference ID',
       'search_ref': 'Search Reference ID (e.g. RQ-901)',
       'safety_disclaimer': 'ResQAI is an AI-assisted decision support system and does not replace emergency 112 services.',
+      'notifications': 'Notifications & Alerts',
+      'received': 'Received',
+      'sent': 'Sent',
+      'unread': 'Unread',
+      'all': 'All',
+      'critical': 'Critical',
+      'mark_all_read': 'Mark all read',
+      'donate_relief': 'Donate Relief Now',
+      'browse_campaigns': 'Browse Campaigns',
+      'find_shelter': 'Find Shelter',
+      'request_aid': 'Request Aid',
+      'check_updates': 'Check for Updates',
+      'options': 'Options',
+      'settings': 'Settings',
+      'profile': 'Profile Settings',
+      'sign_out': 'Sign Out',
     },
     'hi': {
       'app_title': 'रेस्क्यू एआई (ResQAI) — आपदा प्रबंधन प्रणाली',
@@ -74,6 +90,22 @@ class I18nService {
       'reference_id': 'संदर्भ संख्या (ID)',
       'search_ref': 'संदर्भ संख्या खोजें (उदा. RQ-901)',
       'safety_disclaimer': 'ResQAI एक निर्णय सहायता प्रणाली है और यह 112 आपातकालीन सेवाओं का विकल्प नहीं है।',
+      'notifications': 'सूचनाएं और चेतावनियां',
+      'received': 'प्राप्त',
+      'sent': 'भेजी गई',
+      'unread': 'अपठित',
+      'all': 'सभी',
+      'critical': 'अति-गंभीर',
+      'mark_all_read': 'सभी पढ़ी गई चिन्हित करें',
+      'donate_relief': 'राहत सहायता दान करें',
+      'browse_campaigns': 'अभियान देखें',
+      'find_shelter': 'आश्रय स्थल खोजें',
+      'request_aid': 'सहायता अनुरोध करें',
+      'check_updates': 'अपडेट जांचें',
+      'options': 'विकल्प',
+      'settings': 'सेटिंग्स',
+      'profile': 'प्रोफाइल सेटिंग्स',
+      'sign_out': 'लॉग आउट',
     }
   };
 
@@ -82,15 +114,36 @@ class I18nService {
   }
 }
 
-final languageProvider = StateProvider<String>((ref) {
-  try {
-    final saved = StorageService.getString(StorageService.keyLanguage);
-    if (saved != null && saved.isNotEmpty) {
-      return saved;
-    }
-  } catch (_) {}
-  return 'en';
+class LanguageNotifier extends StateNotifier<String> {
+  LanguageNotifier() : super(_loadInitialLanguage());
+
+  static String _loadInitialLanguage() {
+    try {
+      final saved = StorageService.getString(StorageService.keyLanguage);
+      if (saved != null && (saved == 'en' || saved == 'hi')) {
+        return saved;
+      }
+    } catch (_) {}
+    return 'en';
+  }
+
+  void setLanguage(String lang) {
+    state = lang;
+    try {
+      StorageService.setString(StorageService.keyLanguage, lang);
+    } catch (_) {}
+  }
+
+  void toggleLanguage() {
+    final next = state == 'en' ? 'hi' : 'en';
+    setLanguage(next);
+  }
+}
+
+final languageProvider = StateNotifierProvider<LanguageNotifier, String>((ref) {
+  return LanguageNotifier();
 });
+
 final currentLanguageTextProvider = Provider.family<String, String>((ref, key) {
   final lang = ref.watch(languageProvider);
   return I18nService.text(key, lang);
