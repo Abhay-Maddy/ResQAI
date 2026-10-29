@@ -254,35 +254,63 @@ class _GovernmentCommandCentreScreenState extends ConsumerState<GovernmentComman
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.criticalRed,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: AppColors.pinkGradient,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryPink.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    icon: const Icon(Icons.campaign),
-                    label: const Text('Issue Official Alert', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const GovernmentOperationsScreen()),
-                      );
-                    },
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.campaign),
+                      label: const Text('Issue Official Alert', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const GovernmentOperationsScreen()),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: AppColors.greenGradient,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryGreen.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    icon: const Icon(Icons.account_balance),
-                    label: const Text('SDRF Financial Ledger', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    onPressed: () => Navigator.pushNamed(context, AppRoutes.governmentFinancialTransparency),
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.account_balance),
+                      label: const Text('SDRF Financial Ledger', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      onPressed: () => Navigator.pushNamed(context, AppRoutes.governmentFinancialTransparency),
+                    ),
                   ),
                 ),
                 if (!isMobile) ...[

@@ -52,7 +52,7 @@ enum MainNavigationTab {
 }
 
 final currentTabProvider = StateProvider<MainNavigationTab>((ref) => MainNavigationTab.home);
-final isDarkThemeProvider = StateProvider<bool>((ref) => true);
+final isDarkThemeProvider = StateProvider<bool>((ref) => false);
 
 class ResQAIApp extends ConsumerWidget {
   const ResQAIApp({super.key});
