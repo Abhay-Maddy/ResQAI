@@ -5,6 +5,7 @@ import { authenticate, requireRole } from '../middleware/rbacMiddleware';
 import { notifyRespondersOfEmergency } from '../services/notificationService';
 import { analyzeIncidentTriage } from '../services/aiTriageService';
 import { logAuditEvent } from '../services/auditService';
+import { VernacularSttService } from '../services/vernacularSttService';
 
 export const incidentRouter = Router();
 
@@ -841,4 +842,28 @@ incidentRouter.post('/jobs/retention-cleanup', authenticate, requireRole('ADMIN'
     message: 'Data retention cleanup completed successfully',
     recordsMasked: result.changes
   });
+});
+// POST /api/v1/incidents/transcribe-voice — Real Vernacular Speech-to-Text & Disaster Entity Extraction
+incidentRouter.post('/transcribe-voice', async (req: Request, res: Response) => {
+  try {
+    const { audio_base64, audio_url, mime_type, language = 'hi-IN', transcript_hint, caller_phone } = req.body;
+    const result = await VernacularSttService.transcribeAndExtract({
+      audioBase64: audio_base64,
+      audioUrl: audio_url,
+      mimeType: mime_type,
+      language,
+      transcriptHint: transcript_hint
+    });
+
+    res.json({
+      success: true,
+      message: 'Vernacular audio transcribed and entities extracted',
+      data: {
+        ...result,
+        caller_phone: caller_phone || '+910000000000'
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });

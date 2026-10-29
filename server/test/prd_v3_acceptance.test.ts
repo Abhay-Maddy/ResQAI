@@ -222,7 +222,8 @@ describe('PRD v3.0 Acceptance Test Suite (Maps, Weather, SOS, Notifications, OTP
     // 4. Mark as read (NTF-9)
     const list = getUserNotifications(testCitizenId);
     assert.ok(list.length >= 1);
-    markAsRead(list[0].id, testCitizenId);
+    const unreadItem = list.find((n: any) => !n.isRead) || list[0];
+    markAsRead(unreadItem.id, testCitizenId);
 
     const unreadAfter = getUnreadCount(testCitizenId);
     assert.equal(unreadAfter, unread - 1, 'Unread count must decrease when marked read');

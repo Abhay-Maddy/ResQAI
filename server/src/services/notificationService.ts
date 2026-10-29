@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { db } from '../db/database';
 import { sendSms } from './smsAdapterService';
+import { FcmPushService } from './fcmPushService';
 
 export interface NotificationRecord {
   id: string;
@@ -101,17 +102,34 @@ export async function sendNotification(params: {
       providerError = e.message;
     }
   } else if (channel === 'PUSH') {
-    // Check if user has registered devices
-    const devices = db.prepare('SELECT * FROM devices WHERE user_id = ?').all(userId);
+    const devices = db.prepare('SELECT * FROM devices WHERE user_id = ?').all(userId) as any[];
     if (devices.length === 0) {
-      deliveryStatus = 'DELIVERED'; // Fallback to simulated delivery for PWA/Web clients
+      deliveryStatus = 'DELIVERED';
       providerReceipt = 'VAPID_SIMULATED_RECEIPT';
     } else {
-      deliveryStatus = 'SENT';
-      providerReceipt = `FCM_MSG_${Date.now()}`;
+      let anySuccess = false;
+      for (const dev of devices) {
+        const pushResult = await FcmPushService.sendToDevice(dev.device_token, {
+          title,
+          body,
+          channelId: 'resqai_emergency_channel',
+          priority: 'high',
+          data: {
+            notificationId: id,
+            type,
+            userId
+          }
+        });
+        if (pushResult.success) {
+          anySuccess = true;
+          providerReceipt = pushResult.messageId || 'projects/resqai/messages/default';
+        } else if (pushResult.error) {
+          providerError = pushResult.error;
+        }
+      }
+      deliveryStatus = anySuccess ? 'SENT' : 'FAILED';
     }
   }
-
   // Record in notification_deliveries (NTF-4)
   db.prepare(`
     INSERT INTO notification_deliveries (id, notification_id, user_id, channel, status, provider_receipt, provider_error, delivered_at)

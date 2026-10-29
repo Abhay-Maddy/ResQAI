@@ -68,6 +68,10 @@ class ResQAIApp extends ConsumerWidget {
       navigatorKey: AppRouter.navigatorKey,
       initialRoute: AppRoutes.bootstrap,
       locale: Locale(ref.watch(languageProvider)),
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('hi', ''),
+      ],
       onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }

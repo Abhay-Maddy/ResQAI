@@ -438,7 +438,7 @@ class _RescueTeamOperationsScreenState extends ConsumerState<RescueTeamOperation
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: missions.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 14),
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (context, index) {
               final m = missions[index];
               final isResolved = m.stage == RescueMissionStage.resolved;
@@ -642,7 +642,7 @@ class _RescueTeamOperationsScreenState extends ConsumerState<RescueTeamOperation
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _equipmentInventory.keys.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final key = _equipmentInventory.keys.elementAt(index);
               final item = _equipmentInventory[key] as Map<String, dynamic>;

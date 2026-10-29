@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../../data/repositories/auth_repository.dart';
+import 'storage_service.dart';
 
 class AppNotificationItem {
   final String id;
@@ -79,6 +80,27 @@ class AppNotificationItem {
       status: json['status']?.toString() ?? 'DELIVERED',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'body': body,
+      'channel': channel,
+      'type': type,
+      'isRead': isRead,
+      'createdAt': createdAt.toIso8601String(),
+      'severity': severity,
+      'source': source,
+      'location': location,
+      'instructions': instructions,
+      'senderId': senderId,
+      'senderRole': senderRole,
+      'targetRoles': targetRoles,
+      'direction': direction,
+      'status': status,
+    };
+  }
 }
 
 final unreadNotificationCountProvider = StateProvider<int>((ref) => 2);
@@ -87,8 +109,28 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
   final Ref ref;
   static const String apiBaseUrl = 'http://localhost:5000/api/v1';
 
-  NotificationsNotifier(this.ref) : super(_initialSeedNotifications()) {
+  NotificationsNotifier(this.ref) : super(_loadInitialNotifications()) {
     _updateUnreadCount();
+  }
+
+  static List<AppNotificationItem> _loadInitialNotifications() {
+    try {
+      final saved = StorageService.getString('resqai_persisted_notifications');
+      if (saved != null && saved.isNotEmpty) {
+        final list = jsonDecode(saved) as List;
+        if (list.isNotEmpty) {
+          return list.map((e) => AppNotificationItem.fromJson(e as Map<String, dynamic>)).toList();
+        }
+      }
+    } catch (_) {}
+    return _initialSeedNotifications();
+  }
+
+  void _persistNotifications() {
+    try {
+      final jsonList = state.map((n) => n.toJson()).toList();
+      StorageService.setString('resqai_persisted_notifications', jsonEncode(jsonList));
+    } catch (_) {}
   }
 
   static List<AppNotificationItem> _initialSeedNotifications() {
@@ -204,6 +246,7 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
   }
 
   void markAsRead(String id) {
+    _persistNotifications();
     state = [
       for (final n in state)
         if (n.id == id)
@@ -324,6 +367,7 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
     );
     state = [newItem, ...state];
     _updateUnreadCount();
+    _persistNotifications();
   }
 
   Future<void> refreshFromServer() async {
@@ -376,6 +420,43 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
         },
       ).timeout(const Duration(seconds: 3));
     } catch (_) {}
+  }
+
+  Future<bool> registerDeviceToken(String deviceToken, {String deviceType = 'FCM_MOBILE'}) async {
+    try {
+      final user = ref.read(authProvider);
+      final resp = await http.post(
+        Uri.parse('$apiBaseUrl/notifications/register-device'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (user != null) 'x-user-id': user.id,
+        },
+        body: jsonEncode({
+          'deviceToken': deviceToken,
+          'deviceType': deviceType,
+        }),
+      ).timeout(const Duration(seconds: 4));
+      return resp.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> subscribeToTopic(String topic) async {
+    try {
+      final user = ref.read(authProvider);
+      final resp = await http.post(
+        Uri.parse('$apiBaseUrl/notifications/subscribe-topic'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (user != null) 'x-user-id': user.id,
+        },
+        body: jsonEncode({'topic': topic}),
+      ).timeout(const Duration(seconds: 4));
+      return resp.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _syncDeleteServer(String id) async {

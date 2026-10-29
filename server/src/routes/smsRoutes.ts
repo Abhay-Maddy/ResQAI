@@ -149,4 +149,192 @@ router.get('/messages', (_req: Request, res: Response) => {
   }
 });
 
+import crypto from 'crypto';
+import { SmsGatewayManager } from '../services/smsProviders';
+
+// POST /api/v1/sms/outbound — Dispatch Real SMS through Active Provider
+router.post('/outbound', async (req: Request, res: Response) => {
+  try {
+    const { to, message } = req.body;
+    if (!to || !message) {
+      return res.status(400).json({ success: false, error: 'Recipient phone (to) and message are required' });
+    }
+    const result = await SmsGatewayManager.send(to, message);
+    res.json({
+      success: result.success,
+      messageId: result.messageId,
+      provider: result.provider,
+      timestamp: result.timestamp
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/v1/sms/provider-status — Get current SMS provider & health
+router.get('/provider-status', (_req: Request, res: Response) => {
+  const provider = process.env.SMS_PROVIDER || (process.env.TWILIO_ACCOUNT_SID ? 'twilio' : process.env.MSG91_AUTH_KEY ? 'msg91' : 'mock');
+  res.json({
+    success: true,
+    activeProvider: provider.toUpperCase(),
+    twilioConfigured: !!(process.env.TWILIO_ACCOUNT_SID && !process.env.TWILIO_ACCOUNT_SID.includes('your_')),
+    msg91Configured: !!(process.env.MSG91_AUTH_KEY && !process.env.MSG91_AUTH_KEY.includes('your_'))
+  });
+});
+
+export function escapeXml(unsafe: string): string {
+  return String(unsafe).replace(/[<>&'"]/g, (c) => {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '\'': return '&apos;';
+      case '"': return '&quot;';
+      default: return c;
+    }
+  });
+}
+
+// POST /api/v1/sms/ivr/incoming — Interactive Voice Response (IVR) Entrypoint (TwiML / JSON)
+router.post('/ivr/incoming', (req: Request, res: Response) => {
+  try {
+    const callerPhone = req.body.From || req.body.caller_phone || req.body.Caller || '+910000000000';
+    const callSid = req.body.CallSid || req.body.call_sid || `CALL-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+    // Return TwiML Voice Response if twilio format requested or accepted
+    if (req.headers.accept?.includes('xml') || req.body.CallSid) {
+      res.type('text/xml');
+      return res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Gather numDigits="1" action="/api/v1/sms/ivr/selection" method="POST" timeout="10">
+    <Say language="hi-IN">Namaste. Aap ResQAI Aapatkaaleen Seva par hain. Baadh ya paani aane par ek dabayein. Medical emergency ke liye do dabayein. Khana aur paani ke liye teen dabayein. Malbe me dabe hone par chaar dabayein.</Say>
+    <Say language="en-IN">For Flood emergency, press 1. For Medical emergency, press 2. For Food and water, press 3. For Collapse or Trapped victim, press 4.</Say>
+  </Gather>
+  <Say language="hi-IN">Humein aapka input nahi mila. Kripya 112 par call karein.</Say>
+</Response>`);
+    }
+
+    res.json({
+      success: true,
+      call_sid: callSid,
+      caller_phone: callerPhone,
+      prompt: 'Namaste. Aap ResQAI Aapatkaaleen Seva par hain. Baadh ke liye 1, Medical ke liye 2, Khana/Paani ke liye 3, Malbe ke liye 4 dabayein.',
+      options: [
+        { digit: 1, emergency: 'FLOOD', urgency: 'CRITICAL' },
+        { digit: 2, emergency: 'MEDICAL', urgency: 'CRITICAL' },
+        { digit: 3, emergency: 'FOOD_WATER', urgency: 'HIGH' },
+        { digit: 4, emergency: 'COLLAPSE', urgency: 'CRITICAL' }
+      ]
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /api/v1/sms/ivr/selection — Handle DTMF keypress and register emergency incident
+router.post('/ivr/selection', (req: Request, res: Response) => {
+  try {
+    const digits = String(req.body.Digits || req.body.digits || '1').trim();
+    const callerPhone = req.body.From || req.body.caller_phone || req.body.Caller || '+919999988888';
+    const callSid = req.body.CallSid || req.body.call_sid || `CALL-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+    let category = 'FLOOD';
+    let urgency: 'CRITICAL' | 'HIGH' | 'MEDIUM' = 'CRITICAL';
+    let title = 'IVR Hotline: Severe Inundation Alert';
+    let priorityScore = 85;
+
+    switch (digits) {
+      case '1':
+        category = 'FLOOD';
+        title = 'IVR Hotline: Severe Inundation Alert';
+        urgency = 'CRITICAL';
+        priorityScore = 85;
+        break;
+      case '2':
+        category = 'MEDICAL';
+        title = 'IVR Hotline: Urgent Medical Casualty';
+        urgency = 'CRITICAL';
+        priorityScore = 90;
+        break;
+      case '3':
+        category = 'FOOD_WATER';
+        title = 'IVR Hotline: Food & Potable Water Distress';
+        urgency = 'HIGH';
+        priorityScore = 70;
+        break;
+      case '4':
+        category = 'COLLAPSE';
+        title = 'IVR Hotline: Structural Collapse / Trapped Victims';
+        urgency = 'CRITICAL';
+        priorityScore = 95;
+        break;
+      default:
+        category = 'OTHER';
+        title = `IVR Hotline: Emergency (Input ${digits})`;
+        urgency = 'HIGH';
+        priorityScore = 65;
+        break;
+    }
+
+    const incidentId = `INC-IVR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const logId = `IVR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    // Auto-create incident from IVR
+    db.prepare(`
+      INSERT INTO incidents (
+        id, title, category, status, urgency, priority_score,
+        latitude, longitude, location_name, area_id, people_affected,
+        created_at, updated_at, sla_deadline_minutes, is_simulated_drill
+      ) VALUES (
+        ?, ?, ?, 'RECEIVED', ?, ?,
+        25.5941, 85.1376, 'Hotline Caller Jurisdiction (Auto-Triaged)', 'area-a', 2,
+        datetime('now'), datetime('now'), 15, 0
+      )
+    `).run(incidentId, title, category, urgency, priorityScore);
+
+    // Save IVR call log
+    db.prepare(`
+      INSERT INTO ivr_call_logs (
+        id, call_sid, caller_phone, digits_pressed, selected_emergency, incident_id, status, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, 'COMPLETED', datetime('now'))
+    `).run(logId, callSid, callerPhone, digits, category, incidentId);
+
+    if (req.headers.accept?.includes('xml') || req.body.CallSid) {
+      res.type('text/xml');
+      const safeIncidentId = escapeXml(incidentId);
+      return res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say language="hi-IN">Aapki soochana darj kar li gayi hai. Aapatkaaleen ticket number hai: ${safeIncidentId}. Sahayata dal ko suchit kiya ja raha hai.</Say>
+  <Say language="en-IN">Your emergency has been registered under ticket number ${safeIncidentId}. Rescue teams are notified.</Say>
+  <Hangup/>
+</Response>`);
+    }
+
+    res.json({
+      success: true,
+      message: 'IVR emergency distress call processed and incident ticket dispatched',
+      data: {
+        incident_id: incidentId,
+        call_sid: callSid,
+        caller_phone: callerPhone,
+        category,
+        urgency,
+        priority_score: priorityScore
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/v1/sms/ivr/calls — List IVR calls
+router.get('/ivr/calls', (_req: Request, res: Response) => {
+  try {
+    const calls = db.prepare('SELECT * FROM ivr_call_logs ORDER BY created_at DESC LIMIT 50').all();
+    res.json({ success: true, count: calls.length, data: calls });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;

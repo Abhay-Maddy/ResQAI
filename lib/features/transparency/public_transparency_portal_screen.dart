@@ -170,10 +170,10 @@ class _PublicTransparencyPortalScreenState extends ConsumerState<PublicTranspare
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppColors.infoBlue.withOpacity(0.2),
+                color: AppColors.primaryGreen.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.account_balance, color: AppColors.infoBlue, size: 20),
+              child: const Icon(Icons.account_balance, color: AppColors.mintGreen, size: 20),
             ),
             const SizedBox(width: 10),
             const Column(
@@ -194,9 +194,11 @@ class _PublicTransparencyPortalScreenState extends ConsumerState<PublicTranspare
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          indicatorColor: AppColors.infoBlue,
-          labelColor: AppColors.infoBlue,
-          unselectedLabelColor: Colors.grey,
+          indicatorColor: AppColors.primaryGreen,
+          indicatorWeight: 3,
+          labelColor: AppColors.mintGreen,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          unselectedLabelColor: Colors.white60,
           tabs: const [
             Tab(icon: Icon(Icons.corporate_fare, size: 18), text: 'NGO Transparency'),
             Tab(icon: Icon(Icons.account_balance, size: 18), text: 'Govt SDRF Spending'),
@@ -275,7 +277,7 @@ class _PublicTransparencyPortalScreenState extends ConsumerState<PublicTranspare
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: campaigns.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final c = campaigns[index];
               return Container(
@@ -329,7 +331,7 @@ class _PublicTransparencyPortalScreenState extends ConsumerState<PublicTranspare
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: txs.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final tx = txs[index];
               final isCredit = tx.transactionType == 'DONATION_RECEIVED';
@@ -494,7 +496,7 @@ class _PublicTransparencyPortalScreenState extends ConsumerState<PublicTranspare
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: tasks.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 10),
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final t = tasks[index];
               final isDone = t.isCompleted;
@@ -715,7 +717,7 @@ class _PublicTransparencyPortalScreenState extends ConsumerState<PublicTranspare
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: allocations.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 16),
+            separatorBuilder: (_, __) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
               final a = allocations[index];
 

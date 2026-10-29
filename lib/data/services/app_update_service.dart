@@ -114,6 +114,40 @@ class AppUpdateService {
       }
     } catch (_) {}
 
+    // Check remote GitHub Releases API (PRD v3 Release Pipeline)
+    try {
+      final ghUri = Uri.parse('https://api.github.com/repos/rxhulsingh16/ResQAI/releases/latest');
+      final ghRes = await http.get(ghUri, headers: {'User-Agent': 'ResQAI-App'}).timeout(const Duration(seconds: 4));
+      if (ghRes.statusCode == 200) {
+        final ghData = jsonDecode(ghRes.body) as Map<String, dynamic>;
+        final tagName = ghData['tag_name']?.toString() ?? '';
+        final cleanTag = normalizeVersion(tagName);
+        if (cleanTag.isNotEmpty) {
+          final cmp = compareVersions(cleanTag, activeVersion);
+          final hasUpdate = cmp > 0;
+          String apkUrl = 'https://github.com/rxhulsingh16/ResQAI/releases/latest';
+          final assets = ghData['assets'] as List? ?? [];
+          for (final a in assets) {
+            final name = a['name']?.toString().toLowerCase() ?? '';
+            if (name.endsWith('.apk')) {
+              apkUrl = a['browser_download_url']?.toString() ?? apkUrl;
+              break;
+            }
+          }
+          if (hasUpdate) {
+            StorageService.setString(StorageService.keyServerLatestVersion, cleanTag);
+            return AppUpdateInfo(
+              currentVersion: activeVersion,
+              latestVersion: cleanTag,
+              hasUpdate: true,
+              releaseNotes: ghData['body']?.toString() ?? 'Official ResQAI Release v$cleanTag',
+              downloadUrl: apkUrl,
+            );
+          }
+        }
+      }
+    } catch (_) {}
+
     // Resilient offline / standalone mobile fallback
     final latestAvailable = StorageService.getString(StorageService.keyServerLatestVersion) ??
         AppConstants.latestKnownVersion;

@@ -70,16 +70,25 @@ class _AppBootstrapGateState extends ConsumerState<AppBootstrapGate> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withOpacity(0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.shield,
-                size: 64,
-                color: AppColors.primaryBlue,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                'assets/images/app_icon.png',
+                width: 100,
+                height: 100,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.shield,
+                    size: 64,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 24),

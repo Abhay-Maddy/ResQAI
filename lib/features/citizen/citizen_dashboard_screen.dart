@@ -20,6 +20,7 @@ import 'widgets/sos_confirmation_dialog.dart';
 import '../../data/services/notification_client_service.dart';
 import '../notifications/notifications_screen.dart';
 import '../../data/repositories/donation_repository.dart';
+import '../../shared/widgets/interactive_sos_button.dart';
 
 class CitizenDashboardScreen extends ConsumerStatefulWidget {
   const CitizenDashboardScreen({super.key});
@@ -53,6 +54,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
 
   // Live Header Weather telemetry state
   WeatherModel? _headerWeather;
+
+  String? _activeSosIncidentId;
 
   // Double-tap SOS state
   late AnimationController _pulseController;
@@ -578,11 +581,11 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: AppColors.pinkGradient,
+                    gradient: AppColors.redGradient,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primaryPink.withOpacity(0.3),
+                        color: AppColors.primaryRed.withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -683,6 +686,7 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     });
 
     final randomId = 'RQ-SOS-${Random().nextInt(9000) + 1000}';
+    setState(() => _activeSosIncidentId = randomId);
 
     // Persist incident in Riverpod state & backend
     try {
@@ -937,24 +941,33 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryBlue.withOpacity(0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          'assets/images/app_icon.png',
+                          width: 38,
+                          height: 38,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBlue,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primaryBlue.withOpacity(0.3),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.health_and_safety,
-                          color: Colors.white,
-                          size: 22,
+                            child: const Icon(
+                              Icons.health_and_safety,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -1277,11 +1290,11 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                   decoration: BoxDecoration(
                     gradient: _isArmed
                         ? const LinearGradient(colors: [Color(0xFFDC2626), Color(0xFF991B1B)])
-                        : const LinearGradient(colors: [Color(0xFFF43F5E), Color(0xFFE11D48)]),
+                        : const LinearGradient(colors: [AppColors.primaryRed, AppColors.primaryRed]),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: (_isArmed ? const Color(0xFFDC2626) : AppColors.primaryPink).withOpacity(0.35),
+                        color: (_isArmed ? const Color(0xFFDC2626) : AppColors.primaryRed).withOpacity(0.35),
                         blurRadius: _isArmed ? 14 : 8,
                         offset: const Offset(0, 3),
                       ),
@@ -2434,8 +2447,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
               child: _buildShortcutCard(
                 context,
                 icon: Icons.assignment_late_outlined,
-                iconColor: AppColors.brightPink,
-                iconBg: AppColors.softPink,
+                iconColor: AppColors.primaryRed,
+                iconBg: AppColors.red50,
                 title: 'Report Damage',
                 subtitle: 'Homes, roads, hazards',
                 onTap: () =>
@@ -2469,8 +2482,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
               child: _buildShortcutCard(
                 context,
                 icon: Icons.volunteer_activism_outlined,
-                iconColor: AppColors.primaryPink,
-                iconBg: AppColors.softPink,
+                iconColor: AppColors.primaryRed,
+                iconBg: AppColors.red50,
                 title: 'Request Aid',
                 subtitle: 'Food, rations & relief',
                 onTap: () =>
