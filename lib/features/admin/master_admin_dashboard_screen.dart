@@ -10,10 +10,12 @@ class MasterAdminDashboardScreen extends ConsumerStatefulWidget {
   const MasterAdminDashboardScreen({super.key});
 
   @override
-  ConsumerState<MasterAdminDashboardScreen> createState() => _MasterAdminDashboardScreenState();
+  ConsumerState<MasterAdminDashboardScreen> createState() =>
+      _MasterAdminDashboardScreenState();
 }
 
-class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboardScreen> {
+class _MasterAdminDashboardScreenState
+    extends ConsumerState<MasterAdminDashboardScreen> {
   void _openManageUsersDialog(BuildContext context) {
     final systemUsers = ref.read(systemUsersProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -26,7 +28,8 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
           children: [
             Icon(Icons.people_alt, color: AppColors.primaryBlue, size: 22),
             SizedBox(width: 8),
-            Text('Manage Platform Users', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Manage Platform Users',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: SizedBox(
@@ -52,21 +55,35 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
                       dense: true,
                       leading: CircleAvatar(
                         radius: 16,
-                        backgroundColor: AppColors.primaryBlue.withOpacity(0.12),
+                        backgroundColor:
+                            AppColors.primaryBlue.withOpacity(0.12),
                         child: Text(
                           u.name.isNotEmpty ? u.name[0].toUpperCase() : 'U',
-                          style: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.bold, fontSize: 12),
+                          style: const TextStyle(
+                              color: AppColors.primaryBlue,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12),
                         ),
                       ),
-                      title: Text(u.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      subtitle: Text('${u.role.name} • ${u.phoneRaw ?? u.phoneMasked}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      title: Text(u.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
+                      subtitle: Text(
+                          '${u.role.name} • ${u.phoneRaw ?? u.phoneMasked}',
+                          style: const TextStyle(
+                              fontSize: 11, color: Colors.grey)),
                       trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.primaryGreen.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text('ACTIVE', style: TextStyle(color: AppColors.primaryGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                        child: const Text('ACTIVE',
+                            style: TextStyle(
+                                color: AppColors.primaryGreen,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold)),
                       ),
                     );
                   },
@@ -76,15 +93,20 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
           ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGreen,
+                foregroundColor: Colors.white),
             icon: const Icon(Icons.person_add, size: 16),
             label: const Text('Add User'),
             onPressed: () {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Create user workflow opened.'), backgroundColor: AppColors.primaryGreen),
+                const SnackBar(
+                    content: Text('Create user workflow opened.'),
+                    backgroundColor: AppColors.primaryGreen),
               );
             },
           ),
@@ -102,24 +124,42 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
           children: [
             Icon(Icons.security, color: Colors.purple, size: 22),
             SizedBox(width: 8),
-            Text('Roles & Permissions Matrix', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Roles & Permissions Matrix',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('RBAC Security & Role Hierarchy:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            const Text('RBAC Security & Role Hierarchy:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
             const SizedBox(height: 8),
-            _roleTile('Master Admin', 'Unrestricted administrative control & system config', Colors.purple),
-            _roleTile('Government Official', 'Incident verification & SDRF financial sanctions', Colors.indigo),
-            _roleTile('NGO Lead', 'Relief campaign fund accounting & inventory distribution', AppColors.primaryGreen),
-            _roleTile('Field Responder', 'Tactical SAR dispatch and triage execution', AppColors.emergencyRed),
-            _roleTile('Volunteer', 'Community aid logistics & local kit handovers', AppColors.warningOrange),
+            _roleTile(
+                'Master Admin',
+                'Unrestricted administrative control & system config',
+                Colors.purple),
+            _roleTile(
+                'Government Official',
+                'Incident verification & SDRF financial sanctions',
+                Colors.indigo),
+            _roleTile(
+                'NGO Lead',
+                'Relief campaign fund accounting & inventory distribution',
+                AppColors.primaryGreen),
+            _roleTile(
+                'Field Responder',
+                'Tactical SAR dispatch and triage execution',
+                AppColors.emergencyRed),
+            _roleTile(
+                'Volunteer',
+                'Community aid logistics & local kit handovers',
+                AppColors.warningOrange),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Done')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Done')),
         ],
       ),
     );
@@ -142,8 +182,13 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: color)),
-                Text(desc, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(title,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: color)),
+                Text(desc,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
               ],
             ),
           ),
@@ -162,7 +207,8 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
           children: [
             Icon(Icons.verified, color: AppColors.primaryGreen, size: 22),
             SizedBox(width: 8),
-            Text('NGO Verification Queue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('NGO Verification Queue',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
@@ -184,22 +230,30 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Hope Relief Foundation (DARPAN: DL/2023/001928)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text('Hope Relief Foundation (DARPAN: DL/2023/001928)',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   SizedBox(height: 2),
-                  Text('Jurisdiction: East Delhi • 80G Certified', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  Text('Jurisdiction: East Delhi • 80G Certified',
+                      style: TextStyle(fontSize: 11, color: Colors.grey)),
                 ],
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGreen,
+                foregroundColor: Colors.white),
             onPressed: () {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('NGO credentials verified & approved.'), backgroundColor: AppColors.primaryGreen),
+                const SnackBar(
+                    content: Text('NGO credentials verified & approved.'),
+                    backgroundColor: AppColors.primaryGreen),
               );
             },
             child: const Text('Approve NGO'),
@@ -218,24 +272,30 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
           children: [
             Icon(Icons.settings, color: Colors.blueGrey, size: 22),
             SizedBox(width: 8),
-            Text('System Configuration', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('System Configuration',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('API Environment: Production (0.0.0.0:5000)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            Text('API Environment: Production (0.0.0.0:5000)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
             SizedBox(height: 6),
-            Text('Database: SQLite / Persistent WAL Disk Mount', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            Text('Database: SQLite / Persistent WAL Disk Mount',
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
             SizedBox(height: 6),
-            Text('SMS Provider: Pluggable (Twilio/MSG91 fallback active)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            Text('SMS Provider: Pluggable (Twilio/MSG91 fallback active)',
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
             SizedBox(height: 6),
-            Text('Push Gateway: FCM High-Priority Emergency Channel', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            Text('Push Gateway: FCM High-Priority Emergency Channel',
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
         ],
       ),
     );
@@ -253,7 +313,8 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
       title: 'Master Admin Control Console',
       breadcrumbs: const ['Administration', 'Master Admin'],
       child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32, vertical: 20),
+        padding:
+            EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -261,7 +322,9 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : const Color(0xFF064E3B), // Deep emerald
+                color: isDark
+                    ? AppColors.darkSurface
+                    : const Color(0xFF064E3B), // Deep emerald
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -279,7 +342,8 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
                       color: Colors.white.withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.verified_user, color: Colors.white, size: 26),
+                    child: const Icon(Icons.verified_user,
+                        color: Colors.white, size: 26),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -322,7 +386,9 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
             // 2. Metrics Grid (2x2) Matching Screenshot 5 Right
             LayoutBuilder(
               builder: (context, constraints) {
-                final double cardWidth = isMobile ? (constraints.maxWidth - 12) / 2 : (constraints.maxWidth - 36) / 4;
+                final double cardWidth = isMobile
+                    ? (constraints.maxWidth - 12) / 2
+                    : (constraints.maxWidth - 36) / 4;
 
                 return Wrap(
                   spacing: 12,
@@ -343,7 +409,7 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
                       iconBg: Colors.red.withOpacity(0.12),
                       iconColor: AppColors.emergencyRed,
                       label: 'Active Incidents',
-                      value: '${incidents.length > 0 ? incidents.length : 52}',
+                      value: '${incidents.isNotEmpty ? incidents.length : 52}',
                       subtext: 'Across 8 Districts',
                       width: cardWidth,
                       isDark: isDark,
@@ -383,7 +449,9 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
 
             LayoutBuilder(
               builder: (context, constraints) {
-                final double itemWidth = isMobile ? constraints.maxWidth : (constraints.maxWidth - 12) / 2;
+                final double itemWidth = isMobile
+                    ? constraints.maxWidth
+                    : (constraints.maxWidth - 12) / 2;
 
                 return Wrap(
                   spacing: 12,
@@ -445,7 +513,11 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
                 ),
                 TextButton(
                   onPressed: () {},
-                  child: const Text('View All', style: TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13)),
+                  child: const Text('View All',
+                      style: TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13)),
                 ),
               ],
             ),
@@ -455,7 +527,9 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                border: Border.all(
+                    color:
+                        isDark ? AppColors.darkBorder : AppColors.lightBorder),
               ),
               child: Column(
                 children: [
@@ -474,9 +548,11 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
                     iconBg: Colors.red.withOpacity(0.12),
                     iconColor: AppColors.emergencyRed,
                     title: 'Incident Updated',
-                    subtitle: 'Yamuna Flood - Status changed to High • 4 hours ago',
+                    subtitle:
+                        'Yamuna Flood - Status changed to High • 4 hours ago',
                     isDark: isDark,
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.governmentIncidents),
+                    onTap: () => Navigator.pushNamed(
+                        context, AppRoutes.governmentIncidents),
                   ),
                   const Divider(height: 1),
                   _buildActivityRow(
@@ -496,7 +572,8 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
                     title: 'New Resource Request',
                     subtitle: '20 Water Pumps - Delhi NCR • 1 day ago',
                     isDark: isDark,
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.ngoResources),
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.ngoResources),
                   ),
                 ],
               ),
@@ -524,7 +601,8 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+        border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -540,7 +618,8 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                    color: iconBg, borderRadius: BorderRadius.circular(8)),
                 child: Icon(icon, color: iconColor, size: 18),
               ),
             ],
@@ -592,13 +671,15 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(
+                  color: iconBg, borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, color: iconColor, size: 20),
             ),
             const SizedBox(width: 12),
@@ -646,7 +727,8 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(
+                  color: iconBg, borderRadius: BorderRadius.circular(8)),
               child: Icon(icon, color: iconColor, size: 18),
             ),
             const SizedBox(width: 12),
@@ -677,4 +759,3 @@ class _MasterAdminDashboardScreenState extends ConsumerState<MasterAdminDashboar
     );
   }
 }
-

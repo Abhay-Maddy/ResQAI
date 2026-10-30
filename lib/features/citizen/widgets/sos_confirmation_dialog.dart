@@ -1,13 +1,8 @@
-import '../../../core/constants/app_constants.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/router/app_router.dart';
-import '../../../data/repositories/auth_repository.dart';
-import '../../../data/repositories/incident_repository.dart';
-import '../../../shared/models/incident_model.dart';
 
 class SosConfirmationDialog extends StatefulWidget {
   final String incidentId;
@@ -76,7 +71,7 @@ class _SosConfirmationDialogState extends State<SosConfirmationDialog> {
 
     try {
       final uri = Uri.parse(
-        '${AppConstants.apiBaseUrl}/incidents/${widget.incidentId}/cancel-accidental',
+        'https://resqai-api-7aot.onrender.com/api/v1/incidents/${widget.incidentId}/cancel-accidental',
       );
       await http
           .post(

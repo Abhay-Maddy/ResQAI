@@ -8,7 +8,7 @@ class AppConstants {
   static const String appVersion = '1.5.0';
   static const String latestKnownVersion = '1.5.0';
   static const String buildNumber = '2026.5';
-  static const String githubRepo = 'https://github.com/rxhulsingh16/ResQAI';
+  static const String githubRepo = 'https://github.com/Abhay-Maddy/ResQAI';
 
   // Local storage keys
   static const String keyLanguage = 'resqai_language';

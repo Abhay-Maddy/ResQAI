@@ -4,7 +4,6 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/router/app_router.dart';
 import '../../data/repositories/auth_repository.dart';
-import '../../shared/models/user_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ============================================================================
@@ -37,8 +36,10 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = color ?? (isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard);
-    final border = borderColor ?? (isDark ? AppColors.darkBorder : AppColors.lightBorder);
+    final cardColor = color ??
+        (isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard);
+    final border =
+        borderColor ?? (isDark ? AppColors.darkBorder : AppColors.lightBorder);
 
     final container = Container(
       margin: margin,
@@ -126,7 +127,9 @@ class StatCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.mutedText,
                   ),
                 ),
             ],
@@ -231,7 +234,8 @@ class AppButton extends StatelessWidget {
             backgroundColor: AppColors.primaryGreen,
             foregroundColor: Colors.white,
             minimumSize: Size(isFullWidth ? double.infinity : 88, height),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 18),
             elevation: 1,
           ),
@@ -246,7 +250,8 @@ class AppButton extends StatelessWidget {
             backgroundColor: AppColors.primaryRed,
             foregroundColor: Colors.white,
             minimumSize: Size(isFullWidth ? double.infinity : 88, height),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 18),
             elevation: 1,
           ),
@@ -258,10 +263,14 @@ class AppButton extends StatelessWidget {
       case AppButtonVariant.outlined:
         button = OutlinedButton(
           style: OutlinedButton.styleFrom(
-            foregroundColor: isDark ? AppColors.mintGreen : AppColors.primaryGreen,
-            side: BorderSide(color: isDark ? AppColors.mintGreen : AppColors.primaryGreen, width: 1.5),
+            foregroundColor:
+                isDark ? AppColors.mintGreen : AppColors.primaryGreen,
+            side: BorderSide(
+                color: isDark ? AppColors.mintGreen : AppColors.primaryGreen,
+                width: 1.5),
             minimumSize: Size(isFullWidth ? double.infinity : 88, height),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 18),
           ),
           onPressed: isLoading ? null : onPressed,
@@ -272,7 +281,8 @@ class AppButton extends StatelessWidget {
       case AppButtonVariant.text:
         button = TextButton(
           style: TextButton.styleFrom(
-            foregroundColor: isDark ? AppColors.mintGreen : AppColors.primaryGreen,
+            foregroundColor:
+                isDark ? AppColors.mintGreen : AppColors.primaryGreen,
             minimumSize: Size(isFullWidth ? double.infinity : 64, height),
             padding: const EdgeInsets.symmetric(horizontal: 12),
           ),
@@ -356,7 +366,8 @@ class StatusChip extends StatelessWidget {
           ],
           Text(
             label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: fg),
+            style:
+                TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: fg),
           ),
         ],
       ),
@@ -400,7 +411,8 @@ class SectionHeader extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.2,
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.deepNavy,
+                    color:
+                        isDark ? AppColors.darkTextPrimary : AppColors.deepNavy,
                   ),
                 ),
                 if (subtitle != null) ...[
@@ -409,7 +421,9 @@ class SectionHeader extends StatelessWidget {
                     subtitle!,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.mutedText,
                     ),
                   ),
                 ],
@@ -426,7 +440,8 @@ class SectionHeader extends StatelessWidget {
               ),
               child: Text(
                 actionLabel!,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               ),
             ),
         ],
@@ -488,7 +503,8 @@ class EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                color:
+                    isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
               ),
             ),
             if (actionLabel != null && onAction != null) ...[
@@ -527,7 +543,8 @@ class ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 40, color: AppColors.primaryRed),
+            const Icon(Icons.error_outline,
+                size: 40, color: AppColors.primaryRed),
             const SizedBox(height: 12),
             Text(
               message,
@@ -569,15 +586,19 @@ class LoadingSkeleton extends StatefulWidget {
   State<LoadingSkeleton> createState() => _LoadingSkeletonState();
 }
 
-class _LoadingSkeletonState extends State<LoadingSkeleton> with SingleTickerProviderStateMixin {
+class _LoadingSkeletonState extends State<LoadingSkeleton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   late Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))..repeat(reverse: true);
-    _anim = Tween<double>(begin: 0.3, end: 0.7).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1000))
+      ..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.3, end: 0.7)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -628,8 +649,13 @@ class SideDrawer extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurfaceCard : AppColors.lightGreen,
-                border: Border(bottom: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder)),
+                color:
+                    isDark ? AppColors.darkSurfaceCard : AppColors.lightGreen,
+                border: Border(
+                    bottom: BorderSide(
+                        color: isDark
+                            ? AppColors.darkBorder
+                            : AppColors.lightBorder)),
               ),
               child: Row(
                 children: [
@@ -638,7 +664,10 @@ class SideDrawer extends ConsumerWidget {
                     backgroundColor: AppColors.primaryGreen,
                     child: Text(
                       user?.name.substring(0, 1).toUpperCase() ?? 'U',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -658,7 +687,8 @@ class SideDrawer extends ConsumerWidget {
                         ),
                         const SizedBox(height: 3),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: AppColors.primaryGreen.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(6),
@@ -683,7 +713,8 @@ class SideDrawer extends ConsumerWidget {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                children: _buildRoleDrawerItems(context, role, currentRoute, isDark),
+                children:
+                    _buildRoleDrawerItems(context, role, currentRoute, isDark),
               ),
             ),
 
@@ -691,20 +722,28 @@ class SideDrawer extends ConsumerWidget {
 
             // Helplines & Logout
             ListTile(
-              leading: const Icon(Icons.phone_in_talk, size: 20, color: AppColors.primaryGreen),
-              title: const Text('Emergency Helplines (112 / 1078)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              leading: const Icon(Icons.phone_in_talk,
+                  size: 20, color: AppColors.primaryGreen),
+              title: const Text('Emergency Helplines (112 / 1078)',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, AppRoutes.citizenHelp);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.logout, size: 20, color: AppColors.primaryRed),
-              title: const Text('Logout', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primaryRed)),
+              leading: const Icon(Icons.logout,
+                  size: 20, color: AppColors.primaryRed),
+              title: const Text('Logout',
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryRed)),
               onTap: () {
                 ref.read(authProvider.notifier).logout();
                 Navigator.pop(context);
-                Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                    context, AppRoutes.home, (_) => false);
               },
             ),
           ],
@@ -713,57 +752,150 @@ class SideDrawer extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildRoleDrawerItems(BuildContext context, UserRole role, String currentRoute, bool isDark) {
+  List<Widget> _buildRoleDrawerItems(
+      BuildContext context, UserRole role, String currentRoute, bool isDark) {
     final List<Map<String, dynamic>> items = [];
 
     // Role-specific destinations
     switch (role) {
       case UserRole.citizen:
         items.addAll([
-          {'title': 'Dashboard', 'icon': Icons.home, 'route': AppRoutes.citizenDashboard},
-          {'title': 'Disaster Help Hub', 'icon': Icons.support_agent, 'route': AppRoutes.citizenHelp},
-          {'title': 'Emergency SOS', 'icon': Icons.emergency, 'route': AppRoutes.citizenSos},
-          {'title': 'Tactical Disaster Map', 'icon': Icons.map, 'route': AppRoutes.disasterMap},
-          {'title': 'My Requests & Reports', 'icon': Icons.assignment, 'route': AppRoutes.citizenReports},
-          {'title': 'Profile', 'icon': Icons.person, 'route': AppRoutes.profile},
+          {
+            'title': 'Dashboard',
+            'icon': Icons.home,
+            'route': AppRoutes.citizenDashboard
+          },
+          {
+            'title': 'Disaster Help Hub',
+            'icon': Icons.support_agent,
+            'route': AppRoutes.citizenHelp
+          },
+          {
+            'title': 'Emergency SOS',
+            'icon': Icons.emergency,
+            'route': AppRoutes.citizenSos
+          },
+          {
+            'title': 'Tactical Disaster Map',
+            'icon': Icons.map,
+            'route': AppRoutes.disasterMap
+          },
+          {
+            'title': 'My Requests & Reports',
+            'icon': Icons.assignment,
+            'route': AppRoutes.citizenReports
+          },
+          {
+            'title': 'Profile',
+            'icon': Icons.person,
+            'route': AppRoutes.profile
+          },
         ]);
         break;
 
       case UserRole.ngoLead:
         items.addAll([
-          {'title': 'Operations Command', 'icon': Icons.business, 'route': AppRoutes.ngoDashboard},
-          {'title': 'Relief Campaigns', 'icon': Icons.volunteer_activism, 'route': AppRoutes.ngoCampaigns},
-          {'title': 'Financial Ledger', 'icon': Icons.receipt_long, 'route': AppRoutes.ngoFinances},
-          {'title': 'Warehouse Supplies', 'icon': Icons.inventory, 'route': AppRoutes.ngoResources},
-          {'title': 'Tactical Map', 'icon': Icons.map, 'route': AppRoutes.disasterMap},
-          {'title': 'Profile', 'icon': Icons.person, 'route': AppRoutes.profile},
+          {
+            'title': 'Operations Command',
+            'icon': Icons.business,
+            'route': AppRoutes.ngoDashboard
+          },
+          {
+            'title': 'Relief Campaigns',
+            'icon': Icons.volunteer_activism,
+            'route': AppRoutes.ngoCampaigns
+          },
+          {
+            'title': 'Financial Ledger',
+            'icon': Icons.receipt_long,
+            'route': AppRoutes.ngoFinances
+          },
+          {
+            'title': 'Warehouse Supplies',
+            'icon': Icons.inventory,
+            'route': AppRoutes.ngoResources
+          },
+          {
+            'title': 'Tactical Map',
+            'icon': Icons.map,
+            'route': AppRoutes.disasterMap
+          },
+          {
+            'title': 'Profile',
+            'icon': Icons.person,
+            'route': AppRoutes.profile
+          },
         ]);
         break;
 
       case UserRole.volunteer:
         items.addAll([
-          {'title': 'Volunteer Portal', 'icon': Icons.handshake, 'route': AppRoutes.volunteerDashboard},
-          {'title': 'Field Tasks Queue', 'icon': Icons.task, 'route': AppRoutes.volunteerTasks},
-          {'title': 'Tactical Map', 'icon': Icons.map, 'route': AppRoutes.disasterMap},
-          {'title': 'Profile', 'icon': Icons.person, 'route': AppRoutes.profile},
+          {
+            'title': 'Volunteer Portal',
+            'icon': Icons.handshake,
+            'route': AppRoutes.volunteerDashboard
+          },
+          {
+            'title': 'Field Tasks Queue',
+            'icon': Icons.task,
+            'route': AppRoutes.volunteerTasks
+          },
+          {
+            'title': 'Tactical Map',
+            'icon': Icons.map,
+            'route': AppRoutes.disasterMap
+          },
+          {
+            'title': 'Profile',
+            'icon': Icons.person,
+            'route': AppRoutes.profile
+          },
         ]);
         break;
 
       case UserRole.rescueTeam:
       case UserRole.fieldResponder:
         items.addAll([
-          {'title': 'Responder Command', 'icon': Icons.local_shipping, 'route': AppRoutes.responderDashboard},
-          {'title': 'Assigned Missions', 'icon': Icons.flag, 'route': AppRoutes.responderAssignments},
-          {'title': 'Tactical Map', 'icon': Icons.map, 'route': AppRoutes.disasterMap},
-          {'title': 'Profile', 'icon': Icons.person, 'route': AppRoutes.profile},
+          {
+            'title': 'Responder Command',
+            'icon': Icons.local_shipping,
+            'route': AppRoutes.responderDashboard
+          },
+          {
+            'title': 'Assigned Missions',
+            'icon': Icons.flag,
+            'route': AppRoutes.responderAssignments
+          },
+          {
+            'title': 'Tactical Map',
+            'icon': Icons.map,
+            'route': AppRoutes.disasterMap
+          },
+          {
+            'title': 'Profile',
+            'icon': Icons.person,
+            'route': AppRoutes.profile
+          },
         ]);
         break;
 
       case UserRole.doctor:
         items.addAll([
-          {'title': 'Medical Triage', 'icon': Icons.medical_services, 'route': AppRoutes.medicalDashboard},
-          {'title': 'Casualty Referrals', 'icon': Icons.local_hospital, 'route': AppRoutes.medicalRequests},
-          {'title': 'Profile', 'icon': Icons.person, 'route': AppRoutes.profile},
+          {
+            'title': 'Medical Triage',
+            'icon': Icons.medical_services,
+            'route': AppRoutes.medicalDashboard
+          },
+          {
+            'title': 'Casualty Referrals',
+            'icon': Icons.local_hospital,
+            'route': AppRoutes.medicalRequests
+          },
+          {
+            'title': 'Profile',
+            'icon': Icons.person,
+            'route': AppRoutes.profile
+          },
         ]);
         break;
 
@@ -771,19 +903,47 @@ class SideDrawer extends ConsumerWidget {
       case UserRole.govtOfficial:
       case UserRole.incidentCommander:
         items.addAll([
-          {'title': 'Command Center', 'icon': Icons.account_balance, 'route': AppRoutes.governmentCommandCentre},
-          {'title': 'Emergency Operations', 'icon': Icons.shield, 'route': AppRoutes.governmentCommandCentre},
-          {'title': 'Financial Transparency', 'icon': Icons.payments, 'route': AppRoutes.governmentFinancialTransparency},
-          {'title': 'Tactical Map', 'icon': Icons.map, 'route': AppRoutes.disasterMap},
-          {'title': 'Public Transparency Portal', 'icon': Icons.public, 'route': AppRoutes.transparency},
-          {'title': 'Profile', 'icon': Icons.person, 'route': AppRoutes.profile},
+          {
+            'title': 'Command Center',
+            'icon': Icons.account_balance,
+            'route': AppRoutes.governmentCommandCentre
+          },
+          {
+            'title': 'Emergency Operations',
+            'icon': Icons.shield,
+            'route': AppRoutes.governmentCommandCentre
+          },
+          {
+            'title': 'Financial Transparency',
+            'icon': Icons.payments,
+            'route': AppRoutes.governmentFinancialTransparency
+          },
+          {
+            'title': 'Tactical Map',
+            'icon': Icons.map,
+            'route': AppRoutes.disasterMap
+          },
+          {
+            'title': 'Public Transparency Portal',
+            'icon': Icons.public,
+            'route': AppRoutes.transparency
+          },
+          {
+            'title': 'Profile',
+            'icon': Icons.person,
+            'route': AppRoutes.profile
+          },
         ]);
         break;
 
       default:
         items.addAll([
           {'title': 'Home', 'icon': Icons.home, 'route': AppRoutes.home},
-          {'title': 'Disaster Map', 'icon': Icons.map, 'route': AppRoutes.disasterMap},
+          {
+            'title': 'Disaster Map',
+            'icon': Icons.map,
+            'route': AppRoutes.disasterMap
+          },
           {'title': 'Sign In', 'icon': Icons.login, 'route': AppRoutes.login},
         ]);
     }
@@ -793,7 +953,9 @@ class SideDrawer extends ConsumerWidget {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryGreen.withOpacity(0.12) : Colors.transparent,
+          color: isSelected
+              ? AppColors.primaryGreen.withOpacity(0.12)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
         child: ListTile(
@@ -801,14 +963,18 @@ class SideDrawer extends ConsumerWidget {
           leading: Icon(
             item['icon'] as IconData,
             size: 20,
-            color: isSelected ? AppColors.primaryGreen : (isDark ? Colors.white70 : AppColors.deepNavy),
+            color: isSelected
+                ? AppColors.primaryGreen
+                : (isDark ? Colors.white70 : AppColors.deepNavy),
           ),
           title: Text(
             item['title'] as String,
             style: TextStyle(
               fontSize: 13,
               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: isSelected ? AppColors.primaryGreen : (isDark ? Colors.white : AppColors.deepNavy),
+              color: isSelected
+                  ? AppColors.primaryGreen
+                  : (isDark ? Colors.white : AppColors.deepNavy),
             ),
           ),
           onTap: () {

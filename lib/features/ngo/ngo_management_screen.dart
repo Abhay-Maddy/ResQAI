@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/router/app_router.dart';
-import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/donation_repository.dart';
 import '../../shared/models/donation_model.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -43,9 +42,12 @@ class NgoCampaign {
     this.durationDays = 45,
     DateTime? createdDate,
     this.isVerified = true,
-  }) : createdDate = createdDate ?? DateTime.now().subtract(const Duration(days: 7));
+  }) : createdDate =
+            createdDate ?? DateTime.now().subtract(const Duration(days: 7));
 
-  double get remainingAvailable => (raisedAmount - (committedAmount + spentAmount)).clamp(0.0, double.infinity);
+  double get remainingAvailable =>
+      (raisedAmount - (committedAmount + spentAmount))
+          .clamp(0.0, double.infinity);
 }
 
 class NgoFinancialTransaction {
@@ -53,8 +55,10 @@ class NgoFinancialTransaction {
   final String campaignId;
   final String transactionRef;
   final double amount;
-  final String transactionType; // 'DONATION_RECEIVED', 'COMMITTED_ORDER', 'EXPENSE_SPENT', 'REVERSAL'
-  final String category; // 'Dry Food Rations', 'Water Filters', 'Tarpaulin Sheets', 'Medical Kits', 'Transport'
+  final String
+      transactionType; // 'DONATION_RECEIVED', 'COMMITTED_ORDER', 'EXPENSE_SPENT', 'REVERSAL'
+  final String
+      category; // 'Dry Food Rations', 'Water Filters', 'Tarpaulin Sheets', 'Medical Kits', 'Transport'
   final String entityName; // Donor or Vendor name
   final String invoiceNumber;
   final DateTime timestamp;
@@ -118,7 +122,8 @@ class NgoInventoryItem {
   });
 }
 
-final ngoCampaignsProvider = StateNotifierProvider<NgoCampaignsNotifier, List<NgoCampaign>>((ref) {
+final ngoCampaignsProvider =
+    StateNotifierProvider<NgoCampaignsNotifier, List<NgoCampaign>>((ref) {
   return NgoCampaignsNotifier();
 });
 
@@ -130,7 +135,8 @@ class NgoCampaignsNotifier extends StateNotifier<List<NgoCampaign>> {
       NgoCampaign(
         id: 'CMP-GOONJ-01',
         title: 'Yamuna Monsoon Flood Emergency Relief Kits',
-        objective: 'Providing emergency family dry ration kits, chlorine water purification tablets, and heavy-duty tarpaulins to displaced families in Yamuna Khadar lowlands.',
+        objective:
+            'Providing emergency family dry ration kits, chlorine water purification tablets, and heavy-duty tarpaulins to displaced families in Yamuna Khadar lowlands.',
         targetSector: 'Yamuna Flood Plains Ward 3, 4 & 5',
         targetAmount: 1500000.0, // ₹15 Lakhs
         raisedAmount: 1140000.0, // ₹11.4 Lakhs
@@ -138,15 +144,25 @@ class NgoCampaignsNotifier extends StateNotifier<List<NgoCampaign>> {
         spentAmount: 685000.0,
         targetBeneficiaries: 1200,
         verifiedBeneficiariesReached: 740,
-        inKindNeeds: ['Tarpaulins (12x15ft)', 'Baby Food Formula', 'Sanitary Pads', 'Mosquito Nets'],
-        categories: ['Dry Food Rations', 'Waterproof Tarpaulins', 'Sanitation Kits'],
+        inKindNeeds: [
+          'Tarpaulins (12x15ft)',
+          'Baby Food Formula',
+          'Sanitary Pads',
+          'Mosquito Nets'
+        ],
+        categories: [
+          'Dry Food Rations',
+          'Waterproof Tarpaulins',
+          'Sanitation Kits'
+        ],
         durationDays: 45,
         isVerified: true,
       ),
       NgoCampaign(
         id: 'CMP-GOONJ-02',
         title: 'Safe Drinking Water & Mobile RO Filtration Deployment',
-        objective: 'Setting up 3 solar-powered mobile water purification stations along Mayur Vihar and Shakarpur relief camp enclaves.',
+        objective:
+            'Setting up 3 solar-powered mobile water purification stations along Mayur Vihar and Shakarpur relief camp enclaves.',
         targetSector: 'Mayur Vihar & Trans-Yamuna Drainage Belt',
         targetAmount: 800000.0, // ₹8 Lakhs
         raisedAmount: 520000.0,
@@ -154,7 +170,11 @@ class NgoCampaignsNotifier extends StateNotifier<List<NgoCampaign>> {
         spentAmount: 310000.0,
         targetBeneficiaries: 3000,
         verifiedBeneficiariesReached: 1850,
-        inKindNeeds: ['Chlorine Tablets (20,000 tabs)', 'Jerry Cans (20 Litre)', 'Water Quality Testing Kits'],
+        inKindNeeds: [
+          'Chlorine Tablets (20,000 tabs)',
+          'Jerry Cans (20 Litre)',
+          'Water Quality Testing Kits'
+        ],
         categories: ['Clean Drinking Water', 'Mobile RO Filtration'],
         durationDays: 30,
         isVerified: true,
@@ -203,7 +223,8 @@ class NgoCampaignsNotifier extends StateNotifier<List<NgoCampaign>> {
             targetSector: c.targetSector,
             targetAmount: c.targetAmount,
             raisedAmount: c.raisedAmount,
-            committedAmount: (c.committedAmount - amount).clamp(0.0, double.infinity),
+            committedAmount:
+                (c.committedAmount - amount).clamp(0.0, double.infinity),
             spentAmount: c.spentAmount + amount,
             targetBeneficiaries: c.targetBeneficiaries,
             verifiedBeneficiariesReached: c.verifiedBeneficiariesReached,
@@ -232,7 +253,8 @@ class NgoCampaignsNotifier extends StateNotifier<List<NgoCampaign>> {
             committedAmount: c.committedAmount,
             spentAmount: c.spentAmount,
             targetBeneficiaries: c.targetBeneficiaries,
-            verifiedBeneficiariesReached: c.verifiedBeneficiariesReached + additionalBeneficiaries,
+            verifiedBeneficiariesReached:
+                c.verifiedBeneficiariesReached + additionalBeneficiaries,
             inKindNeeds: c.inKindNeeds,
             categories: c.categories,
             durationDays: c.durationDays,
@@ -245,11 +267,13 @@ class NgoCampaignsNotifier extends StateNotifier<List<NgoCampaign>> {
   }
 }
 
-final ngoTransactionsProvider = StateNotifierProvider<NgoTransactionsNotifier, List<NgoFinancialTransaction>>((ref) {
+final ngoTransactionsProvider = StateNotifierProvider<NgoTransactionsNotifier,
+    List<NgoFinancialTransaction>>((ref) {
   return NgoTransactionsNotifier();
 });
 
-class NgoTransactionsNotifier extends StateNotifier<List<NgoFinancialTransaction>> {
+class NgoTransactionsNotifier
+    extends StateNotifier<List<NgoFinancialTransaction>> {
   NgoTransactionsNotifier() : super(_initialTransactions());
 
   static List<NgoFinancialTransaction> _initialTransactions() {
@@ -314,11 +338,14 @@ class NgoTransactionsNotifier extends StateNotifier<List<NgoFinancialTransaction
   }
 }
 
-final ngoDeliveriesProvider = StateNotifierProvider<NgoDeliveriesNotifier, List<NgoDistributionDelivery>>((ref) {
+final ngoDeliveriesProvider =
+    StateNotifierProvider<NgoDeliveriesNotifier, List<NgoDistributionDelivery>>(
+        (ref) {
   return NgoDeliveriesNotifier();
 });
 
-class NgoDeliveriesNotifier extends StateNotifier<List<NgoDistributionDelivery>> {
+class NgoDeliveriesNotifier
+    extends StateNotifier<List<NgoDistributionDelivery>> {
   NgoDeliveriesNotifier() : super(_initialDeliveries());
 
   static List<NgoDistributionDelivery> _initialDeliveries() {
@@ -353,7 +380,8 @@ class NgoDeliveriesNotifier extends StateNotifier<List<NgoDistributionDelivery>>
         campaignId: 'CMP-GOONJ-02',
         campaignTitle: 'Safe Drinking Water & Mobile RO Filtration Deployment',
         householdsReached: 1850,
-        distributionLocation: 'Shakarpur & Geeta Colony Lowland Drainage Outpost',
+        distributionLocation:
+            'Shakarpur & Geeta Colony Lowland Drainage Outpost',
         reliefItems: '3 Solar Mobile RO Water Purification Tanks (15,000L/day)',
         deliveryDate: now.subtract(const Duration(hours: 16)),
         responsibleTeam: 'SafeWater Field Engineering Unit',
@@ -377,10 +405,12 @@ class NgoManagementScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<NgoManagementScreen> createState() => _NgoManagementScreenState();
+  ConsumerState<NgoManagementScreen> createState() =>
+      _NgoManagementScreenState();
 }
 
-class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with SingleTickerProviderStateMixin {
+class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   final List<NgoInventoryItem> _inventory = [
@@ -442,11 +472,15 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
   void _openCreateCampaignDialog() {
     final titleCtrl = TextEditingController();
     final objectiveCtrl = TextEditingController();
-    final sectorCtrl = TextEditingController(text: 'Trans-Yamuna Relief Corridor');
+    final sectorCtrl =
+        TextEditingController(text: 'Trans-Yamuna Relief Corridor');
     final targetAmountCtrl = TextEditingController(text: '500000');
     final beneficiariesCtrl = TextEditingController(text: '500');
     final durationCtrl = TextEditingController(text: '45');
-    final selectedCategories = <String>['Emergency Rations', 'Temporary Shelter'];
+    final selectedCategories = <String>[
+      'Emergency Rations',
+      'Temporary Shelter'
+    ];
     final availableCategories = [
       'Emergency Rations',
       'Safe Drinking Water',
@@ -465,7 +499,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
 
           return AlertDialog(
             backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
                 Container(
@@ -474,7 +509,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     color: AppColors.primaryLight.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.campaign, color: AppColors.primaryLight, size: 22),
+                  child: const Icon(Icons.campaign,
+                      color: AppColors.primaryLight, size: 22),
                 ),
                 const SizedBox(width: 10),
                 const Expanded(
@@ -500,65 +536,78 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                       decoration: BoxDecoration(
                         color: AppColors.primaryBlue.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.primaryBlue.withOpacity(0.25)),
+                        border: Border.all(
+                            color: AppColors.primaryBlue.withOpacity(0.25)),
                       ),
                       child: const Text(
                         'Statutory Governance Notice: Under National Disaster Management Guidelines, all NGO relief drives require distinct objectives, target sectors, and transparent public budgeting.',
-                        style: TextStyle(fontSize: 11, color: Colors.grey, height: 1.3),
+                        style: TextStyle(
+                            fontSize: 11, color: Colors.grey, height: 1.3),
                       ),
                     ),
                     const SizedBox(height: 14),
-
-                    const Text('Campaign Title *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text('Campaign Title *:',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     TextField(
                       controller: titleCtrl,
                       decoration: InputDecoration(
-                        hintText: 'e.g., Flood Plain Emergency Shelter & Ration Drive',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        hintText:
+                            'e.g., Flood Plain Emergency Shelter & Ration Drive',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
                         isDense: true,
                       ),
                     ),
                     const SizedBox(height: 12),
-
-                    const Text('Humanitarian Relief Objective *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text('Humanitarian Relief Objective *:',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     TextField(
                       controller: objectiveCtrl,
                       maxLines: 2,
                       decoration: InputDecoration(
-                        hintText: 'Describe specific urgent needs being fulfilled for affected population...',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        hintText:
+                            'Describe specific urgent needs being fulfilled for affected population...',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
                         isDense: true,
                       ),
                     ),
                     const SizedBox(height: 12),
-
-                    const Text('Target Geographical Sector / Ward *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text('Target Geographical Sector / Ward *:',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     TextField(
                       controller: sectorCtrl,
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
                         isDense: true,
                       ),
                     ),
                     const SizedBox(height: 12),
-
                     Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Target Budget (₹ INR) *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              const Text('Target Budget (₹ INR) *:',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
                               TextField(
                                 controller: targetAmountCtrl,
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   prefixText: '₹ ',
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8)),
                                   isDense: true,
                                 ),
                               ),
@@ -570,14 +619,18 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Target Beneficiaries *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              const Text('Target Beneficiaries *:',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
                               TextField(
                                 controller: beneficiariesCtrl,
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   suffixText: 'Families',
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8)),
                                   isDense: true,
                                 ),
                               ),
@@ -587,21 +640,24 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                       ],
                     ),
                     const SizedBox(height: 12),
-
-                    const Text('Campaign Duration (Days):', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text('Campaign Duration (Days):',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     TextField(
                       controller: durationCtrl,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         suffixText: 'Days',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
                         isDense: true,
                       ),
                     ),
                     const SizedBox(height: 12),
-
-                    const Text('Assistance Categories *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text('Assistance Categories *:',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 6,
@@ -609,7 +665,10 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                       children: availableCategories.map((cat) {
                         final isSelected = selectedCategories.contains(cat);
                         return FilterChip(
-                          label: Text(cat, style: TextStyle(fontSize: 11, color: isSelected ? Colors.white : null)),
+                          label: Text(cat,
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: isSelected ? Colors.white : null)),
                           selected: isSelected,
                           selectedColor: AppColors.primaryBlue,
                           onSelected: (val) {
@@ -629,49 +688,64 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
                   final title = titleCtrl.text.trim();
                   if (title.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please enter a valid campaign title.'), backgroundColor: AppColors.criticalRed),
+                      const SnackBar(
+                          content: Text('Please enter a valid campaign title.'),
+                          backgroundColor: AppColors.criticalRed),
                     );
                     return;
                   }
-                  final targetAmt = double.tryParse(targetAmountCtrl.text) ?? 500000.0;
+                  final targetAmt =
+                      double.tryParse(targetAmountCtrl.text) ?? 500000.0;
                   final targetBen = int.tryParse(beneficiariesCtrl.text) ?? 500;
                   final duration = int.tryParse(durationCtrl.text) ?? 45;
 
                   final newCampaign = NgoCampaign(
                     id: 'CMP-GOONJ-0${DateTime.now().millisecondsSinceEpoch % 1000}',
                     title: title,
-                    objective: objectiveCtrl.text.trim().isEmpty ? 'Direct humanitarian disaster relief.' : objectiveCtrl.text.trim(),
+                    objective: objectiveCtrl.text.trim().isEmpty
+                        ? 'Direct humanitarian disaster relief.'
+                        : objectiveCtrl.text.trim(),
                     targetSector: sectorCtrl.text.trim(),
                     targetAmount: targetAmt,
                     targetBeneficiaries: targetBen,
                     inKindNeeds: ['Food Rations', 'Water Kits'],
-                    categories: selectedCategories.isEmpty ? ['Emergency Relief'] : selectedCategories,
+                    categories: selectedCategories.isEmpty
+                        ? ['Emergency Relief']
+                        : selectedCategories,
                     durationDays: duration,
                     isVerified: true,
                   );
 
-                  ref.read(ngoCampaignsProvider.notifier).addCampaign(newCampaign);
+                  ref
+                      .read(ngoCampaignsProvider.notifier)
+                      .addCampaign(newCampaign);
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('✓ Campaign "${newCampaign.title}" published with live verified ledger!'),
+                      content: Text(
+                          '✓ Campaign "${newCampaign.title}" published with live verified ledger!'),
                       backgroundColor: AppColors.verifiedGreen,
                     ),
                   );
                 },
-                child: const Text('Publish Relief Campaign', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Publish Relief Campaign',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -683,12 +757,18 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
   // D. RECORD VERIFIED RELIEF DELIVERY MODAL (Part 3 D)
   void _openRecordDistributionDialog() {
     final campaigns = ref.read(ngoCampaignsProvider);
-    String selectedCampaignId = campaigns.isNotEmpty ? campaigns.first.id : 'CMP-GOONJ-01';
+    String selectedCampaignId =
+        campaigns.isNotEmpty ? campaigns.first.id : 'CMP-GOONJ-01';
     final countCtrl = TextEditingController(text: '120');
-    final locCtrl = TextEditingController(text: 'Yamuna Khadar Ward 4 Safe Shelter Camp');
-    final itemsCtrl = TextEditingController(text: '120 Dry Ration Kits & 240 Heavy Tarpaulins');
-    final teamCtrl = TextEditingController(text: 'Goonj East Delhi Logistics Squadron');
-    final challanCtrl = TextEditingController(text: 'CHALLAN-DEL-${DateTime.now().millisecondsSinceEpoch % 10000}.pdf');
+    final locCtrl =
+        TextEditingController(text: 'Yamuna Khadar Ward 4 Safe Shelter Camp');
+    final itemsCtrl = TextEditingController(
+        text: '120 Dry Ration Kits & 240 Heavy Tarpaulins');
+    final teamCtrl =
+        TextEditingController(text: 'Goonj East Delhi Logistics Squadron');
+    final challanCtrl = TextEditingController(
+        text:
+            'CHALLAN-DEL-${DateTime.now().millisecondsSinceEpoch % 10000}.pdf');
 
     showDialog(
       context: context,
@@ -697,7 +777,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
           final isDark = Theme.of(ctx).brightness == Brightness.dark;
           return AlertDialog(
             backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
                 Container(
@@ -706,7 +787,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     color: AppColors.verifiedGreen.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.inventory, color: AppColors.verifiedGreen, size: 22),
+                  child: const Icon(Icons.inventory,
+                      color: AppColors.verifiedGreen, size: 22),
                 ),
                 const SizedBox(width: 10),
                 const Expanded(
@@ -722,77 +804,98 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('DPDP Compliance: Delivery audits track aggregate household counts. Zero individual recipient names or phone numbers are publicly exposed.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  const Text(
+                      'DPDP Compliance: Delivery audits track aggregate household counts. Zero individual recipient names or phone numbers are publicly exposed.',
+                      style: TextStyle(fontSize: 11, color: Colors.grey)),
                   const SizedBox(height: 12),
-
-                  const Text('Associated Relief Campaign *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Associated Relief Campaign *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     value: selectedCampaignId,
-                    items: campaigns.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis))).toList(),
+                    items: campaigns
+                        .map((c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.title,
+                                style: const TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis)))
+                        .toList(),
                     onChanged: (val) {
-                      if (val != null) setDialogState(() => selectedCampaignId = val);
+                      if (val != null)
+                        setDialogState(() => selectedCampaignId = val);
                     },
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Beneficiary Households Reached *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Beneficiary Households Reached *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: countCtrl,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       suffixText: 'Households',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Distribution Camp Location *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Distribution Camp Location *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: locCtrl,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Relief Items Handed Over *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Relief Items Handed Over *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: itemsCtrl,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Responsible Logistics Team *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Responsible Logistics Team *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: teamCtrl,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Delivery Challan / Proof Ref *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Delivery Challan / Proof Ref *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: challanCtrl,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.attachment, size: 18),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
@@ -800,17 +903,23 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.verifiedGreen,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
                   final count = int.tryParse(countCtrl.text) ?? 100;
-                  final matchingCampaign = campaigns.firstWhere((c) => c.id == selectedCampaignId, orElse: () => campaigns.first);
+                  final matchingCampaign = campaigns.firstWhere(
+                      (c) => c.id == selectedCampaignId,
+                      orElse: () => campaigns.first);
 
                   final delivery = NgoDistributionDelivery(
                     id: 'DEL-2026-${DateTime.now().millisecondsSinceEpoch % 10000}',
@@ -825,17 +934,23 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     verificationStatus: 'AUDIT_VERIFIED',
                   );
 
-                  ref.read(ngoDeliveriesProvider.notifier).addDelivery(delivery);
-                  ref.read(ngoCampaignsProvider.notifier).recordDistribution(selectedCampaignId, count);
+                  ref
+                      .read(ngoDeliveriesProvider.notifier)
+                      .addDelivery(delivery);
+                  ref
+                      .read(ngoCampaignsProvider.notifier)
+                      .recordDistribution(selectedCampaignId, count);
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('✓ Verified distribution to $count households recorded at ${locCtrl.text}. Published to public transparency ledger.'),
+                      content: Text(
+                          '✓ Verified distribution to $count households recorded at ${locCtrl.text}. Published to public transparency ledger.'),
                       backgroundColor: AppColors.verifiedGreen,
                     ),
                   );
                 },
-                child: const Text('Confirm Distribution Record', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Confirm Distribution Record',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -847,22 +962,29 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
   // RECORD AUDITED EXPENSE MODAL
   void _openRecordExpenseDialog() {
     final campaigns = ref.read(ngoCampaignsProvider);
-    String selectedCampaignId = campaigns.isNotEmpty ? campaigns.first.id : 'CMP-GOONJ-01';
+    String selectedCampaignId =
+        campaigns.isNotEmpty ? campaigns.first.id : 'CMP-GOONJ-01';
     final amountCtrl = TextEditingController(text: '75000');
-    final categoryCtrl = TextEditingController(text: 'Emergency Medical Dressing & Tetanus Kits');
-    final vendorCtrl = TextEditingController(text: 'Apollo Medical Supplies Depot East');
-    final invNumCtrl = TextEditingController(text: 'INV-MED-${DateTime.now().millisecondsSinceEpoch % 10000}');
+    final categoryCtrl = TextEditingController(
+        text: 'Emergency Medical Dressing & Tetanus Kits');
+    final vendorCtrl =
+        TextEditingController(text: 'Apollo Medical Supplies Depot East');
+    final invNumCtrl = TextEditingController(
+        text: 'INV-MED-${DateTime.now().millisecondsSinceEpoch % 10000}');
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
           final isDark = Theme.of(ctx).brightness == Brightness.dark;
-          final currentCamp = campaigns.firstWhere((c) => c.id == selectedCampaignId, orElse: () => campaigns.first);
+          final currentCamp = campaigns.firstWhere(
+              (c) => c.id == selectedCampaignId,
+              orElse: () => campaigns.first);
 
           return AlertDialog(
             backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
                 Container(
@@ -871,7 +993,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     color: AppColors.warningOrange.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.receipt_long, color: AppColors.warningOrange, size: 22),
+                  child: const Icon(Icons.receipt_long,
+                      color: AppColors.warningOrange, size: 22),
                 ),
                 const SizedBox(width: 10),
                 const Expanded(
@@ -892,44 +1015,59 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     decoration: BoxDecoration(
                       color: AppColors.warningOrange.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.warningOrange.withOpacity(0.3)),
+                      border: Border.all(
+                          color: AppColors.warningOrange.withOpacity(0.3)),
                     ),
                     child: Text(
                       'Available Uncommitted Funds: ₹${currentCamp.remainingAvailable.toStringAsFixed(0)} (Expenses cannot exceed available uncommitted funds).',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.warningOrange),
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.warningOrange),
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  const Text('Allocated Campaign *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Allocated Campaign *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     value: selectedCampaignId,
-                    items: campaigns.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis))).toList(),
+                    items: campaigns
+                        .map((c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.title,
+                                style: const TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis)))
+                        .toList(),
                     onChanged: (val) {
-                      if (val != null) setDialogState(() => selectedCampaignId = val);
+                      if (val != null)
+                        setDialogState(() => selectedCampaignId = val);
                     },
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-
                   Row(
                     children: [
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Expense Amount (₹) *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            const Text('Expense Amount (₹) *:',
+                                style: TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
                             TextField(
                               controller: amountCtrl,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 prefixText: '₹ ',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                                 isDense: true,
                               ),
                             ),
@@ -941,12 +1079,15 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Tax Invoice # *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            const Text('Tax Invoice # *:',
+                                style: TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
                             TextField(
                               controller: invNumCtrl,
                               decoration: InputDecoration(
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                                 isDense: true,
                               ),
                             ),
@@ -956,24 +1097,28 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     ],
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Expense Category *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Expense Category *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: categoryCtrl,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Vendor / Payee Entity *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Vendor / Payee Entity *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: vendorCtrl,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
@@ -981,20 +1126,25 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.warningOrange,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
                   final amt = double.tryParse(amountCtrl.text) ?? 75000.0;
                   if (amt > currentCamp.remainingAvailable) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Error: Expense of ₹$amt exceeds uncommitted balance of ₹${currentCamp.remainingAvailable.toStringAsFixed(0)}.'),
+                        content: Text(
+                            'Error: Expense of ₹$amt exceeds uncommitted balance of ₹${currentCamp.remainingAvailable.toStringAsFixed(0)}.'),
                         backgroundColor: AppColors.criticalRed,
                       ),
                     );
@@ -1004,7 +1154,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                   final newTx = NgoFinancialTransaction(
                     id: 'TX-NGO-${DateTime.now().millisecondsSinceEpoch % 10000}',
                     campaignId: selectedCampaignId,
-                    transactionRef: 'NEFT-DR-${DateTime.now().millisecondsSinceEpoch % 1000000}',
+                    transactionRef:
+                        'NEFT-DR-${DateTime.now().millisecondsSinceEpoch % 1000000}',
                     amount: amt,
                     transactionType: 'EXPENSE_SPENT',
                     category: categoryCtrl.text.trim(),
@@ -1015,17 +1166,22 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     invoiceDocumentProof: 'tax_invoice_verified_signed.pdf',
                   );
 
-                  ref.read(ngoTransactionsProvider.notifier).addTransaction(newTx);
-                  ref.read(ngoCampaignsProvider.notifier).recordExpense(selectedCampaignId, amt, categoryCtrl.text.trim());
+                  ref
+                      .read(ngoTransactionsProvider.notifier)
+                      .addTransaction(newTx);
+                  ref.read(ngoCampaignsProvider.notifier).recordExpense(
+                      selectedCampaignId, amt, categoryCtrl.text.trim());
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('✓ Audited expense of ₹${amt.toStringAsFixed(0)} successfully logged with invoice verification.'),
+                      content: Text(
+                          '✓ Audited expense of ₹${amt.toStringAsFixed(0)} successfully logged with invoice verification.'),
                       backgroundColor: AppColors.verifiedGreen,
                     ),
                   );
                 },
-                child: const Text('Record Audited Expense', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Record Audited Expense',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -1049,7 +1205,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
 
           return AlertDialog(
             backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
                 Container(
@@ -1058,11 +1215,14 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     color: AppColors.primaryBlue.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.volunteer_activism, color: AppColors.primaryBlue, size: 22),
+                  child: const Icon(Icons.volunteer_activism,
+                      color: AppColors.primaryBlue, size: 22),
                 ),
                 const SizedBox(width: 10),
                 const Expanded(
-                  child: Text('Process Verified Campaign Donation', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('Process Verified Campaign Donation',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -1071,54 +1231,77 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Campaign: ${campaign.title}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryBlue)),
+                  Text('Campaign: ${campaign.title}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.primaryBlue)),
                   const SizedBox(height: 10),
-                  const Text('Donation Amount (₹ INR) *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Donation Amount (₹ INR) *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: amountCtrl,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       prefixText: '₹ ',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text('Donor Full Name *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Donor Full Name *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: donorNameCtrl,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text('Donor Email (for Section 80G Receipt) *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Donor Email (for Section 80G Receipt) *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: emailCtrl,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text('Verified Payment Rail *:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Verified Payment Rail *:',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     value: paymentMethod,
                     items: const [
-                      DropdownMenuItem(value: 'UPI', child: Text('UPI (Google Pay / PhonePe / BHIM)')),
-                      DropdownMenuItem(value: 'NetBanking', child: Text('NetBanking (NEFT / RTGS)')),
-                      DropdownMenuItem(value: 'Card', child: Text('Debit / Credit Card (RuPay / Visa)')),
+                      DropdownMenuItem(
+                          value: 'UPI',
+                          child: Text('UPI (Google Pay / PhonePe / BHIM)')),
+                      DropdownMenuItem(
+                          value: 'NetBanking',
+                          child: Text('NetBanking (NEFT / RTGS)')),
+                      DropdownMenuItem(
+                          value: 'Card',
+                          child: Text('Debit / Credit Card (RuPay / Visa)')),
                     ],
                     onChanged: (val) {
-                      if (val != null) setDialogState(() => paymentMethod = val);
+                      if (val != null)
+                        setDialogState(() => paymentMethod = val);
                     },
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
                   ),
@@ -1126,17 +1309,23 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
                   final amt = double.tryParse(amountCtrl.text) ?? 5000.0;
-                  final donation = ref.read(donationsProvider.notifier).createVerifiedDonation(
+                  final donation = ref
+                      .read(donationsProvider.notifier)
+                      .createVerifiedDonation(
                         campaignId: campaign.id,
                         campaignTitle: campaign.title,
                         ngoName: 'Goonj Disaster Relief Wing',
@@ -1150,7 +1339,9 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                       );
 
                   // Update campaign raised amount
-                  ref.read(ngoCampaignsProvider.notifier).recordDonation(campaign.id, amt);
+                  ref
+                      .read(ngoCampaignsProvider.notifier)
+                      .recordDonation(campaign.id, amt);
 
                   // Record in transaction ledger
                   final newTx = NgoFinancialTransaction(
@@ -1164,19 +1355,24 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     invoiceNumber: donation.receiptNumber,
                     timestamp: DateTime.now(),
                     approvalStatus: 'AUDIT_VERIFIED',
-                    invoiceDocumentProof: 'receipt_${donation.receiptNumber}.pdf',
+                    invoiceDocumentProof:
+                        'receipt_${donation.receiptNumber}.pdf',
                   );
-                  ref.read(ngoTransactionsProvider.notifier).addTransaction(newTx);
+                  ref
+                      .read(ngoTransactionsProvider.notifier)
+                      .addTransaction(newTx);
 
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('✓ Payment of ₹${amt.toStringAsFixed(0)} confirmed! Receipt #${donation.receiptNumber} generated.'),
+                      content: Text(
+                          '✓ Payment of ₹${amt.toStringAsFixed(0)} confirmed! Receipt #${donation.receiptNumber} generated.'),
                       backgroundColor: AppColors.verifiedGreen,
                     ),
                   );
                 },
-                child: const Text('Confirm Verified Payment', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Confirm Verified Payment',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -1195,14 +1391,19 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
     final isMobile = width < 768;
 
     // Aggregate NGO stats
-    final totalRaised = campaigns.fold<double>(0.0, (sum, c) => sum + c.raisedAmount);
-    final totalSpent = campaigns.fold<double>(0.0, (sum, c) => sum + c.spentAmount);
-    final totalCommitted = campaigns.fold<double>(0.0, (sum, c) => sum + c.committedAmount);
+    final totalRaised =
+        campaigns.fold<double>(0.0, (sum, c) => sum + c.raisedAmount);
+    final totalSpent =
+        campaigns.fold<double>(0.0, (sum, c) => sum + c.spentAmount);
+    final totalCommitted =
+        campaigns.fold<double>(0.0, (sum, c) => sum + c.committedAmount);
     final totalAvailable = totalRaised - (totalSpent + totalCommitted);
-    final totalBeneficiaries = campaigns.fold<int>(0, (sum, c) => sum + c.verifiedBeneficiariesReached);
+    final totalBeneficiaries = campaigns.fold<int>(
+        0, (sum, c) => sum + c.verifiedBeneficiariesReached);
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
         elevation: 0,
@@ -1215,7 +1416,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                 color: AppColors.primaryLight.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.corporate_fare, color: AppColors.primaryLight, size: 20),
+              child: const Icon(Icons.corporate_fare,
+                  color: AppColors.primaryLight, size: 20),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -1247,7 +1449,9 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 12),
-            child: const TruthBadgeWidget(type: TruthBadgeType.verifiedSafe, customText: 'DARPAN VERIFIED NGO'),
+            child: const TruthBadgeWidget(
+                type: TruthBadgeType.verifiedSafe,
+                customText: 'DARPAN VERIFIED NGO'),
           ),
         ],
         bottom: TabBar(
@@ -1257,68 +1461,103 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
           labelColor: AppColors.primaryGreen,
           unselectedLabelColor: Colors.grey,
           tabs: [
-            Tab(icon: const Icon(Icons.campaign, size: 18), text: 'Campaigns (${campaigns.length})'),
-            Tab(icon: const Icon(Icons.receipt_long, size: 18), text: 'Finance Ledger (${transactions.length})'),
-            Tab(icon: const Icon(Icons.inventory_2, size: 18), text: 'Relief Inventory (${_inventory.length})'),
-            const Tab(icon: Icon(Icons.account_balance_wallet, size: 18), text: 'Campaign Finance'),
+            Tab(
+                icon: const Icon(Icons.campaign, size: 18),
+                text: 'Campaigns (${campaigns.length})'),
+            Tab(
+                icon: const Icon(Icons.receipt_long, size: 18),
+                text: 'Finance Ledger (${transactions.length})'),
+            Tab(
+                icon: const Icon(Icons.inventory_2, size: 18),
+                text: 'Relief Inventory (${_inventory.length})'),
+            const Tab(
+                icon: Icon(Icons.account_balance_wallet, size: 18),
+                text: 'Campaign Finance'),
             const Tab(icon: Icon(Icons.map, size: 18), text: 'Operations Map'),
-            Tab(icon: const Icon(Icons.local_shipping, size: 18), text: 'Distribution History (${deliveries.length})'),
-            const Tab(icon: Icon(Icons.analytics, size: 18), text: 'Reports & Transparency'),
+            Tab(
+                icon: const Icon(Icons.local_shipping, size: 18),
+                text: 'Distribution History (${deliveries.length})'),
+            const Tab(
+                icon: Icon(Icons.analytics, size: 18),
+                text: 'Reports & Transparency'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildCampaignsTab(campaigns, totalRaised, totalSpent, totalCommitted, totalAvailable, totalBeneficiaries, isMobile, isDark),
+          _buildCampaignsTab(campaigns, totalRaised, totalSpent, totalCommitted,
+              totalAvailable, totalBeneficiaries, isMobile, isDark),
           _buildLedgerTab(transactions, isMobile, isDark),
           _buildInventoryTab(isMobile, isDark),
           _buildCampaignFinanceTab(campaigns, isMobile, isDark),
           _buildOperationsMapTab(isMobile, isDark),
           _buildDistributionHistoryTab(deliveries, isMobile, isDark),
-          _buildReportsTransparencyTab(campaigns, totalRaised, totalSpent, totalCommitted, totalAvailable, totalBeneficiaries, isMobile, isDark),
+          _buildReportsTransparencyTab(
+              campaigns,
+              totalRaised,
+              totalSpent,
+              totalCommitted,
+              totalAvailable,
+              totalBeneficiaries,
+              isMobile,
+              isDark),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primaryBlue,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text('New Action', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text('New Action',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         onPressed: () {
           showModalBottomSheet(
             context: context,
             backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
             builder: (ctx) => SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('NGO Operations Quick Action', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text('NGO Operations Quick Action',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 16),
                     ListTile(
-                      leading: const CircleAvatar(backgroundColor: AppColors.primaryBlue, child: Icon(Icons.campaign, color: Colors.white)),
+                      leading: const CircleAvatar(
+                          backgroundColor: AppColors.primaryBlue,
+                          child: Icon(Icons.campaign, color: Colors.white)),
                       title: const Text('Launch Relief Campaign'),
-                      subtitle: const Text('Create fundraising and in-kind targets'),
+                      subtitle:
+                          const Text('Create fundraising and in-kind targets'),
                       onTap: () {
                         Navigator.pop(ctx);
                         _openCreateCampaignDialog();
                       },
                     ),
                     ListTile(
-                      leading: const CircleAvatar(backgroundColor: AppColors.warningOrange, child: Icon(Icons.receipt_long, color: Colors.white)),
+                      leading: const CircleAvatar(
+                          backgroundColor: AppColors.warningOrange,
+                          child: Icon(Icons.receipt_long, color: Colors.white)),
                       title: const Text('Record Audited Expense / Invoice'),
-                      subtitle: const Text('Log purchases with invoice document proof'),
+                      subtitle: const Text(
+                          'Log purchases with invoice document proof'),
                       onTap: () {
                         Navigator.pop(ctx);
                         _openRecordExpenseDialog();
                       },
                     ),
                     ListTile(
-                      leading: const CircleAvatar(backgroundColor: AppColors.verifiedGreen, child: Icon(Icons.people, color: Colors.white)),
+                      leading: const CircleAvatar(
+                          backgroundColor: AppColors.verifiedGreen,
+                          child: Icon(Icons.people, color: Colors.white)),
                       title: const Text('Record Beneficiary Relief Handover'),
-                      subtitle: const Text('Log distributed rations and family headcounts'),
+                      subtitle: const Text(
+                          'Log distributed rations and family headcounts'),
                       onTap: () {
                         Navigator.pop(ctx);
                         _openRecordDistributionDialog();
@@ -1346,7 +1585,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
     bool isDark,
   ) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
+      padding:
+          EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1366,10 +1606,38 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  _responsiveFinanceCard('Verified Received', '₹${(raised / 100000).toStringAsFixed(1)} L', 'Audited Public & CSR Grants', AppColors.verifiedGreen, Icons.savings, cardWidth, isDark),
-                  _responsiveFinanceCard('Verified Spent', '₹${(spent / 100000).toStringAsFixed(1)} L', '100% Tax Invoices Logged', AppColors.criticalRed, Icons.payments, cardWidth, isDark),
-                  _responsiveFinanceCard('Committed Orders', '₹${(committed / 100000).toStringAsFixed(1)} L', 'Active Purchase Orders', AppColors.warningOrange, Icons.pending_actions, cardWidth, isDark),
-                  _responsiveFinanceCard('Uncommitted Cash', '₹${(available / 100000).toStringAsFixed(1)} L', 'Available for Immediate Relief', AppColors.primaryBlue, Icons.account_balance, cardWidth, isDark),
+                  _responsiveFinanceCard(
+                      'Verified Received',
+                      '₹${(raised / 100000).toStringAsFixed(1)} L',
+                      'Audited Public & CSR Grants',
+                      AppColors.verifiedGreen,
+                      Icons.savings,
+                      cardWidth,
+                      isDark),
+                  _responsiveFinanceCard(
+                      'Verified Spent',
+                      '₹${(spent / 100000).toStringAsFixed(1)} L',
+                      '100% Tax Invoices Logged',
+                      AppColors.criticalRed,
+                      Icons.payments,
+                      cardWidth,
+                      isDark),
+                  _responsiveFinanceCard(
+                      'Committed Orders',
+                      '₹${(committed / 100000).toStringAsFixed(1)} L',
+                      'Active Purchase Orders',
+                      AppColors.warningOrange,
+                      Icons.pending_actions,
+                      cardWidth,
+                      isDark),
+                  _responsiveFinanceCard(
+                      'Uncommitted Cash',
+                      '₹${(available / 100000).toStringAsFixed(1)} L',
+                      'Available for Immediate Relief',
+                      AppColors.primaryBlue,
+                      Icons.account_balance,
+                      cardWidth,
+                      isDark),
                 ],
               );
             },
@@ -1380,21 +1648,30 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard,
+              color: isDark
+                  ? AppColors.darkSurfaceCard
+                  : AppColors.lightSurfaceCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primaryLight.withOpacity(0.3)),
+              border:
+                  Border.all(color: AppColors.primaryLight.withOpacity(0.3)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.people_alt, color: AppColors.primaryLight, size: 24),
+                const Icon(Icons.people_alt,
+                    color: AppColors.primaryLight, size: 24),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('$beneficiaries Families Assisted Across Trans-Yamuna Corridor', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text(
+                          '$beneficiaries Families Assisted Across Trans-Yamuna Corridor',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
                       const SizedBox(height: 2),
-                      const Text('Audit-verified deliveries synchronized with District Disaster Magistrate portal.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                      const Text(
+                          'Audit-verified deliveries synchronized with District Disaster Magistrate portal.',
+                          style: TextStyle(fontSize: 11, color: Colors.grey)),
                     ],
                   ),
                 ),
@@ -1405,7 +1682,9 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     visualDensity: VisualDensity.compact,
                   ),
                   onPressed: _openRecordDistributionDialog,
-                  child: const Text('Log Delivery', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  child: const Text('Log Delivery',
+                      style:
+                          TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -1415,10 +1694,12 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Active Disaster Relief Campaigns', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text('Active Disaster Relief Campaigns',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               OutlinedButton.icon(
                 icon: const Icon(Icons.add, size: 14),
-                label: const Text('New Campaign', style: TextStyle(fontSize: 12)),
+                label:
+                    const Text('New Campaign', style: TextStyle(fontSize: 12)),
                 onPressed: _openCreateCampaignDialog,
               ),
             ],
@@ -1432,14 +1713,18 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (context, index) {
               final c = campaigns[index];
-              final percentRaised = (c.raisedAmount / c.targetAmount * 100).clamp(0, 100).toInt();
+              final percentRaised =
+                  (c.raisedAmount / c.targetAmount * 100).clamp(0, 100).toInt();
 
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkSurface : Colors.white,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  border: Border.all(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1447,26 +1732,49 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: AppColors.primaryBlue.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
-                          child: Text(c.id, style: const TextStyle(color: AppColors.primaryBlue, fontSize: 11, fontWeight: FontWeight.bold)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                              color: AppColors.primaryBlue.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(6)),
+                          child: Text(c.id,
+                              style: const TextStyle(
+                                  color: AppColors.primaryBlue,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(width: 8),
-                        const TruthBadgeWidget(type: TruthBadgeType.verifiedSafe, customText: 'AUDIT COMPLIANT'),
+                        const TruthBadgeWidget(
+                            type: TruthBadgeType.verifiedSafe,
+                            customText: 'AUDIT COMPLIANT'),
                         const Spacer(),
-                        Text('Target: ₹${(c.targetAmount / 100000).toStringAsFixed(1)}L', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text(
+                            'Target: ₹${(c.targetAmount / 100000).toStringAsFixed(1)}L',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 13)),
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Text(c.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                    Text(c.title,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text(c.objective, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText, height: 1.4)),
+                    Text(c.objective,
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.mutedText,
+                            height: 1.4)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         const Icon(Icons.place, size: 14, color: Colors.grey),
                         const SizedBox(width: 4),
-                        Expanded(child: Text(c.targetSector, style: const TextStyle(fontSize: 12, color: Colors.grey))),
+                        Expanded(
+                            child: Text(c.targetSector,
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey))),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -1475,9 +1783,11 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
-                        value: (c.raisedAmount / c.targetAmount).clamp(0.0, 1.0),
+                        value:
+                            (c.raisedAmount / c.targetAmount).clamp(0.0, 1.0),
                         backgroundColor: Colors.grey.withOpacity(0.2),
-                        valueColor: const AlwaysStoppedAnimation(AppColors.primaryLight),
+                        valueColor: const AlwaysStoppedAnimation(
+                            AppColors.primaryLight),
                         minHeight: 7,
                       ),
                     ),
@@ -1487,8 +1797,16 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                       runSpacing: 4,
                       alignment: WrapAlignment.spaceBetween,
                       children: [
-                        Text('₹${(c.raisedAmount / 100000).toStringAsFixed(1)}L Raised ($percentRaised%)', style: const TextStyle(fontSize: 11, color: AppColors.primaryLight, fontWeight: FontWeight.bold)),
-                        Text('Spent: ₹${(c.spentAmount / 100000).toStringAsFixed(1)}L • Reached: ${c.verifiedBeneficiariesReached} Families', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                        Text(
+                            '₹${(c.raisedAmount / 100000).toStringAsFixed(1)}L Raised ($percentRaised%)',
+                            style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.primaryLight,
+                                fontWeight: FontWeight.bold)),
+                        Text(
+                            'Spent: ₹${(c.spentAmount / 100000).toStringAsFixed(1)}L • Reached: ${c.verifiedBeneficiariesReached} Families',
+                            style: const TextStyle(
+                                fontSize: 11, color: Colors.grey)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -1497,11 +1815,16 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
-                      children: c.inKindNeeds.map((need) => Chip(
-                        label: Text(need, style: const TextStyle(fontSize: 10)),
-                        padding: EdgeInsets.zero,
-                        backgroundColor: isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard,
-                      )).toList(),
+                      children: c.inKindNeeds
+                          .map((need) => Chip(
+                                label: Text(need,
+                                    style: const TextStyle(fontSize: 10)),
+                                padding: EdgeInsets.zero,
+                                backgroundColor: isDark
+                                    ? AppColors.darkSurfaceCard
+                                    : AppColors.lightSurfaceCard,
+                              ))
+                          .toList(),
                     ),
                     const SizedBox(height: 14),
 
@@ -1512,18 +1835,24 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                       children: [
                         OutlinedButton.icon(
                           icon: const Icon(Icons.receipt, size: 14),
-                          label: const Text('Log Expense', style: TextStyle(fontSize: 12)),
+                          label: const Text('Log Expense',
+                              style: TextStyle(fontSize: 12)),
                           onPressed: _openRecordExpenseDialog,
                         ),
                         ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryBlue,
+                              foregroundColor: Colors.white),
                           icon: const Icon(Icons.volunteer_activism, size: 14),
-                          label: const Text('Accept Donation / Gateway', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          label: const Text('Accept Donation / Gateway',
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold)),
                           onPressed: () => _openAcceptDonationDialog(c),
                         ),
                         TextButton.icon(
                           icon: const Icon(Icons.open_in_new, size: 14),
-                          label: const Text('View Ledger', style: TextStyle(fontSize: 12)),
+                          label: const Text('View Ledger',
+                              style: TextStyle(fontSize: 12)),
                           onPressed: () => _tabController.animateTo(1),
                         ),
                       ],
@@ -1540,9 +1869,11 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
   }
 
   // TAB 2: AUDITED FINANCIAL LEDGER TAB (Part 4 B)
-  Widget _buildLedgerTab(List<NgoFinancialTransaction> txs, bool isMobile, bool isDark) {
+  Widget _buildLedgerTab(
+      List<NgoFinancialTransaction> txs, bool isMobile, bool isDark) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
+      padding:
+          EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1553,21 +1884,28 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Audited Financial Ledger & Invoices', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text('Statutory Compliance: Every financial movement has an immutable voucher reference.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text('Audited Financial Ledger & Invoices',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                        'Statutory Compliance: Every financial movement has an immutable voucher reference.',
+                        style: TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ),
               ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.warningOrange, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.warningOrange,
+                    foregroundColor: Colors.white),
                 icon: const Icon(Icons.add_circle, size: 16),
-                label: const Text('Record Expense', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                label: const Text('Record Expense',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 onPressed: _openRecordExpenseDialog,
               ),
             ],
           ),
           const SizedBox(height: 16),
-
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -1576,14 +1914,21 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             itemBuilder: (context, index) {
               final tx = txs[index];
               final isCredit = tx.transactionType == 'DONATION_RECEIVED';
-              final color = isCredit ? AppColors.verifiedGreen : (tx.transactionType == 'COMMITTED_ORDER' ? AppColors.warningOrange : AppColors.criticalRed);
+              final color = isCredit
+                  ? AppColors.verifiedGreen
+                  : (tx.transactionType == 'COMMITTED_ORDER'
+                      ? AppColors.warningOrange
+                      : AppColors.criticalRed);
 
               return Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkSurface : Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  border: Border.all(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1591,45 +1936,77 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(4)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                              color: color.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4)),
                           child: Text(
                             tx.transactionType,
-                            style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: color,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(tx.transactionRef, style: const TextStyle(fontSize: 12, color: Colors.grey), overflow: TextOverflow.ellipsis),
+                          child: Text(tx.transactionRef,
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.grey),
+                              overflow: TextOverflow.ellipsis),
                         ),
                         Text(
                           '${isCredit ? "+" : "-"}₹${tx.amount.toStringAsFixed(0)}',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color),
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: color),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(tx.entityName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    Text(tx.entityName,
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 2),
-                    Text('Category: ${tx.category} • Invoice #${tx.invoiceNumber}', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText)),
+                    Text(
+                        'Category: ${tx.category} • Invoice #${tx.invoiceNumber}',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.mutedText)),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.verified_user, size: 14, color: AppColors.verifiedGreen),
+                        const Icon(Icons.verified_user,
+                            size: 14, color: AppColors.verifiedGreen),
                         const SizedBox(width: 4),
-                        Text('Audit Status: ${tx.approvalStatus}', style: const TextStyle(fontSize: 11, color: AppColors.verifiedGreen, fontWeight: FontWeight.bold)),
+                        Text('Audit Status: ${tx.approvalStatus}',
+                            style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.verifiedGreen,
+                                fontWeight: FontWeight.bold)),
                         const Spacer(),
                         InkWell(
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Viewing verified document proof: ${tx.invoiceDocumentProof}')),
+                              SnackBar(
+                                  content: Text(
+                                      'Viewing verified document proof: ${tx.invoiceDocumentProof}')),
                             );
                           },
                           child: Row(
                             children: [
-                              const Icon(Icons.picture_as_pdf, size: 14, color: AppColors.primaryBlue),
+                              const Icon(Icons.picture_as_pdf,
+                                  size: 14, color: AppColors.primaryBlue),
                               const SizedBox(width: 4),
-                              Text(tx.invoiceDocumentProof, style: const TextStyle(fontSize: 11, color: AppColors.primaryBlue, decoration: TextDecoration.underline)),
+                              Text(tx.invoiceDocumentProof,
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.primaryBlue,
+                                      decoration: TextDecoration.underline)),
                             ],
                           ),
                         ),
@@ -1649,15 +2026,18 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
   // TAB 3: RELIEF INVENTORY TAB
   Widget _buildInventoryTab(bool isMobile, bool isDark) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
+      padding:
+          EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('In-Kind Relief Supplies Inventory', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('In-Kind Relief Supplies Inventory',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          const Text('Tracks real-time stock levels, dispatched aid, and remaining deficit by depot.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+              'Tracks real-time stock levels, dispatched aid, and remaining deficit by depot.',
+              style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 16),
-
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -1671,22 +2051,37 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkSurface : Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  border: Border.all(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item.itemName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text(item.itemName,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text('Depot: ${item.storageDepot}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text('Depot: ${item.storageDepot}',
+                        style:
+                            const TextStyle(fontSize: 11, color: Colors.grey)),
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        _inventoryPill('Available', '${item.availableUnits}', AppColors.verifiedGreen, isDark),
+                        _inventoryPill('Available', '${item.availableUnits}',
+                            AppColors.verifiedGreen, isDark),
                         const SizedBox(width: 8),
-                        _inventoryPill('Dispatched', '${item.dispatchedUnits}', AppColors.primaryBlue, isDark),
+                        _inventoryPill('Dispatched', '${item.dispatchedUnits}',
+                            AppColors.primaryBlue, isDark),
                         const SizedBox(width: 8),
-                        _inventoryPill('Shortage Deficit', '${item.reportedShortage}', item.reportedShortage > 0 ? AppColors.criticalRed : Colors.grey, isDark),
+                        _inventoryPill(
+                            'Shortage Deficit',
+                            '${item.reportedShortage}',
+                            item.reportedShortage > 0
+                                ? AppColors.criticalRed
+                                : Colors.grey,
+                            isDark),
                       ],
                     ),
                   ],
@@ -1701,9 +2096,11 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
   }
 
   // TAB 4: DISTRIBUTION HISTORY TAB (Part 3 G)
-  Widget _buildDistributionHistoryTab(List<NgoDistributionDelivery> deliveries, bool isMobile, bool isDark) {
+  Widget _buildDistributionHistoryTab(
+      List<NgoDistributionDelivery> deliveries, bool isMobile, bool isDark) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
+      padding:
+          EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1714,21 +2111,28 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Verified Field Relief Distribution History', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text('Permanent delivery records verified by Revenue Officials & Patwaris.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text('Verified Field Relief Distribution History',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                        'Permanent delivery records verified by Revenue Officials & Patwaris.',
+                        style: TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ),
               ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.verifiedGreen, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.verifiedGreen,
+                    foregroundColor: Colors.white),
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text('Log Handover', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                label: const Text('Log Handover',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 onPressed: _openRecordDistributionDialog,
               ),
             ],
           ),
           const SizedBox(height: 16),
-
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -1742,7 +2146,10 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkSurface : Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  border: Border.all(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1750,31 +2157,56 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: AppColors.verifiedGreen.withOpacity(0.15), borderRadius: BorderRadius.circular(4)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                              color: AppColors.verifiedGreen.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4)),
                           child: Text(
                             d.id,
-                            style: const TextStyle(color: AppColors.verifiedGreen, fontSize: 10, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                color: AppColors.verifiedGreen,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text('${d.householdsReached} Families Reached', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.verifiedGreen)),
+                        Text('${d.householdsReached} Families Reached',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: AppColors.verifiedGreen)),
                         const Spacer(),
-                        const TruthBadgeWidget(type: TruthBadgeType.verifiedSafe, customText: 'AUDITED DELIVERY'),
+                        const TruthBadgeWidget(
+                            type: TruthBadgeType.verifiedSafe,
+                            customText: 'AUDITED DELIVERY'),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text('Camp: ${d.distributionLocation}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text('Camp: ${d.distributionLocation}',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 4),
-                    Text('Relief Items: ${d.reliefItems}', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText)),
+                    Text('Relief Items: ${d.reliefItems}',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.mutedText)),
                     const SizedBox(height: 4),
-                    Text('Delivered By: ${d.responsibleTeam} • Date: ${d.deliveryDate.toString().substring(0, 10)}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text(
+                        'Delivered By: ${d.responsibleTeam} • Date: ${d.deliveryDate.toString().substring(0, 10)}',
+                        style:
+                            const TextStyle(fontSize: 11, color: Colors.grey)),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.file_present, size: 14, color: AppColors.primaryBlue),
+                        const Icon(Icons.file_present,
+                            size: 14, color: AppColors.primaryBlue),
                         const SizedBox(width: 4),
-                        Text('Challan Proof: ${d.evidenceChallan}', style: const TextStyle(fontSize: 11, color: AppColors.primaryBlue)),
+                        Text('Challan Proof: ${d.evidenceChallan}',
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.primaryBlue)),
                       ],
                     ),
                   ],
@@ -1789,17 +2221,21 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
   }
 
   // TAB 5: DONATIONS TAB (Part 4 A & Part 5)
-  Widget _buildDonationsTab(List<DonationModel> donations, bool isMobile, bool isDark) {
+  Widget _buildDonationsTab(
+      List<DonationModel> donations, bool isMobile, bool isDark) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
+      padding:
+          EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Verified Public & Corporate Donations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('Verified Public & Corporate Donations',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          const Text('Donations are reconciled via Razorpay/UPI gateway and eligible for Section 80G tax deductions.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+          const Text(
+              'Donations are reconciled via Razorpay/UPI gateway and eligible for Section 80G tax deductions.',
+              style: TextStyle(fontSize: 11, color: Colors.grey)),
           const SizedBox(height: 16),
-
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -1813,7 +2249,10 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkSurface : Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  border: Border.all(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1821,47 +2260,80 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: AppColors.verifiedGreen.withOpacity(0.15), borderRadius: BorderRadius.circular(4)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                              color: AppColors.verifiedGreen.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4)),
                           child: Text(
                             don.paymentStatus,
-                            style: const TextStyle(color: AppColors.verifiedGreen, fontSize: 10, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                color: AppColors.verifiedGreen,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(don.transactionRef, style: const TextStyle(fontSize: 11, color: Colors.grey), overflow: TextOverflow.ellipsis),
+                          child: Text(don.transactionRef,
+                              style: const TextStyle(
+                                  fontSize: 11, color: Colors.grey),
+                              overflow: TextOverflow.ellipsis),
                         ),
                         Text(
                           '₹${don.amount.toStringAsFixed(0)}',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.verifiedGreen),
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.verifiedGreen),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(don.donorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text(don.donorName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 2),
-                    Text('Campaign: ${don.campaignTitle}', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText)),
+                    Text('Campaign: ${don.campaignTitle}',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.mutedText)),
                     const SizedBox(height: 4),
-                    Text('Payment Mode: ${don.paymentMethod} • Receipt #${don.receiptNumber}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text(
+                        'Payment Mode: ${don.paymentMethod} • Receipt #${don.receiptNumber}',
+                        style:
+                            const TextStyle(fontSize: 11, color: Colors.grey)),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.lock, size: 12, color: AppColors.primaryBlue),
+                        const Icon(Icons.lock,
+                            size: 12, color: AppColors.primaryBlue),
                         const SizedBox(width: 4),
-                        Expanded(child: Text('Hash: ${don.auditVerificationHash}', style: const TextStyle(fontSize: 10, color: Colors.grey), overflow: TextOverflow.ellipsis)),
+                        Expanded(
+                            child: Text('Hash: ${don.auditVerificationHash}',
+                                style: const TextStyle(
+                                    fontSize: 10, color: Colors.grey),
+                                overflow: TextOverflow.ellipsis)),
                         OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                          style: OutlinedButton.styleFrom(
+                              visualDensity: VisualDensity.compact),
                           icon: const Icon(Icons.picture_as_pdf, size: 12),
-                          label: const Text('80G Receipt', style: TextStyle(fontSize: 11)),
+                          label: const Text('80G Receipt',
+                              style: TextStyle(fontSize: 11)),
                           onPressed: () {
                             showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
-                                title: const Text('Section 80G Tax Exemption Receipt'),
-                                content: Text('Receipt #${don.receiptNumber}\nDonor: ${don.donorName}\nAmount: ₹${don.amount.toStringAsFixed(0)}\nStatus: VERIFIED IMMUTABLE\nHash: ${don.auditVerificationHash}'),
+                                title: const Text(
+                                    'Section 80G Tax Exemption Receipt'),
+                                content: Text(
+                                    'Receipt #${don.receiptNumber}\nDonor: ${don.donorName}\nAmount: ₹${don.amount.toStringAsFixed(0)}\nStatus: VERIFIED IMMUTABLE\nHash: ${don.auditVerificationHash}'),
                                 actions: [
-                                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+                                  TextButton(
+                                      onPressed: () => Navigator.pop(ctx),
+                                      child: const Text('Close')),
                                 ],
                               ),
                             );
@@ -1891,16 +2363,21 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
     bool isMobile,
     bool isDark,
   ) {
-    final conversionRatio = raised > 0 ? ((spent + committed) / raised * 100).toInt() : 0;
+    final conversionRatio =
+        raised > 0 ? ((spent + committed) / raised * 100).toInt() : 0;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
+      padding:
+          EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Statutory Transparency & Audit Compliance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('Statutory Transparency & Audit Compliance',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          const Text('All figures are reconciled against statutory banking ledgers and verified vendor tax invoices.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+          const Text(
+              'All figures are reconciled against statutory banking ledgers and verified vendor tax invoices.',
+              style: TextStyle(fontSize: 11, color: Colors.grey)),
           const SizedBox(height: 16),
 
           // High Level Metrics
@@ -1909,32 +2386,50 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkSurface : Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Public Trust & Fund Utilization Index', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const Text('Public Trust & Fund Utilization Index',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Column(
                       children: [
-                        Text('$conversionRatio%', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
-                        const Text('Relief Utilization', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        Text('$conversionRatio%',
+                            style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryBlue)),
+                        const Text('Relief Utilization',
+                            style: TextStyle(fontSize: 11, color: Colors.grey)),
                       ],
                     ),
                     Column(
                       children: [
-                        const Text('100%', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.verifiedGreen)),
-                        const Text('Invoice Audited', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        const Text('100%',
+                            style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.verifiedGreen)),
+                        const Text('Invoice Audited',
+                            style: TextStyle(fontSize: 11, color: Colors.grey)),
                       ],
                     ),
                     Column(
                       children: [
-                        const Text('0.0%', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.warningOrange)),
-                        const Text('Admin Overhead Leakage', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        const Text('0.0%',
+                            style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.warningOrange)),
+                        const Text('Admin Overhead Leakage',
+                            style: TextStyle(fontSize: 11, color: Colors.grey)),
                       ],
                     ),
                   ],
@@ -1954,22 +2449,32 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             ),
             child: Row(
               children: [
-                const Icon(Icons.public, color: AppColors.primaryBlue, size: 28),
+                const Icon(Icons.public,
+                    color: AppColors.primaryBlue, size: 28),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
-                      Text('Published to Citizen Transparency Portal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Published to Citizen Transparency Portal',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
                       SizedBox(height: 2),
-                      Text('Citizens can inspect real-time campaign expenses, invoices, and distribution records without PII exposure.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                      Text(
+                          'Citizens can inspect real-time campaign expenses, invoices, and distribution records without PII exposure.',
+                          style: TextStyle(fontSize: 11, color: Colors.grey)),
                     ],
                   ),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
-                  onPressed: () => Navigator.pushNamed(context, AppRoutes.transparency),
-                  child: const Text('Open Portal', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: Colors.white),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.transparency),
+                  child: const Text('Open Portal',
+                      style:
+                          TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -2002,19 +2507,22 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                   point: LatLng(28.6080, 77.2950),
                   width: 44,
                   height: 44,
-                  child: Icon(Icons.night_shelter, color: AppColors.primaryGreen, size: 36),
+                  child: Icon(Icons.night_shelter,
+                      color: AppColors.primaryGreen, size: 36),
                 ),
                 const Marker(
                   point: LatLng(28.6320, 77.2750),
                   width: 44,
                   height: 44,
-                  child: Icon(Icons.night_shelter, color: AppColors.primaryGreen, size: 36),
+                  child: Icon(Icons.night_shelter,
+                      color: AppColors.primaryGreen, size: 36),
                 ),
                 const Marker(
                   point: LatLng(28.5355, 77.2930),
                   width: 44,
                   height: 44,
-                  child: Icon(Icons.warehouse, color: AppColors.primaryBlue, size: 34),
+                  child: Icon(Icons.warehouse,
+                      color: AppColors.primaryBlue, size: 34),
                 ),
                 ...incidents.take(15).map((inc) => Marker(
                       point: LatLng(inc.latitude, inc.longitude),
@@ -2022,7 +2530,9 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                       height: 40,
                       child: Icon(
                         Icons.location_on,
-                        color: inc.priorityScore >= 80 ? AppColors.criticalRed : AppColors.warningOrange,
+                        color: inc.priorityScore >= 80
+                            ? AppColors.criticalRed
+                            : AppColors.warningOrange,
                         size: 32,
                       ),
                     )),
@@ -2037,9 +2547,12 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface.withOpacity(0.92) : Colors.white.withOpacity(0.95),
+              color: isDark
+                  ? AppColors.darkSurface.withOpacity(0.92)
+                  : Colors.white.withOpacity(0.95),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.08),
@@ -2050,7 +2563,8 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             ),
             child: Row(
               children: [
-                const Icon(Icons.explore, color: AppColors.primaryGreen, size: 20),
+                const Icon(Icons.explore,
+                    color: AppColors.primaryGreen, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -2071,25 +2585,31 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
     );
   }
 
-  Widget _buildCampaignFinanceTab(List<NgoCampaign> campaigns, bool isMobile, bool isDark) {
+  Widget _buildCampaignFinanceTab(
+      List<NgoCampaign> campaigns, bool isMobile, bool isDark) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
+      padding:
+          EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Campaign Financial Breakdown & Burn Rates', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('Campaign Financial Breakdown & Burn Rates',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               OutlinedButton.icon(
                 icon: const Icon(Icons.receipt_long, size: 14),
-                label: const Text('Record Expense', style: TextStyle(fontSize: 12)),
+                label: const Text('Record Expense',
+                    style: TextStyle(fontSize: 12)),
                 onPressed: _openRecordExpenseDialog,
               ),
             ],
           ),
           const SizedBox(height: 6),
-          const Text('Reconciled against bank statements with zero unallocated leakage.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+          const Text(
+              'Reconciled against bank statements with zero unallocated leakage.',
+              style: TextStyle(fontSize: 11, color: Colors.grey)),
           const SizedBox(height: 16),
           for (final c in campaigns) ...[
             Container(
@@ -2098,7 +2618,9 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                border: Border.all(
+                    color:
+                        isDark ? AppColors.darkBorder : AppColors.lightBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2106,18 +2628,36 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(color: AppColors.primaryGreen.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
-                        child: Text(c.id, style: const TextStyle(color: AppColors.primaryGreen, fontSize: 11, fontWeight: FontWeight.bold)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                            color: AppColors.primaryGreen.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6)),
+                        child: Text(c.id,
+                            style: const TextStyle(
+                                color: AppColors.primaryGreen,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold)),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(c.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis),
+                        child: Text(c.title,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 14),
+                            overflow: TextOverflow.ellipsis),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: AppColors.emerald50, borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.emerald200)),
-                        child: const Text('AUDIT VERIFIED', style: TextStyle(color: AppColors.emerald700, fontSize: 10, fontWeight: FontWeight.bold)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                            color: AppColors.emerald50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: AppColors.emerald200)),
+                        child: const Text('AUDIT VERIFIED',
+                            style: TextStyle(
+                                color: AppColors.emerald700,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -2125,9 +2665,12 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
-                      value: (c.spentAmount / (c.raisedAmount > 0 ? c.raisedAmount : 1)).clamp(0.0, 1.0),
+                      value: (c.spentAmount /
+                              (c.raisedAmount > 0 ? c.raisedAmount : 1))
+                          .clamp(0.0, 1.0),
                       backgroundColor: Colors.grey.withOpacity(0.2),
-                      valueColor: const AlwaysStoppedAnimation(AppColors.primaryGreen),
+                      valueColor:
+                          const AlwaysStoppedAnimation(AppColors.primaryGreen),
                       minHeight: 8,
                     ),
                   ),
@@ -2135,9 +2678,24 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Spent: ₹${(c.spentAmount / 100000).toStringAsFixed(1)} L', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.criticalRed)),
-                      Text('Committed: ₹${(c.committedAmount / 100000).toStringAsFixed(1)} L', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.warningOrange)),
-                      Text('Raised: ₹${(c.raisedAmount / 100000).toStringAsFixed(1)} L', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
+                      Text(
+                          'Spent: ₹${(c.spentAmount / 100000).toStringAsFixed(1)} L',
+                          style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.criticalRed)),
+                      Text(
+                          'Committed: ₹${(c.committedAmount / 100000).toStringAsFixed(1)} L',
+                          style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.warningOrange)),
+                      Text(
+                          'Raised: ₹${(c.raisedAmount / 100000).toStringAsFixed(1)} L',
+                          style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryGreen)),
                     ],
                   ),
                   const Divider(height: 20),
@@ -2147,15 +2705,26 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Available Uncommitted Cash', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                          const Text('Available Uncommitted Cash',
+                              style:
+                                  TextStyle(fontSize: 10, color: Colors.grey)),
                           const SizedBox(height: 2),
-                          Text('₹${(c.remainingAvailable / 100000).toStringAsFixed(2)} Lakhs', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
+                          Text(
+                              '₹${(c.remainingAvailable / 100000).toStringAsFixed(2)} Lakhs',
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryBlue)),
                         ],
                       ),
                       ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryGreen,
+                            foregroundColor: Colors.white,
+                            visualDensity: VisualDensity.compact),
                         icon: const Icon(Icons.add_shopping_cart, size: 14),
-                        label: const Text('Allocate Funds', style: TextStyle(fontSize: 11)),
+                        label: const Text('Allocate Funds',
+                            style: TextStyle(fontSize: 11)),
                         onPressed: _openRecordExpenseDialog,
                       ),
                     ],
@@ -2169,9 +2738,10 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
     );
   }
 
-    Widget _buildProfileTab(dynamic currentUser, bool isMobile, bool isDark) {
+  Widget _buildProfileTab(dynamic currentUser, bool isMobile, bool isDark) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
+      padding:
+          EdgeInsets.symmetric(horizontal: isMobile ? 14 : 24, vertical: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2179,19 +2749,24 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primaryLight.withOpacity(0.2), isDark ? AppColors.darkSurface : Colors.white],
+                colors: [
+                  AppColors.primaryLight.withOpacity(0.2),
+                  isDark ? AppColors.darkSurface : Colors.white
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primaryLight.withOpacity(0.4)),
+              border:
+                  Border.all(color: AppColors.primaryLight.withOpacity(0.4)),
             ),
             child: Row(
               children: [
                 const CircleAvatar(
                   radius: 30,
                   backgroundColor: AppColors.primaryBlue,
-                  child: Icon(Icons.corporate_fare, color: Colors.white, size: 30),
+                  child:
+                      Icon(Icons.corporate_fare, color: Colors.white, size: 30),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -2203,16 +2778,22 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
                           Expanded(
                             child: Text(
                               currentUser?.name ?? 'Goonj Disaster Relief Wing',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const TruthBadgeWidget(type: TruthBadgeType.verifiedSafe, customText: 'VERIFIED NGO'),
+                          const TruthBadgeWidget(
+                              type: TruthBadgeType.verifiedSafe,
+                              customText: 'VERIFIED NGO'),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      const Text('NGO DARPAN Registration: DL/2019/024810', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      const Text('Section 80G & 12A Verified • FCRA Authorized', style: TextStyle(fontSize: 12, color: AppColors.primaryLight)),
+                      const Text('NGO DARPAN Registration: DL/2019/024810',
+                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const Text('Section 80G & 12A Verified • FCRA Authorized',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.primaryLight)),
                     ],
                   ),
                 ),
@@ -2220,27 +2801,36 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             ),
           ),
           const SizedBox(height: 18),
-
-          const Text('Statutory Governance & Compliance Credentials', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          const Text('Statutory Governance & Compliance Credentials',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
-          _profileRow(Icons.description, 'Registration Type', 'Registered Society under Societies Registration Act XXI of 1860'),
-          _profileRow(Icons.person, 'Authorized Lead Representative', 'Praveen Nair (Director of Emergency Response)'),
-          _profileRow(Icons.place, 'Operating Jurisdictions', 'Delhi-NCR, Uttar Pradesh, Bihar, Uttarakhand'),
-          _profileRow(Icons.category, 'Areas of Specialization', 'Material Relief, Flood Rehabilitation, Dignity Kits, School Recovery'),
-          _profileRow(Icons.account_balance, 'Designated Escrow Account', 'State Bank of India (Public Transparency Escrow), IFSC: SBIN0000691'),
+          _profileRow(Icons.description, 'Registration Type',
+              'Registered Society under Societies Registration Act XXI of 1860'),
+          _profileRow(Icons.person, 'Authorized Lead Representative',
+              'Praveen Nair (Director of Emergency Response)'),
+          _profileRow(Icons.place, 'Operating Jurisdictions',
+              'Delhi-NCR, Uttar Pradesh, Bihar, Uttarakhand'),
+          _profileRow(Icons.category, 'Areas of Specialization',
+              'Material Relief, Flood Rehabilitation, Dignity Kits, School Recovery'),
+          _profileRow(Icons.account_balance, 'Designated Escrow Account',
+              'State Bank of India (Public Transparency Escrow), IFSC: SBIN0000691'),
           const SizedBox(height: 20),
-
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard,
+              color: isDark
+                  ? AppColors.darkSurfaceCard
+                  : AppColors.lightSurfaceCard,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Statutory Transparency Standard (Part 9)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                Text('Statutory Transparency Standard (Part 9)',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 SizedBox(height: 6),
                 Text(
                   'In compliance with Part 9 of the Disaster Management Act and DPDP regulations, verified public audit summaries are permanently accessible on the Public Transparency Portal without revealing individual beneficiary PII or personal bank identifiers.',
@@ -2290,7 +2880,10 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -2311,7 +2904,9 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             ),
           ),
           const SizedBox(height: 4),
-          Text(sub, style: const TextStyle(fontSize: 10, color: Colors.grey), overflow: TextOverflow.ellipsis),
+          Text(sub,
+              style: const TextStyle(fontSize: 10, color: Colors.grey),
+              overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -2322,15 +2917,21 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard,
+          color:
+              isDark ? AppColors.darkSurfaceCard : AppColors.lightSurfaceCard,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
           children: [
-            Text(val, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
+            Text(val,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 14, color: color)),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 9, color: Colors.grey), textAlign: TextAlign.center, maxLines: 1),
+            Text(label,
+                style: const TextStyle(fontSize: 9, color: Colors.grey),
+                textAlign: TextAlign.center,
+                maxLines: 1),
           ],
         ),
       ),
@@ -2349,8 +2950,11 @@ class _NgoManagementScreenState extends ConsumerState<NgoManagementScreen> with 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                Text(val, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                Text(title,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(val,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w500)),
               ],
             ),
           ),

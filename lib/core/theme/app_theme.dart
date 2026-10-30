@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/**
- * ResQAI Theme Definition
- * Brights, Greenish & Pink Theme with Tactile Touch Targets & Modern Typography
- */
+/// ResQAI Theme Definition
+/// Brights, Greenish & Pink Theme with Tactile Touch Targets & Modern Typography
 class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
@@ -29,7 +27,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.darkSurface2,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.darkBorder),
@@ -50,9 +49,11 @@ class AppTheme {
           foregroundColor: const Color(0xFF071A14),
           elevation: 2,
           shadowColor: AppColors.darkPrimary.withOpacity(0.35),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: 0.2),
+          textStyle: const TextStyle(
+              fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: 0.2),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -60,7 +61,8 @@ class AppTheme {
           minimumSize: const Size(88, 48),
           foregroundColor: AppColors.darkPrimary,
           side: const BorderSide(color: AppColors.darkPrimary, width: 1.5),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
         ),
@@ -90,11 +92,30 @@ class AppTheme {
         ),
       ),
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w900, fontSize: 28, height: 1.25, letterSpacing: -0.5),
-        headlineMedium: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w800, fontSize: 22, height: 1.3, letterSpacing: -0.3),
-        titleMedium: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w700, fontSize: 16, height: 1.4),
-        bodyLarge: TextStyle(color: AppColors.darkText, fontSize: 16, height: 1.5, fontWeight: FontWeight.w500),
-        bodyMedium: TextStyle(color: AppColors.darkTextMuted, fontSize: 14, height: 1.5),
+        headlineLarge: TextStyle(
+            color: AppColors.darkText,
+            fontWeight: FontWeight.w900,
+            fontSize: 28,
+            height: 1.25,
+            letterSpacing: -0.5),
+        headlineMedium: TextStyle(
+            color: AppColors.darkText,
+            fontWeight: FontWeight.w800,
+            fontSize: 22,
+            height: 1.3,
+            letterSpacing: -0.3),
+        titleMedium: TextStyle(
+            color: AppColors.darkText,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            height: 1.4),
+        bodyLarge: TextStyle(
+            color: AppColors.darkText,
+            fontSize: 16,
+            height: 1.5,
+            fontWeight: FontWeight.w500),
+        bodyMedium: TextStyle(
+            color: AppColors.darkTextMuted, fontSize: 14, height: 1.5),
       ),
       useMaterial3: true,
     );
@@ -123,7 +144,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightSurface2,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.lightBorder),
@@ -144,9 +166,11 @@ class AppTheme {
           foregroundColor: Colors.white,
           elevation: 2,
           shadowColor: AppColors.primaryGreen.withOpacity(0.35),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: 0.2),
+          textStyle: const TextStyle(
+              fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: 0.2),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -154,7 +178,8 @@ class AppTheme {
           minimumSize: const Size(88, 48),
           foregroundColor: AppColors.primaryGreen,
           side: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
         ),
@@ -185,11 +210,30 @@ class AppTheme {
         iconTheme: IconThemeData(color: AppColors.lightText),
       ),
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(color: AppColors.lightText, fontWeight: FontWeight.w900, fontSize: 28, height: 1.25, letterSpacing: -0.5),
-        headlineMedium: TextStyle(color: AppColors.lightText, fontWeight: FontWeight.w800, fontSize: 22, height: 1.3, letterSpacing: -0.3),
-        titleMedium: TextStyle(color: AppColors.lightText, fontWeight: FontWeight.w700, fontSize: 16, height: 1.4),
-        bodyLarge: TextStyle(color: AppColors.lightText, fontSize: 16, height: 1.5, fontWeight: FontWeight.w500),
-        bodyMedium: TextStyle(color: AppColors.lightTextMuted, fontSize: 14, height: 1.5),
+        headlineLarge: TextStyle(
+            color: AppColors.lightText,
+            fontWeight: FontWeight.w900,
+            fontSize: 28,
+            height: 1.25,
+            letterSpacing: -0.5),
+        headlineMedium: TextStyle(
+            color: AppColors.lightText,
+            fontWeight: FontWeight.w800,
+            fontSize: 22,
+            height: 1.3,
+            letterSpacing: -0.3),
+        titleMedium: TextStyle(
+            color: AppColors.lightText,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            height: 1.4),
+        bodyLarge: TextStyle(
+            color: AppColors.lightText,
+            fontSize: 16,
+            height: 1.5,
+            fontWeight: FontWeight.w500),
+        bodyMedium: TextStyle(
+            color: AppColors.lightTextMuted, fontSize: 14, height: 1.5),
       ),
       useMaterial3: true,
     );

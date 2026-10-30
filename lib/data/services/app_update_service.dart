@@ -35,7 +35,7 @@ class AppUpdateInfo {
       releaseNotes: json['releaseNotes'] as String? ??
           'Latest disaster safety protocols, performance optimizations, and live telemetry updates.',
       downloadUrl: json['downloadUrl'] as String? ??
-          'https://github.com/rxhulsingh16/ResQAI',
+          'https://github.com/Abhay-Maddy/ResQAI',
       mandatory: json['mandatory'] as bool? ?? false,
     );
   }
@@ -102,7 +102,7 @@ class AppUpdateService {
             '• Real-time map layers & GPS accuracy enhancement\n'
             '• Optimized memory consumption & cache performance\n'
             '• Streamlined 3-line navigation and incident logging',
-        downloadUrl: 'https://github.com/rxhulsingh16/ResQAI',
+        downloadUrl: 'https://github.com/Abhay-Maddy/ResQAI',
       );
     }
 
@@ -121,7 +121,7 @@ class AppUpdateService {
     // Check remote GitHub Releases API (PRD v3 Release Pipeline)
     try {
       final ghUri = Uri.parse(
-          'https://api.github.com/repos/rxhulsingh16/ResQAI/releases/latest');
+          'https://api.github.com/repos/Abhay-Maddy/ResQAI/releases/latest');
       final ghRes = await http.get(ghUri, headers: {
         'User-Agent': 'ResQAI-App'
       }).timeout(const Duration(seconds: 4));
@@ -133,7 +133,7 @@ class AppUpdateService {
           final cmp = compareVersions(cleanTag, activeVersion);
           final hasUpdate = cmp > 0;
           String apkUrl =
-              'https://github.com/rxhulsingh16/ResQAI/releases/latest';
+              'https://github.com/Abhay-Maddy/ResQAI/releases/latest';
           final assets = ghData['assets'] as List? ?? [];
           for (final a in assets) {
             final name = a['name']?.toString().toLowerCase() ?? '';
@@ -175,7 +175,7 @@ class AppUpdateService {
             '• Real-time map layers & GPS accuracy enhancement\n'
             '• Optimized memory consumption & cache performance\n'
             '• Streamlined 3-line navigation and incident logging',
-        downloadUrl: 'https://github.com/rxhulsingh16/ResQAI',
+        downloadUrl: 'https://github.com/Abhay-Maddy/ResQAI',
       );
     }
 
@@ -185,7 +185,7 @@ class AppUpdateService {
       hasUpdate: false,
       releaseNotes:
           'All disaster emergency pipelines and telemetry modules are up to date.',
-      downloadUrl: 'https://github.com/rxhulsingh16/ResQAI',
+      downloadUrl: 'https://github.com/Abhay-Maddy/ResQAI',
     );
   }
 
