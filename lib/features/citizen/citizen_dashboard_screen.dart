@@ -20,7 +20,6 @@ import 'widgets/sos_confirmation_dialog.dart';
 import '../../data/services/notification_client_service.dart';
 import '../notifications/notifications_screen.dart';
 import '../../data/repositories/donation_repository.dart';
-import '../../shared/widgets/interactive_sos_button.dart';
 
 class CitizenDashboardScreen extends ConsumerStatefulWidget {
   const CitizenDashboardScreen({super.key});
@@ -181,7 +180,9 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
   String _getWeatherEmoji(String condition) {
     final lower = condition.toLowerCase();
     if (lower.contains('thunder') || lower.contains('storm')) return '⛈️';
-    if (lower.contains('rain') || lower.contains('shower') || lower.contains('drizzle')) return '🌧️';
+    if (lower.contains('rain') ||
+        lower.contains('shower') ||
+        lower.contains('drizzle')) return '🌧️';
     if (lower.contains('cloud')) return '⛅';
     if (lower.contains('clear') || lower.contains('sun')) return '☀️';
     if (lower.contains('snow')) return '❄️';
@@ -201,7 +202,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
         _fetchHeaderWeather();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Updated weather for $_selectedLocality: $tempStr $condStr'),
+            content: Text(
+                'Updated weather for $_selectedLocality: $tempStr $condStr'),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -236,7 +238,6 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-
   // DONATION / RELIEF CONTRIBUTION MODAL & CARD
   void _showDonationModal(BuildContext context) {
     int selectedAmount = 1000;
@@ -254,7 +255,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
 
           return AlertDialog(
             backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
                 Container(
@@ -263,7 +265,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                     color: AppColors.successGreen.withOpacity(0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.volunteer_activism, color: AppColors.successGreen, size: 22),
+                  child: const Icon(Icons.volunteer_activism,
+                      color: AppColors.successGreen, size: 22),
                 ),
                 const SizedBox(width: 10),
                 const Expanded(
@@ -282,44 +285,58 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Campaign Select
-                    const Text('Target Relief Campaign', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text('Target Relief Campaign',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       value: selectedCampaign,
                       isExpanded: true,
                       decoration: InputDecoration(
                         isDense: true,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       items: const [
                         DropdownMenuItem(
                           value: 'Hindon & Yamuna Basin Emergency Flood Relief',
-                          child: Text('Hindon & Yamuna Emergency Flood Relief', style: TextStyle(fontSize: 12)),
+                          child: Text('Hindon & Yamuna Emergency Flood Relief',
+                              style: TextStyle(fontSize: 12)),
                         ),
                         DropdownMenuItem(
-                          value: 'State Disaster Response Fund (SDRF Ex-Gratia)',
-                          child: Text('State Disaster Response Fund (SDRF)', style: TextStyle(fontSize: 12)),
+                          value:
+                              'State Disaster Response Fund (SDRF Ex-Gratia)',
+                          child: Text('State Disaster Response Fund (SDRF)',
+                              style: TextStyle(fontSize: 12)),
                         ),
                         DropdownMenuItem(
-                          value: 'Clean Drinking Water & Infant Nutrition Drive',
-                          child: Text('Clean Drinking Water & Infant Nutrition', style: TextStyle(fontSize: 12)),
+                          value:
+                              'Clean Drinking Water & Infant Nutrition Drive',
+                          child: Text('Clean Drinking Water & Infant Nutrition',
+                              style: TextStyle(fontSize: 12)),
                         ),
                       ],
                       onChanged: (val) {
-                        if (val != null) setModalState(() => selectedCampaign = val);
+                        if (val != null)
+                          setModalState(() => selectedCampaign = val);
                       },
                     ),
                     const SizedBox(height: 14),
 
                     // Preset Amount Chips
-                    const Text('Select Relief Amount (INR)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text('Select Relief Amount (INR)',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       children: [500, 1000, 2500, 5000].map((amt) {
                         final isSel = selectedAmount == amt;
                         return ChoiceChip(
-                          label: Text('₹$amt', style: TextStyle(fontWeight: FontWeight.bold, color: isSel ? Colors.white : null)),
+                          label: Text('₹$amt',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isSel ? Colors.white : null)),
                           selected: isSel,
                           selectedColor: AppColors.successGreen,
                           onSelected: (val) {
@@ -340,24 +357,29 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                       decoration: InputDecoration(
                         labelText: 'Or enter custom amount (₹)',
                         isDense: true,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       onChanged: (val) {
                         final parsed = int.tryParse(val);
-                        if (parsed != null) setModalState(() => selectedAmount = parsed);
+                        if (parsed != null)
+                          setModalState(() => selectedAmount = parsed);
                       },
                     ),
                     const SizedBox(height: 14),
 
                     // Donor Details
-                    const Text('Donor Identity (for 80G Tax Receipt)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text('Donor Identity (for 80G Tax Receipt)',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),
                     TextField(
                       controller: nameCtrl,
                       decoration: InputDecoration(
                         labelText: 'Full Name',
                         isDense: true,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -366,7 +388,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                       decoration: InputDecoration(
                         labelText: 'Gmail / Email Address',
                         isDense: true,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -377,16 +400,21 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                       decoration: BoxDecoration(
                         color: AppColors.successGreen.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.successGreen.withOpacity(0.25)),
+                        border: Border.all(
+                            color: AppColors.successGreen.withOpacity(0.25)),
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.verified_user, color: AppColors.successGreen, size: 16),
+                          Icon(Icons.verified_user,
+                              color: AppColors.successGreen, size: 16),
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               '100% Tax Deductible under Section 80G of Income Tax Act. Verified by Govt of India.',
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.successGreen),
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.successGreen),
                             ),
                           ),
                         ],
@@ -405,14 +433,18 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.successGreen,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 icon: const Icon(Icons.payment, size: 16),
-                label: Text('Donate ₹$selectedAmount', style: const TextStyle(fontWeight: FontWeight.bold)),
+                label: Text('Donate ₹$selectedAmount',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 onPressed: () {
                   Navigator.pop(ctx);
-                  _completeDonation(context, selectedAmount, selectedCampaign, nameCtrl.text);
+                  _completeDonation(
+                      context, selectedAmount, selectedCampaign, nameCtrl.text);
                 },
               ),
             ],
@@ -422,31 +454,34 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
     );
   }
 
-  void _completeDonation(BuildContext context, int amount, String campaign, String donorName) {
-    final receiptNum = '80G-RQ-${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+  void _completeDonation(
+      BuildContext context, int amount, String campaign, String donorName) {
+    final receiptNum =
+        '80G-RQ-${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
 
     // Wire to donationsProvider & notificationsProvider
     try {
       ref.read(donationsProvider.notifier).createVerifiedDonation(
-        campaignId: 'CMP-RELIEF-01',
-        campaignTitle: campaign,
-        ngoName: 'Goonj Foundation Relief Mission',
-        ngoId: 'NGO-DARPAN-DL-024810',
-        amount: amount.toDouble(),
-        donorName: donorName.isEmpty ? 'Citizen Donor' : donorName,
-        donorEmail: 'citizen@resqai.org',
-        donorPhone: '+91 98765 43210',
-        isAnonymous: false,
-        paymentMethod: 'UPI (Razorpay Verified)',
-      );
+            campaignId: 'CMP-RELIEF-01',
+            campaignTitle: campaign,
+            ngoName: 'Goonj Foundation Relief Mission',
+            ngoId: 'NGO-DARPAN-DL-024810',
+            amount: amount.toDouble(),
+            donorName: donorName.isEmpty ? 'Citizen Donor' : donorName,
+            donorEmail: 'citizen@resqai.org',
+            donorPhone: '+91 98765 43210',
+            isAnonymous: false,
+            paymentMethod: 'UPI (Razorpay Verified)',
+          );
       ref.read(notificationsProvider.notifier).addAlertNotification(
-        title: '🎉 Relief Contribution of ₹$amount Verified',
-        body: 'Your 80G tax-exempt donation towards $campaign was recorded on the audited NGO ledger. Receipt: $receiptNum',
-        severity: 'INFO',
-        source: 'ResQAI Transparency & Payment Gateway',
-        type: 'DONATION',
-        direction: 'RECEIVED',
-      );
+            title: '🎉 Relief Contribution of ₹$amount Verified',
+            body:
+                'Your 80G tax-exempt donation towards $campaign was recorded on the audited NGO ledger. Receipt: $receiptNum',
+            severity: 'INFO',
+            source: 'ResQAI Transparency & Payment Gateway',
+            type: 'DONATION',
+            direction: 'RECEIVED',
+          );
     } catch (_) {}
 
     showDialog(
@@ -464,7 +499,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Thank you, $donorName! Your disaster relief contribution of ₹$amount has been verified and recorded on the transparent ledger.'),
+            Text(
+                'Thank you, $donorName! Your disaster relief contribution of ₹$amount has been verified and recorded on the transparent ledger.'),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(10),
@@ -475,10 +511,18 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Campaign: $campaign', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  Text('Campaign: $campaign',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 12)),
                   const SizedBox(height: 4),
-                  Text('Receipt Number: $receiptNum', style: const TextStyle(fontSize: 11, color: Colors.black87)),
-                  const Text('Section 80G Statutory Exemption: VALID', style: TextStyle(fontSize: 11, color: AppColors.successGreen, fontWeight: FontWeight.bold)),
+                  Text('Receipt Number: $receiptNum',
+                      style:
+                          const TextStyle(fontSize: 11, color: Colors.black87)),
+                  const Text('Section 80G Statutory Exemption: VALID',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.successGreen,
+                          fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -487,7 +531,9 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white),
             child: const Text('Done'),
           ),
         ],
@@ -523,7 +569,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                   color: AppColors.successGreen.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.volunteer_activism, color: AppColors.successGreen, size: 20),
+                child: const Icon(Icons.volunteer_activism,
+                    color: AppColors.successGreen, size: 20),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -543,7 +590,9 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                       'Direct NGO & SDRF disaster grants with 80G tax exemption',
                       style: TextStyle(
                         fontSize: 11,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.mutedText,
                       ),
                     ),
                   ],
@@ -598,23 +647,32 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                       shadowColor: Colors.transparent,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     icon: const Icon(Icons.favorite, size: 16),
-                    label: const Text('Donate Relief Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    label: const Text('Donate Relief Now',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               OutlinedButton(
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.citizenDonate),
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.citizenDonate),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primaryGreen,
-                  side: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  side: const BorderSide(
+                      color: AppColors.primaryGreen, width: 1.5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Browse Campaigns', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                child: const Text('Browse Campaigns',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
               ),
             ],
           ),
@@ -690,35 +748,37 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
 
     // Persist incident in Riverpod state & backend
     try {
-      ref
-          .read(incidentsProvider.notifier)
-          .addIncident(
+      ref.read(incidentsProvider.notifier).addIncident(
             IncidentModel(
               id: randomId,
               title: 'Critical Emergency SOS Transmitted by Citizen',
-              descriptionOriginal: '1-Tap Double Confirmed Emergency SOS. Citizen requesting immediate rescue and evacuation.',
-              descriptionTranslated: '1-Tap Double Confirmed Emergency SOS. Citizen requesting immediate rescue and evacuation.',
+              descriptionOriginal:
+                  '1-Tap Double Confirmed Emergency SOS. Citizen requesting immediate rescue and evacuation.',
+              descriptionTranslated:
+                  '1-Tap Double Confirmed Emergency SOS. Citizen requesting immediate rescue and evacuation.',
               category: IncidentCategory.flood,
               latitude: _mapCenter.latitude,
               longitude: _mapCenter.longitude,
               address: '$_selectedLocality (Live GPS Fix)',
               source: 'ONE_TAP_SOS',
               priorityScore: 95.0,
-              priorityExplanation: 'High-urgency double-tap SOS triggered from active flood zone',
+              priorityExplanation:
+                  'High-urgency double-tap SOS triggered from active flood zone',
               reporterPhoneMasked: '+91 98*** **112',
               reportedAt: DateTime.now(),
               status: IncidentStatus.verified,
             ),
           );
       ref.read(notificationsProvider.notifier).addAlertNotification(
-        title: '🚨 Urgent SOS Transmitted ($randomId)',
-        body: 'Distress dispatch transmitted to EOC Queue & NDRF Teams for $_selectedLocality. Live GPS fix active.',
-        severity: 'CRITICAL',
-        source: 'Citizen Distress Telemetry',
-        type: 'SOS',
-        direction: 'SENT',
-        status: 'DISPATCHED TO EOC',
-      );
+            title: '🚨 Urgent SOS Transmitted ($randomId)',
+            body:
+                'Distress dispatch transmitted to EOC Queue & NDRF Teams for $_selectedLocality. Live GPS fix active.',
+            severity: 'CRITICAL',
+            source: 'Citizen Distress Telemetry',
+            type: 'SOS',
+            direction: 'SENT',
+            status: 'DISPATCHED TO EOC',
+          );
     } catch (_) {}
 
     await Future.delayed(const Duration(milliseconds: 600));
@@ -1008,7 +1068,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                 builder: (context, ref, _) {
                   final unread = ref.watch(unreadNotificationCountProvider);
                   return InkWell(
-                    onTap: () => NotificationsScreen.showNotificationCenter(context),
+                    onTap: () =>
+                        NotificationsScreen.showNotificationCenter(context),
                     borderRadius: BorderRadius.circular(22),
                     child: Container(
                       width: 44,
@@ -1028,10 +1089,13 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                             child: Container(
                               padding: const EdgeInsets.all(3),
                               decoration: BoxDecoration(
-                                color: unread > 0 ? AppColors.emergencyRed : Colors.grey.shade600,
+                                color: unread > 0
+                                    ? AppColors.emergencyRed
+                                    : Colors.grey.shade600,
                                 shape: BoxShape.circle,
                               ),
-                              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                              constraints: const BoxConstraints(
+                                  minWidth: 16, minHeight: 16),
                               child: Text(
                                 unread.toString(),
                                 textAlign: TextAlign.center,
@@ -1142,9 +1206,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                   color: isDark ? AppColors.darkSurface : Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isDark
-                        ? AppColors.darkBorder
-                        : AppColors.lightBorder,
+                    color:
+                        isDark ? AppColors.darkBorder : AppColors.lightBorder,
                   ),
                 ),
                 child: Row(
@@ -1247,7 +1310,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
       ),
       child: Row(
         children: [
-          const Icon(Icons.location_off, color: AppColors.warningOrange, size: 20),
+          const Icon(Icons.location_off,
+              color: AppColors.warningOrange, size: 20),
           const SizedBox(width: 10),
           const Expanded(
             child: Text(
@@ -1263,10 +1327,13 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
             onPressed: () {
               setState(() => _locationPermissionDenied = false);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('GPS Telemetry enabled. Calibrating live coordinates...')),
+                const SnackBar(
+                    content: Text(
+                        'GPS Telemetry enabled. Calibrating live coordinates...')),
               );
             },
-            child: const Text('Enable', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Enable',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -1289,12 +1356,19 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: _isArmed
-                        ? const LinearGradient(colors: [Color(0xFFDC2626), Color(0xFF991B1B)])
-                        : const LinearGradient(colors: [AppColors.primaryRed, AppColors.primaryRed]),
+                        ? const LinearGradient(
+                            colors: [Color(0xFFDC2626), Color(0xFF991B1B)])
+                        : const LinearGradient(colors: [
+                            AppColors.primaryRed,
+                            AppColors.primaryRed
+                          ]),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: (_isArmed ? const Color(0xFFDC2626) : AppColors.primaryRed).withOpacity(0.35),
+                        color: (_isArmed
+                                ? const Color(0xFFDC2626)
+                                : AppColors.primaryRed)
+                            .withOpacity(0.35),
                         blurRadius: _isArmed ? 14 : 8,
                         offset: const Offset(0, 3),
                       ),
@@ -1309,7 +1383,9 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                         side: BorderSide(
-                          color: _isArmed ? Colors.yellowAccent : Colors.white.withOpacity(0.25),
+                          color: _isArmed
+                              ? Colors.yellowAccent
+                              : Colors.white.withOpacity(0.25),
                           width: _isArmed ? 2.0 : 1.0,
                         ),
                       ),
@@ -1328,7 +1404,9 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              _isArmed ? 'CONFIRM SOS ($_remainingSeconds s)' : 'INSTANT SOS',
+                              _isArmed
+                                  ? 'CONFIRM SOS ($_remainingSeconds s)'
+                                  : 'INSTANT SOS',
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w900,
@@ -1339,7 +1417,9 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          _isArmed ? 'Tap again to transmit distress' : 'One-Tap Emergency Alert',
+                          _isArmed
+                              ? 'Tap again to transmit distress'
+                              : 'One-Tap Emergency Alert',
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.white.withOpacity(0.95),
@@ -1361,7 +1441,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
           flex: 5,
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
-              backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightGreen,
+              backgroundColor:
+                  isDark ? AppColors.darkSurface : AppColors.lightGreen,
               foregroundColor: AppColors.primaryGreen,
               side: const BorderSide(color: AppColors.primaryGreen, width: 1.6),
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1394,7 +1475,9 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                   'Detailed Request (Trapped/Med)',
                   style: TextStyle(
                     fontSize: 10,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.mutedText,
                   ),
                 ),
               ],
@@ -1836,16 +1919,20 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
             right: 70,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.black87,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black26, blurRadius: 4)
+                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.my_location, size: 12, color: AppColors.primaryBlue),
+                    const Icon(Icons.my_location,
+                        size: 12, color: AppColors.primaryBlue),
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text(
@@ -2260,11 +2347,10 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                         height: 96,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color:
-                              (_isArmed
-                                      ? Colors.redAccent
-                                      : AppColors.emergencyRed)
-                                  .withOpacity(0.2),
+                          color: (_isArmed
+                                  ? Colors.redAccent
+                                  : AppColors.emergencyRed)
+                              .withOpacity(0.2),
                         ),
                       ),
                       // Core circular button
@@ -2502,8 +2588,8 @@ class _CitizenDashboardScreenState extends ConsumerState<CitizenDashboardScreen>
                 iconBg: const Color(0xFFF0F9FF),
                 title: 'Helplines',
                 subtitle: '112, 1070 & contacts',
-                onTap: () =>
-                    Navigator.pushNamed(context, AppRoutes.citizenEmergencyContacts),
+                onTap: () => Navigator.pushNamed(
+                    context, AppRoutes.citizenEmergencyContacts),
                 isDark: isDark,
               ),
             ),

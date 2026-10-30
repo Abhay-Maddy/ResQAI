@@ -1,11 +1,14 @@
+import '../config/api_config.dart';
+
 class AppConstants {
   static const String appName = 'ResQAI';
-  static const String appFullName = 'AI-Powered Disaster Response and Management System';
+  static const String appFullName =
+      'AI-Powered Disaster Response and Management System';
   static const String appTagline = 'College InnoTech Exhibition 2026';
   static const String appVersion = '1.5.0';
   static const String latestKnownVersion = '1.5.0';
   static const String buildNumber = '2026.5';
-  static const String githubRepo = 'https://github.com/rxhulsingh16/ResQAI';
+  static const String githubRepo = 'https://github.com/Abhay-Maddy/ResQAI';
 
   // Local storage keys
   static const String keyLanguage = 'resqai_language';
@@ -14,11 +17,11 @@ class AppConstants {
   static const String keyUserRole = 'resqai_user_role';
   static const String keyOfflineDrafts = 'resqai_offline_drafts';
 
-  // API Server Base URL
-  static const String apiBaseUrl = 'http://localhost:5000/api/v1';
+  // Centralized Environment-Aware API Server Base URL
+  static String get apiBaseUrl => ApiConfig.baseUrl;
 
   // Disclaimers (Safety & Emergency)
-  static const String safetyNotice = 
+  static const String safetyNotice =
       'NOTICE: ResQAI is an AI-assisted decision support system for disaster management and coordination. '
       'It does not replace official emergency services, NDMA, or 112 emergency calls. '
       'Do not assume routes or shelters are guaranteed safe without responder verification.';
@@ -31,7 +34,8 @@ enum UserRole {
   govtOfficial('Govt Official', 'District administration & magistrate'),
   doctor('Doctor / Medical', 'Medical volunteer & healthcare referral'),
   rescueTeam('Rescue Team', 'NDRF / SDRF / Emergency responder'),
-  incidentCommander('Incident Commander', 'District disaster command authority'),
+  incidentCommander(
+      'Incident Commander', 'District disaster command authority'),
   fieldResponder('Field Responder', 'Rescue unit operator on the ground'),
   reliefStaff('Relief Staff', 'Shelter & supplies allocator'),
   analyst('Data Analyst', 'Early warning & AI monitoring'),
@@ -45,7 +49,8 @@ enum UserRole {
 enum IncidentStatus {
   received('Submitted', 'Report logged into intake queue'),
   pendingReview('Pending Review', 'Awaiting triage and assignment'),
-  underReview('Under Verification', 'Field or officer verification in progress'),
+  underReview(
+      'Under Verification', 'Field or officer verification in progress'),
   verified('Verified', 'Confirmed genuine emergency'),
   unverified('Unverified', 'Insufficient evidence or unsubstantiated'),
   duplicate('Duplicate', 'Merged with existing primary incident'),

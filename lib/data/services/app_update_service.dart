@@ -27,19 +27,22 @@ class AppUpdateInfo {
 
   factory AppUpdateInfo.fromJson(Map<String, dynamic> json) {
     return AppUpdateInfo(
-      currentVersion: json['currentVersion'] as String? ?? AppConstants.appVersion,
-      latestVersion: json['latestVersion'] as String? ?? AppConstants.appVersion,
+      currentVersion:
+          json['currentVersion'] as String? ?? AppConstants.appVersion,
+      latestVersion:
+          json['latestVersion'] as String? ?? AppConstants.appVersion,
       hasUpdate: json['hasUpdate'] as bool? ?? false,
       releaseNotes: json['releaseNotes'] as String? ??
           'Latest disaster safety protocols, performance optimizations, and live telemetry updates.',
-      downloadUrl: json['downloadUrl'] as String? ?? 'https://github.com/rxhulsingh16/ResQAI',
+      downloadUrl: json['downloadUrl'] as String? ??
+          'https://github.com/Abhay-Maddy/ResQAI',
       mandatory: json['mandatory'] as bool? ?? false,
     );
   }
 }
 
 class AppUpdateService {
-  static const String baseUrl = 'http://localhost:5000/api/v1/system/app-version';
+  static String get baseUrl => '${AppConstants.apiBaseUrl}/system/app-version';
 
   static String normalizeVersion(String v) {
     var clean = v.trim().replaceFirst(RegExp(r'^[vV]'), '');
@@ -99,7 +102,7 @@ class AppUpdateService {
             '• Real-time map layers & GPS accuracy enhancement\n'
             '• Optimized memory consumption & cache performance\n'
             '• Streamlined 3-line navigation and incident logging',
-        downloadUrl: 'https://github.com/rxhulsingh16/ResQAI',
+        downloadUrl: 'https://github.com/Abhay-Maddy/ResQAI',
       );
     }
 
@@ -108,7 +111,8 @@ class AppUpdateService {
       final response = await http.get(uri).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final latest = data['latestVersion']?.toString() ?? AppConstants.latestKnownVersion;
+        final latest = data['latestVersion']?.toString() ??
+            AppConstants.latestKnownVersion;
         StorageService.setString(StorageService.keyServerLatestVersion, latest);
         return AppUpdateInfo.fromJson(data);
       }
@@ -116,8 +120,11 @@ class AppUpdateService {
 
     // Check remote GitHub Releases API (PRD v3 Release Pipeline)
     try {
-      final ghUri = Uri.parse('https://api.github.com/repos/rxhulsingh16/ResQAI/releases/latest');
-      final ghRes = await http.get(ghUri, headers: {'User-Agent': 'ResQAI-App'}).timeout(const Duration(seconds: 4));
+      final ghUri = Uri.parse(
+          'https://api.github.com/repos/Abhay-Maddy/ResQAI/releases/latest');
+      final ghRes = await http.get(ghUri, headers: {
+        'User-Agent': 'ResQAI-App'
+      }).timeout(const Duration(seconds: 4));
       if (ghRes.statusCode == 200) {
         final ghData = jsonDecode(ghRes.body) as Map<String, dynamic>;
         final tagName = ghData['tag_name']?.toString() ?? '';
@@ -125,7 +132,8 @@ class AppUpdateService {
         if (cleanTag.isNotEmpty) {
           final cmp = compareVersions(cleanTag, activeVersion);
           final hasUpdate = cmp > 0;
-          String apkUrl = 'https://github.com/rxhulsingh16/ResQAI/releases/latest';
+          String apkUrl =
+              'https://github.com/Abhay-Maddy/ResQAI/releases/latest';
           final assets = ghData['assets'] as List? ?? [];
           for (final a in assets) {
             final name = a['name']?.toString().toLowerCase() ?? '';
@@ -135,12 +143,14 @@ class AppUpdateService {
             }
           }
           if (hasUpdate) {
-            StorageService.setString(StorageService.keyServerLatestVersion, cleanTag);
+            StorageService.setString(
+                StorageService.keyServerLatestVersion, cleanTag);
             return AppUpdateInfo(
               currentVersion: activeVersion,
               latestVersion: cleanTag,
               hasUpdate: true,
-              releaseNotes: ghData['body']?.toString() ?? 'Official ResQAI Release v$cleanTag',
+              releaseNotes: ghData['body']?.toString() ??
+                  'Official ResQAI Release v$cleanTag',
               downloadUrl: apkUrl,
             );
           }
@@ -149,8 +159,9 @@ class AppUpdateService {
     } catch (_) {}
 
     // Resilient offline / standalone mobile fallback
-    final latestAvailable = StorageService.getString(StorageService.keyServerLatestVersion) ??
-        AppConstants.latestKnownVersion;
+    final latestAvailable =
+        StorageService.getString(StorageService.keyServerLatestVersion) ??
+            AppConstants.latestKnownVersion;
 
     final hasUpdate = compareVersions(latestAvailable, activeVersion) > 0;
 
@@ -159,11 +170,12 @@ class AppUpdateService {
         currentVersion: activeVersion,
         latestVersion: latestAvailable,
         hasUpdate: true,
-        releaseNotes: '• Verified Disaster Telemetry Pipeline v$latestAvailable\n'
+        releaseNotes:
+            '• Verified Disaster Telemetry Pipeline v$latestAvailable\n'
             '• Real-time map layers & GPS accuracy enhancement\n'
             '• Optimized memory consumption & cache performance\n'
             '• Streamlined 3-line navigation and incident logging',
-        downloadUrl: 'https://github.com/rxhulsingh16/ResQAI',
+        downloadUrl: 'https://github.com/Abhay-Maddy/ResQAI',
       );
     }
 
@@ -171,8 +183,9 @@ class AppUpdateService {
       currentVersion: activeVersion,
       latestVersion: activeVersion,
       hasUpdate: false,
-      releaseNotes: 'All disaster emergency pipelines and telemetry modules are up to date.',
-      downloadUrl: 'https://github.com/rxhulsingh16/ResQAI',
+      releaseNotes:
+          'All disaster emergency pipelines and telemetry modules are up to date.',
+      downloadUrl: 'https://github.com/Abhay-Maddy/ResQAI',
     );
   }
 
@@ -188,7 +201,8 @@ class AppUpdateService {
       builder: (_) => const Center(
         child: Card(
           elevation: 6,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16))),
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Row(
@@ -200,7 +214,9 @@ class AppUpdateService {
                   child: CircularProgressIndicator(strokeWidth: 2.5),
                 ),
                 SizedBox(width: 18),
-                Text('Checking for ResQAI updates...', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text('Checking for ResQAI updates...',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
               ],
             ),
           ),
@@ -212,7 +228,8 @@ class AppUpdateService {
 
     final currentVer = ref != null
         ? ref.read(appVersionProvider)
-        : (StorageService.getString(StorageService.keyInstalledAppVersion) ?? AppConstants.appVersion);
+        : (StorageService.getString(StorageService.keyInstalledAppVersion) ??
+            AppConstants.appVersion);
 
     final updateInfo = await checkForUpdate(
       currentVersion: currentVer,
@@ -229,12 +246,14 @@ class AppUpdateService {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
               Icon(Icons.system_update, color: AppColors.primaryBlue, size: 26),
               SizedBox(width: 10),
-              Text('New Update Available!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+              Text('New Update Available!',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
             ],
           ),
           content: Column(
@@ -242,27 +261,34 @@ class AppUpdateService {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.primaryBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.primaryBlue.withOpacity(0.3)),
+                  border:
+                      Border.all(color: AppColors.primaryBlue.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.verified, size: 16, color: AppColors.primaryBlue),
+                    const Icon(Icons.verified,
+                        size: 16, color: AppColors.primaryBlue),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         'v${updateInfo.latestVersion} Available (Current: v${updateInfo.currentVersion})',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.primaryBlue),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: AppColors.primaryBlue),
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 14),
-              const Text('What\'s New in this Release:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const Text('What\'s New in this Release:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 6),
               Text(
                 updateInfo.releaseNotes,
@@ -279,10 +305,12 @@ class AppUpdateService {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryBlue,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               ),
               icon: const Icon(Icons.download_for_offline, size: 18),
-              label: const Text('Update Now', style: TextStyle(fontWeight: FontWeight.bold)),
+              label: const Text('Update Now',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               onPressed: () {
                 Navigator.pop(ctx);
                 _performAppUpdate(context, updateInfo.latestVersion, ref: ref);
@@ -296,12 +324,15 @@ class AppUpdateService {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
-              Icon(Icons.check_circle_outline, color: AppColors.successGreen, size: 26),
+              Icon(Icons.check_circle_outline,
+                  color: AppColors.successGreen, size: 26),
               SizedBox(width: 10),
-              Text('You\'re Up to Date!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+              Text('You\'re Up to Date!',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
             ],
           ),
           content: Column(
@@ -319,16 +350,19 @@ class AppUpdateService {
                 decoration: BoxDecoration(
                   color: AppColors.successGreen.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.successGreen.withOpacity(0.2)),
+                  border: Border.all(
+                      color: AppColors.successGreen.withOpacity(0.2)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.shield_outlined, color: AppColors.successGreen, size: 18),
+                    const Icon(Icons.shield_outlined,
+                        color: AppColors.successGreen, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'All emergency response pipelines, offline maps, and live weather telemetry services are fully synchronized.',
-                        style: TextStyle(fontSize: 11, color: Colors.green.shade800),
+                        style: TextStyle(
+                            fontSize: 11, color: Colors.green.shade800),
                       ),
                     ),
                   ],
@@ -341,10 +375,12 @@ class AppUpdateService {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.successGreen,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('OK',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -352,7 +388,8 @@ class AppUpdateService {
     }
   }
 
-  static void _performAppUpdate(BuildContext context, String newVersion, {WidgetRef? ref}) {
+  static void _performAppUpdate(BuildContext context, String newVersion,
+      {WidgetRef? ref}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -362,7 +399,8 @@ class AppUpdateService {
           children: [
             Icon(Icons.cloud_download, color: AppColors.primaryBlue),
             SizedBox(width: 10),
-            Text('Updating Application...', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('Updating Application...',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ],
         ),
         content: Column(
@@ -385,8 +423,10 @@ class AppUpdateService {
         Navigator.of(context, rootNavigator: true).pop();
 
         // 1. Persist new version to storage
-        StorageService.setString(StorageService.keyInstalledAppVersion, newVersion);
-        StorageService.setString(StorageService.keyServerLatestVersion, newVersion);
+        StorageService.setString(
+            StorageService.keyInstalledAppVersion, newVersion);
+        StorageService.setString(
+            StorageService.keyServerLatestVersion, newVersion);
 
         // 2. Reactively notify Riverpod providers
         if (ref != null) {
@@ -397,12 +437,16 @@ class AppUpdateService {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Row(
               children: [
-                Icon(Icons.check_circle, color: AppColors.successGreen, size: 26),
+                Icon(Icons.check_circle,
+                    color: AppColors.successGreen, size: 26),
                 SizedBox(width: 10),
-                Text('Update Successful!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                Text('Update Successful!',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
               ],
             ),
             content: Column(
@@ -420,10 +464,12 @@ class AppUpdateService {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.successGreen,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('OK',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -432,7 +478,8 @@ class AppUpdateService {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.successGreen,
-            content: Text('✓ ResQAI successfully updated to v$newVersion! Application is fully up to date.'),
+            content: Text(
+                '✓ ResQAI successfully updated to v$newVersion! Application is fully up to date.'),
             duration: const Duration(seconds: 4),
           ),
         );

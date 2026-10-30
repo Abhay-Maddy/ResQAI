@@ -91,7 +91,7 @@ export function ensurePrdV3Schema(): void {
     CREATE TABLE IF NOT EXISTS app_releases (
       version TEXT PRIMARY KEY,
       release_notes TEXT NOT NULL,
-      download_url TEXT NOT NULL DEFAULT 'https://github.com/rxhulsingh16/ResQAI/releases/latest',
+      download_url TEXT NOT NULL DEFAULT 'https://github.com/Abhay-Maddy/ResQAI/releases/latest',
       is_latest INTEGER DEFAULT 0,
       released_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -101,9 +101,9 @@ export function ensurePrdV3Schema(): void {
     db.prepare(`
       INSERT INTO app_releases (version, release_notes, download_url, is_latest, released_at)
       VALUES 
-        ('1.1.0', 'Initial baseline release with offline maps, live weather telemetry, and emergency response pipelines.', 'https://github.com/rxhulsingh16/ResQAI', 0, datetime('now', '-14 days')),
-        ('1.2.0', '• Three-line navigation menu for streamlined mobile UX\n• Instant SOS dispatch with direct location sharing\n• Real-time notification badge sync with unread counter', 'https://github.com/rxhulsingh16/ResQAI', 0, datetime('now', '-7 days')),
-        ('1.5.0', '• Major Telemetry v1.50: Live Open-Meteo & IMD microclimate feeds\n• Instant SOS dual-action dispatch with zero-friction direct location sync\n• Notification badge counter with mark-as-read and delete workflow\n• 3-line collapsible navigation for quick disaster field response', 'https://github.com/rxhulsingh16/ResQAI', 1, datetime('now'))
+        ('1.1.0', 'Initial baseline release with offline maps, live weather telemetry, and emergency response pipelines.', 'https://github.com/Abhay-Maddy/ResQAI', 0, datetime('now', '-14 days')),
+        ('1.2.0', '• Three-line navigation menu for streamlined mobile UX\n• Instant SOS dispatch with direct location sharing\n• Real-time notification badge sync with unread counter', 'https://github.com/Abhay-Maddy/ResQAI', 0, datetime('now', '-7 days')),
+        ('1.5.0', '• Major Telemetry v1.50: Live Open-Meteo & IMD microclimate feeds\n• Instant SOS dual-action dispatch with zero-friction direct location sync\n• Notification badge counter with mark-as-read and delete workflow\n• 3-line collapsible navigation for quick disaster field response', 'https://github.com/Abhay-Maddy/ResQAI', 1, datetime('now'))
       ON CONFLICT(version) DO UPDATE SET
         release_notes = excluded.release_notes,
         is_latest = excluded.is_latest,

@@ -26,40 +26,68 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   UserRole _selectedRole = UserRole.citizen;
 
   // Citizen credentials
-  final TextEditingController _citizenNameController = TextEditingController(text: 'Aarav Sharma');
-  final TextEditingController _citizenPhoneController = TextEditingController(text: '+91 98765 43210');
-  final TextEditingController _citizenEmailController = TextEditingController(text: 'citizen@resqai.org');
-  final TextEditingController _citizenPasswordController = TextEditingController(text: 'password123');
-  final TextEditingController _citizenEmergencyNameController = TextEditingController(text: 'Sunita Sharma (Mother)');
-  final TextEditingController _citizenEmergencyPhoneController = TextEditingController(text: '+91 98111 22233');
-  final TextEditingController _citizenDistrictController = TextEditingController(text: 'East Delhi');
-  final TextEditingController _citizenLocalityController = TextEditingController(text: 'Mayur Vihar Phase 1');
-  String _citizenLanguage = 'en';
+  final TextEditingController _citizenNameController =
+      TextEditingController(text: 'Aarav Sharma');
+  final TextEditingController _citizenPhoneController =
+      TextEditingController(text: '+91 98765 43210');
+  final TextEditingController _citizenEmailController =
+      TextEditingController(text: 'citizen@resqai.org');
+  final TextEditingController _citizenPasswordController =
+      TextEditingController(text: 'password123');
+  final TextEditingController _citizenEmergencyNameController =
+      TextEditingController(text: 'Sunita Sharma (Mother)');
+  final TextEditingController _citizenEmergencyPhoneController =
+      TextEditingController(text: '+91 98111 22233');
+  final TextEditingController _citizenDistrictController =
+      TextEditingController(text: 'East Delhi');
+  final TextEditingController _citizenLocalityController =
+      TextEditingController(text: 'Mayur Vihar Phase 1');
+  final String _citizenLanguage = 'en';
 
   // Government & Main Admin credentials
-  final TextEditingController _adminEmailController = TextEditingController(text: 'admin@resqai.org');
-  final TextEditingController _adminPasswordController = TextEditingController(text: 'AdminPassword123!');
-  final TextEditingController _adminDepartmentController = TextEditingController(text: 'SDMA IT & Disaster Governance');
-  final TextEditingController _adminDesignationController = TextEditingController(text: 'Chief Disaster Management Director');
+  final TextEditingController _adminEmailController =
+      TextEditingController(text: 'admin@resqai.org');
+  final TextEditingController _adminPasswordController =
+      TextEditingController(text: 'AdminPassword123!');
+  final TextEditingController _adminDepartmentController =
+      TextEditingController(text: 'SDMA IT & Disaster Governance');
+  final TextEditingController _adminDesignationController =
+      TextEditingController(text: 'Chief Disaster Management Director');
   bool _isAdminSuperAccess = true;
 
   // Volunteer credentials
-  final TextEditingController _volNameController = TextEditingController(text: 'Pooja Sharma');
-  final TextEditingController _volPhoneController = TextEditingController(text: '+91 98111 22334');
-  final TextEditingController _volEmailController = TextEditingController(text: 'pooja.volunteer@resqai.org');
-  final TextEditingController _volPasswordController = TextEditingController(text: 'password123');
-  final TextEditingController _volServiceAreaController = TextEditingController(text: 'Yamuna Riverbank & East Delhi');
-  final List<String> _selectedSkills = ['First Aid Certified', 'Flood Rescue', 'Food Distribution'];
+  final TextEditingController _volNameController =
+      TextEditingController(text: 'Pooja Sharma');
+  final TextEditingController _volPhoneController =
+      TextEditingController(text: '+91 98111 22334');
+  final TextEditingController _volEmailController =
+      TextEditingController(text: 'pooja.volunteer@resqai.org');
+  final TextEditingController _volPasswordController =
+      TextEditingController(text: 'password123');
+  final TextEditingController _volServiceAreaController =
+      TextEditingController(text: 'Yamuna Riverbank & East Delhi');
+  final List<String> _selectedSkills = [
+    'First Aid Certified',
+    'Flood Rescue',
+    'Food Distribution'
+  ];
   bool _volSafetyAgreed = true;
 
   // NGO credentials
-  final TextEditingController _ngoOrgNameController = TextEditingController(text: 'Indian Red Cross Society');
-  final TextEditingController _ngoRegNumberController = TextEditingController(text: 'DARPAN-DL-2024-00192');
-  final TextEditingController _ngoRepNameController = TextEditingController(text: 'Vikram Sethi');
-  final TextEditingController _ngoPhoneController = TextEditingController(text: '+91 99123 44556');
-  final TextEditingController _ngoEmailController = TextEditingController(text: 'director@redcrossdelhi.org');
-  final TextEditingController _ngoPasswordController = TextEditingController(text: 'password123');
-  final TextEditingController _ngoBankDetailsController = TextEditingController(text: 'SBI Relief A/C #8841294103');
+  final TextEditingController _ngoOrgNameController =
+      TextEditingController(text: 'Indian Red Cross Society');
+  final TextEditingController _ngoRegNumberController =
+      TextEditingController(text: 'DARPAN-DL-2024-00192');
+  final TextEditingController _ngoRepNameController =
+      TextEditingController(text: 'Vikram Sethi');
+  final TextEditingController _ngoPhoneController =
+      TextEditingController(text: '+91 99123 44556');
+  final TextEditingController _ngoEmailController =
+      TextEditingController(text: 'director@redcrossdelhi.org');
+  final TextEditingController _ngoPasswordController =
+      TextEditingController(text: 'password123');
+  final TextEditingController _ngoBankDetailsController =
+      TextEditingController(text: 'SBI Relief A/C #8841294103');
 
   bool _obscurePassword = true;
 
@@ -81,7 +109,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       breadcrumbs: const ['Auth', 'Unified Access'],
       child: Center(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 28, vertical: 20),
+          padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 28, vertical: 20),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
             child: Container(
@@ -89,7 +118,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                border: Border.all(
+                    color:
+                        isDark ? AppColors.darkBorder : AppColors.lightBorder),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(isDark ? 0.35 : 0.06),
@@ -116,7 +147,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             color: AppColors.primaryBlue.withOpacity(0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.shield, color: AppColors.primaryBlue, size: 34),
+                          child: const Icon(Icons.shield,
+                              color: AppColors.primaryBlue, size: 34),
                         ),
                       ),
                     ),
@@ -140,7 +172,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.mutedText,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.mutedText,
                       ),
                     ),
                   ),
@@ -148,15 +182,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
                   // Emergency Red Alert Banner
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: AppColors.emergencyRed.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.emergencyRed.withOpacity(0.4)),
+                      border: Border.all(
+                          color: AppColors.emergencyRed.withOpacity(0.4)),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded, color: AppColors.emergencyRed, size: 20),
+                        Icon(Icons.warning_amber_rounded,
+                            color: AppColors.emergencyRed, size: 20),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -176,7 +213,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   // Portal Selector Normal Buttons
                   const Text(
                     'SELECT LOGIN PORTAL TYPE:',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8),
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -227,14 +267,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primaryRed,
-                      side: const BorderSide(color: AppColors.primaryRed, width: 1.6),
+                      side: const BorderSide(
+                          color: AppColors.primaryRed, width: 1.6),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
-                    icon: const Icon(Icons.flash_on, size: 18, color: AppColors.primaryRed),
+                    icon: const Icon(Icons.flash_on,
+                        size: 18, color: AppColors.primaryRed),
                     label: const Text(
                       'Continue as Guest (Instant SOS Only - No ID Required)',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     onPressed: () {
                       Navigator.pushNamed(context, AppRoutes.citizenSos);
@@ -257,8 +301,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }) {
     final isSelected = _activePortal == portal;
     Color activeColor = AppColors.primaryGreen;
-    if (portal == AuthPortal.governmentAdmin) activeColor = AppColors.primaryRed;
-    if (portal == AuthPortal.volunteerNgo) activeColor = const Color(0xFF0D9488);
+    if (portal == AuthPortal.governmentAdmin)
+      activeColor = AppColors.primaryRed;
+    if (portal == AuthPortal.volunteerNgo)
+      activeColor = const Color(0xFF0D9488);
 
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -287,7 +333,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           if (portal == AuthPortal.citizen) {
             _selectedRole = UserRole.citizen;
           } else if (portal == AuthPortal.governmentAdmin) {
-            _selectedRole = _isAdminSuperAccess ? UserRole.admin : UserRole.govtOfficial;
+            _selectedRole =
+                _isAdminSuperAccess ? UserRole.admin : UserRole.govtOfficial;
           } else {
             _selectedRole = UserRole.volunteer;
           }
@@ -333,18 +380,25 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.primaryBlue, size: 18),
+                  Icon(Icons.info_outline,
+                      color: AppColors.primaryBlue, size: 18),
                   SizedBox(width: 6),
                   Text(
                     'Citizen Registration Notice',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryBlue),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppColors.primaryBlue),
                   ),
                 ],
               ),
               const SizedBox(height: 4),
               Text(
                 'New citizens: First create your Citizen ID with emergency contact details. Once created, you are logged directly into your Citizen Dashboard for emergency warnings and relief tracking.',
-                style: TextStyle(fontSize: 11.5, color: isDark ? Colors.white70 : AppColors.deepNavy, height: 1.35),
+                style: TextStyle(
+                    fontSize: 11.5,
+                    color: isDark ? Colors.white70 : AppColors.deepNavy,
+                    height: 1.35),
               ),
             ],
           ),
@@ -357,13 +411,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             Expanded(
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isRegister ? AppColors.primaryGreen : (isDark ? AppColors.darkSurfaceCard : Colors.grey.shade200),
-                  foregroundColor: _isRegister ? Colors.white : (isDark ? Colors.white70 : AppColors.deepNavy),
+                  backgroundColor: _isRegister
+                      ? AppColors.primaryGreen
+                      : (isDark
+                          ? AppColors.darkSurfaceCard
+                          : Colors.grey.shade200),
+                  foregroundColor: _isRegister
+                      ? Colors.white
+                      : (isDark ? Colors.white70 : AppColors.deepNavy),
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
                 icon: const Icon(Icons.person_add, size: 16),
-                label: const Text('1. Create Citizen ID', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                label: const Text('1. Create Citizen ID',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 onPressed: () => setState(() => _isRegister = true),
               ),
             ),
@@ -371,13 +434,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             Expanded(
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: !_isRegister ? AppColors.primaryGreen : (isDark ? AppColors.darkSurfaceCard : Colors.grey.shade200),
-                  foregroundColor: !_isRegister ? Colors.white : (isDark ? Colors.white70 : AppColors.deepNavy),
+                  backgroundColor: !_isRegister
+                      ? AppColors.primaryGreen
+                      : (isDark
+                          ? AppColors.darkSurfaceCard
+                          : Colors.grey.shade200),
+                  foregroundColor: !_isRegister
+                      ? Colors.white
+                      : (isDark ? Colors.white70 : AppColors.deepNavy),
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
                 icon: const Icon(Icons.login, size: 16),
-                label: const Text('2. Citizen Sign In', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                label: const Text('2. Citizen Sign In',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 onPressed: () => setState(() => _isRegister = false),
               ),
             ),
@@ -387,7 +459,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
         if (_isRegister) ...[
           // REGISTER FLOW (NEW USER CREATES ID)
-          const Text('Full Legal Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Full Legal Name *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
           TextField(
             controller: _citizenNameController,
@@ -406,7 +479,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Mobile Phone (+91) *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    const Text('Mobile Phone (+91) *',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 12)),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _citizenPhoneController,
@@ -426,7 +501,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Password *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    const Text('Password *',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 12)),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _citizenPasswordController,
@@ -434,8 +511,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.lock_outline, size: 20),
                         suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              size: 18),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
                         ),
                         border: const OutlineInputBorder(),
                         isDense: true,
@@ -454,18 +536,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             decoration: BoxDecoration(
               color: AppColors.emergencyRed.withOpacity(0.06),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.emergencyRed.withOpacity(0.3)),
+              border:
+                  Border.all(color: AppColors.emergencyRed.withOpacity(0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.contact_emergency, color: AppColors.emergencyRed, size: 18),
+                    Icon(Icons.contact_emergency,
+                        color: AppColors.emergencyRed, size: 18),
                     SizedBox(width: 8),
                     Text(
                       'Mandatory Emergency Contact (R-CIT-1) *',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.emergencyRed),
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.emergencyRed),
                     ),
                   ],
                 ),
@@ -473,7 +560,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 TextField(
                   controller: _citizenEmergencyNameController,
                   decoration: const InputDecoration(
-                    labelText: 'Contact Person Name (e.g. Sunita Sharma - Mother)',
+                    labelText:
+                        'Contact Person Name (e.g. Sunita Sharma - Mother)',
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
@@ -525,7 +613,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               gradient: AppColors.greenGradient,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
-                BoxShadow(color: AppColors.primaryGreen.withOpacity(0.35), blurRadius: 10, offset: const Offset(0, 3)),
+                BoxShadow(
+                    color: AppColors.primaryGreen.withOpacity(0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3)),
               ],
             ),
             child: ElevatedButton(
@@ -534,7 +625,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 shadowColor: Colors.transparent,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () => _handleCitizenRegistration(),
               child: const Row(
@@ -542,14 +634,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 children: [
                   Icon(Icons.check_circle_outline, size: 18),
                   SizedBox(width: 8),
-                  Text('Create Citizen ID & Open Dashboard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text('Create Citizen ID & Open Dashboard',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 ],
               ),
             ),
           ),
         ] else ...[
           // SIGN IN FLOW (EXISTING USER)
-          const Text('Registered Phone or Email *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Registered Phone or Email *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
           TextField(
             controller: _citizenEmailController,
@@ -562,7 +657,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           ),
           const SizedBox(height: 12),
 
-          const Text('Password or 4-Digit PIN *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Password or 4-Digit PIN *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
           TextField(
             controller: _citizenPasswordController,
@@ -570,8 +666,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.lock_outline, size: 20),
               suffixIcon: IconButton(
-                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    size: 18),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
               border: const OutlineInputBorder(),
               isDense: true,
@@ -584,7 +683,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               gradient: AppColors.greenGradient,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
-                BoxShadow(color: AppColors.primaryGreen.withOpacity(0.35), blurRadius: 10, offset: const Offset(0, 3)),
+                BoxShadow(
+                    color: AppColors.primaryGreen.withOpacity(0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3)),
               ],
             ),
             child: ElevatedButton(
@@ -593,7 +695,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 shadowColor: Colors.transparent,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () => _handleCitizenLogin(),
               child: const Row(
@@ -601,7 +704,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 children: [
                   Icon(Icons.login, size: 18),
                   SizedBox(width: 8),
-                  Text('Sign In to Citizen Dashboard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text('Sign In to Citizen Dashboard',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 ],
               ),
             ),
@@ -641,7 +746,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               const SizedBox(height: 6),
               Text(
                 '• Main Admin (Super Admin): Unrestricted master access across ALL role dashboards, role assignment, and official position creation.\n• Government Member / DDMA Officer: Statutory incident verification, SDRF disbursement, and dispatch command.',
-                style: TextStyle(fontSize: 11.5, color: isDark ? Colors.white70 : AppColors.deepNavy, height: 1.4),
+                style: TextStyle(
+                    fontSize: 11.5,
+                    color: isDark ? Colors.white70 : AppColors.deepNavy,
+                    height: 1.4),
               ),
             ],
           ),
@@ -649,30 +757,45 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         const SizedBox(height: 16),
 
         // Quick Admin Sign In Preset Buttons
-        const Text('QUICK ACCESS PRESETS:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.6)),
+        const Text('QUICK ACCESS PRESETS:',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.6)),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isAdminSuperAccess ? AppColors.deepNavy : (isDark ? AppColors.darkSurfaceCard : Colors.grey.shade200),
-                  foregroundColor: _isAdminSuperAccess ? Colors.white : (isDark ? Colors.white70 : AppColors.deepNavy),
+                  backgroundColor: _isAdminSuperAccess
+                      ? AppColors.deepNavy
+                      : (isDark
+                          ? AppColors.darkSurfaceCard
+                          : Colors.grey.shade200),
+                  foregroundColor: _isAdminSuperAccess
+                      ? Colors.white
+                      : (isDark ? Colors.white70 : AppColors.deepNavy),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: _isAdminSuperAccess ? AppColors.primaryBlue : Colors.transparent),
+                    side: BorderSide(
+                        color: _isAdminSuperAccess
+                            ? AppColors.primaryBlue
+                            : Colors.transparent),
                   ),
                 ),
                 icon: const Icon(Icons.admin_panel_settings, size: 16),
-                label: const Text('Main Admin (Master)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                label: const Text('Main Admin (Master)',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 onPressed: () {
                   setState(() {
                     _isAdminSuperAccess = true;
                     _adminEmailController.text = 'admin@resqai.org';
                     _adminPasswordController.text = 'AdminPassword123!';
-                    _adminDepartmentController.text = 'SDMA IT & Disaster Governance';
-                    _adminDesignationController.text = 'System SuperAdmin (All Access)';
+                    _adminDepartmentController.text =
+                        'SDMA IT & Disaster Governance';
+                    _adminDesignationController.text =
+                        'System SuperAdmin (All Access)';
                     _selectedRole = UserRole.admin;
                   });
                 },
@@ -682,23 +805,35 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             Expanded(
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: !_isAdminSuperAccess ? AppColors.deepNavy : (isDark ? AppColors.darkSurfaceCard : Colors.grey.shade200),
-                  foregroundColor: !_isAdminSuperAccess ? Colors.white : (isDark ? Colors.white70 : AppColors.deepNavy),
+                  backgroundColor: !_isAdminSuperAccess
+                      ? AppColors.deepNavy
+                      : (isDark
+                          ? AppColors.darkSurfaceCard
+                          : Colors.grey.shade200),
+                  foregroundColor: !_isAdminSuperAccess
+                      ? Colors.white
+                      : (isDark ? Colors.white70 : AppColors.deepNavy),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: !_isAdminSuperAccess ? AppColors.primaryBlue : Colors.transparent),
+                    side: BorderSide(
+                        color: !_isAdminSuperAccess
+                            ? AppColors.primaryBlue
+                            : Colors.transparent),
                   ),
                 ),
                 icon: const Icon(Icons.account_balance, size: 16),
-                label: const Text('Gov Officer (DDMA)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                label: const Text('Gov Officer (DDMA)',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 onPressed: () {
                   setState(() {
                     _isAdminSuperAccess = false;
                     _adminEmailController.text = 'adm.delhi@gov.in';
                     _adminPasswordController.text = 'Password123!';
                     _adminDepartmentController.text = 'DDMA / Revenue & Relief';
-                    _adminDesignationController.text = 'Additional District Magistrate (Relief)';
+                    _adminDesignationController.text =
+                        'Additional District Magistrate (Relief)';
                     _selectedRole = UserRole.govtOfficial;
                   });
                 },
@@ -708,7 +843,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         ),
         const SizedBox(height: 16),
 
-        const Text('Official Email / Username *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+        const Text('Official Email / Username *',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
         const SizedBox(height: 6),
         TextField(
           controller: _adminEmailController,
@@ -720,7 +856,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         ),
         const SizedBox(height: 12),
 
-        const Text('Password *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+        const Text('Password *',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
         const SizedBox(height: 6),
         TextField(
           controller: _adminPasswordController,
@@ -728,8 +865,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.lock_outline, size: 20),
             suffixIcon: IconButton(
-              icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  size: 18),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
             border: const OutlineInputBorder(),
             isDense: true,
@@ -740,12 +880,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         Container(
           decoration: BoxDecoration(
             gradient: _isAdminSuperAccess
-                ? const LinearGradient(colors: [Color(0xFF4338CA), Color(0xFF6366F1)])
+                ? const LinearGradient(
+                    colors: [Color(0xFF4338CA), Color(0xFF6366F1)])
                 : AppColors.redGradient,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: (_isAdminSuperAccess ? Colors.indigo : AppColors.primaryRed).withOpacity(0.35),
+                color:
+                    (_isAdminSuperAccess ? Colors.indigo : AppColors.primaryRed)
+                        .withOpacity(0.35),
                 blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
@@ -757,17 +900,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               shadowColor: Colors.transparent,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => _handleAdminLogin(),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(_isAdminSuperAccess ? Icons.security : Icons.shield, size: 18),
+                Icon(_isAdminSuperAccess ? Icons.security : Icons.shield,
+                    size: 18),
                 const SizedBox(width: 8),
                 Text(
-                  _isAdminSuperAccess ? 'Sign In as Main Admin (Master Control)' : 'Sign In as Government Officer',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  _isAdminSuperAccess
+                      ? 'Sign In as Main Admin (Master Control)'
+                      : 'Sign In as Government Officer',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ],
             ),
@@ -790,7 +938,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           children: [
             Expanded(
               child: ChoiceChip(
-                label: const Text('Volunteer Desk', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('Volunteer Desk',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 selected: isVolunteer,
                 onSelected: (val) {
                   if (val) setState(() => _selectedRole = UserRole.volunteer);
@@ -800,7 +949,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: ChoiceChip(
-                label: const Text('NGO Organization', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('NGO Organization',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 selected: !isVolunteer,
                 onSelected: (val) {
                   if (val) setState(() => _selectedRole = UserRole.ngoLead);
@@ -810,26 +960,39 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           ],
         ),
         const SizedBox(height: 16),
-
         if (isVolunteer) ...[
           // Volunteer Form
-          const Text('Full Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Full Name *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
-          TextField(controller: _volNameController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          TextField(
+              controller: _volNameController,
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), isDense: true)),
           const SizedBox(height: 12),
-          const Text('Email or Phone *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Email or Phone *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
-          TextField(controller: _volEmailController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          TextField(
+              controller: _volEmailController,
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), isDense: true)),
           const SizedBox(height: 12),
-          const Text('Service Area / Operational District *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Service Area / Operational District *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
-          TextField(controller: _volServiceAreaController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          TextField(
+              controller: _volServiceAreaController,
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), isDense: true)),
           const SizedBox(height: 12),
 
           CheckboxListTile(
             value: _volSafetyAgreed,
             contentPadding: EdgeInsets.zero,
-            title: const Text('I accept the Disaster Volunteer Safety Briefing and Field Code of Conduct.', style: TextStyle(fontSize: 12)),
+            title: const Text(
+                'I accept the Disaster Volunteer Safety Briefing and Field Code of Conduct.',
+                style: TextStyle(fontSize: 12)),
             onChanged: (v) => setState(() => _volSafetyAgreed = v ?? true),
           ),
           const SizedBox(height: 12),
@@ -839,28 +1002,47 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               backgroundColor: AppColors.primaryBlue,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () => _handleVolunteerSubmit(),
-            child: const Text('Enter Volunteer Workspace', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Enter Volunteer Workspace',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ] else ...[
           // NGO Form
-          const Text('Registered NGO / Society Name *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Registered NGO / Society Name *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
-          TextField(controller: _ngoOrgNameController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          TextField(
+              controller: _ngoOrgNameController,
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), isDense: true)),
           const SizedBox(height: 12),
-          const Text('NGO DARPAN ID / Registration Number (Unique, Required R-NGO-1) *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text(
+              'NGO DARPAN ID / Registration Number (Unique, Required R-NGO-1) *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
-          TextField(controller: _ngoRegNumberController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          TextField(
+              controller: _ngoRegNumberController,
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), isDense: true)),
           const SizedBox(height: 12),
-          const Text('Authorized Representative *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Authorized Representative *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
-          TextField(controller: _ngoRepNameController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          TextField(
+              controller: _ngoRepNameController,
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), isDense: true)),
           const SizedBox(height: 12),
-          const Text('Official Email *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Official Email *',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 6),
-          TextField(controller: _ngoEmailController, decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true)),
+          TextField(
+              controller: _ngoEmailController,
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), isDense: true)),
           const SizedBox(height: 14),
 
           ElevatedButton(
@@ -868,10 +1050,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               backgroundColor: Colors.teal.shade700,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () => _handleNgoSubmit(),
-            child: const Text('Enter NGO Relief Console', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Enter NGO Relief Console',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ],
@@ -893,7 +1077,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       return;
     }
     if (emergencyName.isEmpty || emergencyPhone.isEmpty) {
-      _showError('Mandatory Emergency Contact details must be provided (R-CIT-1).');
+      _showError(
+          'Mandatory Emergency Contact details must be provided (R-CIT-1).');
       return;
     }
 
@@ -902,11 +1087,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       id: 'USR-${newCitizenId.replaceAll('-', '_')}',
       citizenId: newCitizenId,
       name: name,
-      email: _citizenEmailController.text.trim().isNotEmpty ? _citizenEmailController.text.trim() : 'citizen@resqai.org',
-      phoneMasked: phone.length > 5 ? '${phone.substring(0, 3)}*** **${phone.substring(phone.length - 3)}' : phone,
+      email: _citizenEmailController.text.trim().isNotEmpty
+          ? _citizenEmailController.text.trim()
+          : 'citizen@resqai.org',
+      phoneMasked: phone.length > 5
+          ? '${phone.substring(0, 3)}*** **${phone.substring(phone.length - 3)}'
+          : phone,
       phoneRaw: phone,
       role: UserRole.citizen,
-      badgeOrJurisdiction: '${_citizenDistrictController.text}, ${_citizenLocalityController.text}',
+      badgeOrJurisdiction:
+          '${_citizenDistrictController.text}, ${_citizenLocalityController.text}',
       emergencyContactName: emergencyName,
       emergencyContactPhone: emergencyPhone,
       district: _citizenDistrictController.text,
@@ -924,7 +1114,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: AppColors.successGreen,
-        content: Text('✓ Citizen ID generated: $newCitizenId. Logged into Citizen Dashboard.'),
+        content: Text(
+            '✓ Citizen ID generated: $newCitizenId. Logged into Citizen Dashboard.'),
       ),
     );
 
@@ -936,7 +1127,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final user = UserModel(
       id: 'USR-CITIZEN-01',
       citizenId: 'RQ-CIT-2026-1042',
-      name: _citizenNameController.text.trim().isNotEmpty ? _citizenNameController.text.trim() : 'Aarav Sharma',
+      name: _citizenNameController.text.trim().isNotEmpty
+          ? _citizenNameController.text.trim()
+          : 'Aarav Sharma',
       email: email.isNotEmpty ? email : 'citizen@resqai.org',
       phoneMasked: '+91 98*** **210',
       phoneRaw: '+91 98765 43210',
@@ -964,8 +1157,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final adminUser = UserModel(
       id: _isAdminSuperAccess ? 'USR-ADMIN-01' : 'USR-GOV-01',
       citizenId: _isAdminSuperAccess ? 'RQ-ADM-2026-001' : 'RQ-GOV-2026-001',
-      name: _isAdminSuperAccess ? 'System SuperAdmin' : 'Rajesh Kumar (ADM Relief)',
-      email: email.isNotEmpty ? email : (_isAdminSuperAccess ? 'admin@resqai.org' : 'adm.delhi@gov.in'),
+      name: _isAdminSuperAccess
+          ? 'System SuperAdmin'
+          : 'Rajesh Kumar (ADM Relief)',
+      email: email.isNotEmpty
+          ? email
+          : (_isAdminSuperAccess ? 'admin@resqai.org' : 'adm.delhi@gov.in'),
       phoneMasked: '+91 98*** **999',
       phoneRaw: '+91 98765 43211',
       role: role,
@@ -983,7 +1180,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: _isAdminSuperAccess ? Colors.indigo : AppColors.criticalRed,
+        backgroundColor:
+            _isAdminSuperAccess ? Colors.indigo : AppColors.criticalRed,
         content: Text(_isAdminSuperAccess
             ? '✓ Authenticated as Main Admin (Super Admin). Full master control enabled.'
             : '✓ Authenticated as Government Relief Officer. Command Desk active.'),
@@ -1024,7 +1222,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   void _handleNgoSubmit() {
     final regNum = _ngoRegNumberController.text.trim();
     if (regNum.isEmpty) {
-      _showError('NGO Registration Number (DARPAN / Society Reg) is mandatory (R-NGO-1).');
+      _showError(
+          'NGO Registration Number (DARPAN / Society Reg) is mandatory (R-NGO-1).');
       return;
     }
 

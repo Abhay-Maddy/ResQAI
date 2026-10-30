@@ -143,7 +143,7 @@ systemRouter.get('/app-version', (req: Request, res: Response) => {
 
   const latestVersion = latestRecord?.version || process.env.LATEST_APP_VERSION || '1.5.0';
   const releaseNotes = latestRecord?.release_notes || '• Disaster response intelligence updates\n• Telemetry & performance optimizations';
-  const downloadUrl = latestRecord?.download_url || 'https://github.com/rxhulsingh16/ResQAI/releases/latest';
+  const downloadUrl = latestRecord?.download_url || 'https://github.com/Abhay-Maddy/ResQAI/releases/latest';
 
   const cmp = compareVersions(latestVersion, clientVersion);
   const hasUpdate = cmp > 0;
@@ -183,7 +183,7 @@ systemRouter.post('/app-version/publish', (req: Request, res: Response) => {
     `).run(
       version,
       releaseNotes || `• Disaster response update v${version}\n• Critical life-safety protocol synchronization`,
-      downloadUrl || 'https://github.com/rxhulsingh16/ResQAI/releases/latest'
+      downloadUrl || 'https://github.com/Abhay-Maddy/ResQAI/releases/latest'
     );
 
     res.json({
