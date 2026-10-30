@@ -1,3 +1,4 @@
+import '../../core/constants/app_constants.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -31,7 +32,8 @@ class WeatherModel {
     required this.updatedAt,
   });
 
-  factory WeatherModel.fromJson(Map<String, dynamic> json, {String locationName = 'Current Location'}) {
+  factory WeatherModel.fromJson(Map<String, dynamic> json,
+      {String locationName = 'Current Location'}) {
     final weather = json['weather'] as Map<String, dynamic>? ?? json;
     final advisory = json['advisory'] as Map<String, dynamic>?;
 
@@ -39,12 +41,15 @@ class WeatherModel {
     final feels = (weather['feels_like'] as num?)?.toDouble() ?? (temp + 2.5);
     final humidity = (weather['relative_humidity_2m'] as num?)?.toInt() ?? 78;
     final wind = (weather['wind_speed_10m'] as num?)?.toDouble() ?? 14.2;
-    final rainProb = (weather['precipitation_probability'] as num?)?.toInt() ?? 65;
+    final rainProb =
+        (weather['precipitation_probability'] as num?)?.toInt() ?? 65;
     final conditionDesc = (weather['condition'] as String?) ?? 'Moderate Rain';
     final code = (weather['weather_code'] as num?)?.toInt() ?? 63;
     final isCached = json['cached'] == true;
 
-    final hasSevereAdvisory = advisory != null && (advisory['severity'] == 'SEVERE' || advisory['severity'] == 'CRITICAL');
+    final hasSevereAdvisory = advisory != null &&
+        (advisory['severity'] == 'SEVERE' ||
+            advisory['severity'] == 'CRITICAL');
     final advisoryText = advisory?['message'] as String?;
 
     return WeatherModel(
@@ -73,7 +78,8 @@ class WeatherModel {
       condition: 'Heavy Rain / Thunderstorm Alert',
       conditionCode: 80,
       isSevere: true,
-      advisory: 'IMD Alert: Heavy rainfall & waterlogging expected in low-lying Hindon & Yamuna basins.',
+      advisory:
+          'IMD Alert: Heavy rainfall & waterlogging expected in low-lying Hindon & Yamuna basins.',
       isCached: true,
       locationName: locationName,
       updatedAt: DateTime.now(),
@@ -82,7 +88,7 @@ class WeatherModel {
 }
 
 class WeatherService {
-  static const String baseUrl = 'http://localhost:5000/api/v1/weather';
+  static String get baseUrl => '${AppConstants.apiBaseUrl}/weather';
   static WeatherModel? _cachedModel;
   static DateTime? _cacheTimestamp;
   static const Duration cacheTtl = Duration(minutes: 10);
@@ -123,7 +129,8 @@ class WeatherService {
         '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m'
         '&hourly=precipitation_probability&forecast_days=1&timezone=auto',
       );
-      final response = await http.get(directUri).timeout(const Duration(seconds: 4));
+      final response =
+          await http.get(directUri).timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
@@ -131,12 +138,15 @@ class WeatherService {
         final hourly = json['hourly'] as Map<String, dynamic>?;
 
         final temp = (current?['temperature_2m'] as num?)?.toDouble() ?? 28.0;
-        final feels = (current?['apparent_temperature'] as num?)?.toDouble() ?? 30.0;
+        final feels =
+            (current?['apparent_temperature'] as num?)?.toDouble() ?? 30.0;
         final hum = (current?['relative_humidity_2m'] as num?)?.toInt() ?? 75;
         final wind = (current?['wind_speed_10m'] as num?)?.toDouble() ?? 12.0;
-        final rainProb = (hourly?['precipitation_probability'] as List?)?.isNotEmpty == true
-            ? ((hourly!['precipitation_probability'][0] as num?)?.toInt() ?? 50)
-            : 50;
+        final rainProb =
+            (hourly?['precipitation_probability'] as List?)?.isNotEmpty == true
+                ? ((hourly!['precipitation_probability'][0] as num?)?.toInt() ??
+                    50)
+                : 50;
         final code = (current?['weather_code'] as num?)?.toInt() ?? 61;
 
         final model = WeatherModel(
@@ -145,10 +155,14 @@ class WeatherService {
           humidity: hum,
           windSpeed: wind,
           rainProbability: rainProb,
-          condition: code >= 80 ? 'Heavy Rain / Storm' : (code >= 50 ? 'Rain Showers' : 'Partly Cloudy'),
+          condition: code >= 80
+              ? 'Heavy Rain / Storm'
+              : (code >= 50 ? 'Rain Showers' : 'Partly Cloudy'),
           conditionCode: code,
           isSevere: code >= 80,
-          advisory: code >= 80 ? 'Local IMD Alert: Active thunderstorm and rainfall' : null,
+          advisory: code >= 80
+              ? 'Local IMD Alert: Active thunderstorm and rainfall'
+              : null,
           isCached: false,
           locationName: locationName,
           updatedAt: DateTime.now(),

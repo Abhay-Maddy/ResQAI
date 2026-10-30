@@ -1,3 +1,4 @@
+import '../../core/constants/app_constants.dart';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -9,7 +10,8 @@ class AppNotificationItem {
   final String title;
   final String body;
   final String channel;
-  final String type; // SOS, DISASTER_ALERT, NGO_REPORT, REQUIREMENT, DONATION, SYSTEM
+  final String
+      type; // SOS, DISASTER_ALERT, NGO_REPORT, REQUIREMENT, DONATION, SYSTEM
   bool isRead;
   final DateTime createdAt;
   final String severity; // CRITICAL, HIGH, WARN, INFO
@@ -43,7 +45,9 @@ class AppNotificationItem {
 
   factory AppNotificationItem.fromJson(Map<String, dynamic> json) {
     final data = json['dataJson'] ?? json['data_json'] ?? {};
-    final dataMap = data is String ? jsonDecode(data) : (data as Map<String, dynamic>? ?? {});
+    final dataMap = data is String
+        ? jsonDecode(data)
+        : (data as Map<String, dynamic>? ?? {});
 
     List<String> parseInstructions(dynamic inst) {
       if (inst is List) return inst.map((e) => e.toString()).toList();
@@ -68,13 +72,27 @@ class AppNotificationItem {
       isRead: json['isRead'] == true || json['is_read'] == 1,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt']) ?? DateTime.now()
-          : (json['created_at'] != null ? DateTime.tryParse(json['created_at']) ?? DateTime.now() : DateTime.now()),
-      severity: dataMap['severity']?.toString() ?? json['severity']?.toString() ?? 'HIGH',
-      source: dataMap['source']?.toString() ?? json['source']?.toString() ?? 'Government Disaster Cell',
-      location: dataMap['affectedRegion']?.toString() ?? dataMap['location']?.toString() ?? json['location']?.toString() ?? 'NCR Region',
-      instructions: parseInstructions(dataMap['instructions'] ?? json['instructions']),
-      senderId: json['senderId']?.toString() ?? dataMap['senderId']?.toString() ?? 'SYSTEM',
-      senderRole: json['senderRole']?.toString() ?? dataMap['senderRole']?.toString() ?? 'GOVT_OFFICIAL',
+          : (json['created_at'] != null
+              ? DateTime.tryParse(json['created_at']) ?? DateTime.now()
+              : DateTime.now()),
+      severity: dataMap['severity']?.toString() ??
+          json['severity']?.toString() ??
+          'HIGH',
+      source: dataMap['source']?.toString() ??
+          json['source']?.toString() ??
+          'Government Disaster Cell',
+      location: dataMap['affectedRegion']?.toString() ??
+          dataMap['location']?.toString() ??
+          json['location']?.toString() ??
+          'NCR Region',
+      instructions:
+          parseInstructions(dataMap['instructions'] ?? json['instructions']),
+      senderId: json['senderId']?.toString() ??
+          dataMap['senderId']?.toString() ??
+          'SYSTEM',
+      senderRole: json['senderRole']?.toString() ??
+          dataMap['senderRole']?.toString() ??
+          'GOVT_OFFICIAL',
       targetRoles: parseTargets(json['targetRoles'] ?? dataMap['targetRoles']),
       direction: json['direction']?.toString() ?? 'RECEIVED',
       status: json['status']?.toString() ?? 'DELIVERED',
@@ -107,7 +125,7 @@ final unreadNotificationCountProvider = StateProvider<int>((ref) => 2);
 
 class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
   final Ref ref;
-  static const String apiBaseUrl = 'http://localhost:5000/api/v1';
+  static String get apiBaseUrl => AppConstants.apiBaseUrl;
 
   NotificationsNotifier(this.ref) : super(_loadInitialNotifications()) {
     _updateUnreadCount();
@@ -119,7 +137,10 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
       if (saved != null && saved.isNotEmpty) {
         final list = jsonDecode(saved) as List;
         if (list.isNotEmpty) {
-          return list.map((e) => AppNotificationItem.fromJson(e as Map<String, dynamic>)).toList();
+          return list
+              .map((e) =>
+                  AppNotificationItem.fromJson(e as Map<String, dynamic>))
+              .toList();
         }
       }
     } catch (_) {}
@@ -129,7 +150,8 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
   void _persistNotifications() {
     try {
       final jsonList = state.map((n) => n.toJson()).toList();
-      StorageService.setString('resqai_persisted_notifications', jsonEncode(jsonList));
+      StorageService.setString(
+          'resqai_persisted_notifications', jsonEncode(jsonList));
     } catch (_) {}
   }
 
@@ -138,7 +160,8 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
       AppNotificationItem(
         id: 'NOTIF-NDMA-101',
         title: '🚨 CRITICAL: Embankment Breach Advisory • Hindon Basin',
-        body: 'Disaster management officers have reported rapid water level rise at Hindon Barrage exceeding safe threshold (128.5m). Evacuation advisory initiated for Sector 4, Vaishali low-lying colonies and nearby flood-plains.',
+        body:
+            'Disaster management officers have reported rapid water level rise at Hindon Barrage exceeding safe threshold (128.5m). Evacuation advisory initiated for Sector 4, Vaishali low-lying colonies and nearby flood-plains.',
         channel: 'IN_APP',
         type: 'DISASTER_ALERT',
         isRead: false,
@@ -160,11 +183,13 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
       AppNotificationItem(
         id: 'NOTIF-IMD-102',
         title: '⛈️ Heavy Monsoon Rainfall & Flash Flood Red Warning',
-        body: 'Intense rain bands recorded over Delhi-NCR. Anticipate waterlogging along Underpass routes, NH-9 service lanes, and urban stormwater drain back-flows within next 3 to 6 hours.',
+        body:
+            'Intense rain bands recorded over Delhi-NCR. Anticipate waterlogging along Underpass routes, NH-9 service lanes, and urban stormwater drain back-flows within next 3 to 6 hours.',
         channel: 'PUSH',
         type: 'DISASTER_ALERT',
         isRead: false,
-        createdAt: DateTime.now().subtract(const Duration(hours: 1, minutes: 25)),
+        createdAt:
+            DateTime.now().subtract(const Duration(hours: 1, minutes: 25)),
         severity: 'HIGH',
         source: 'India Meteorological Department (IMD Safdarjung)',
         location: 'Noida, Greater Noida & East Delhi District',
@@ -181,7 +206,8 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
       AppNotificationItem(
         id: 'NOTIF-SHELTER-103',
         title: '🏕️ Community Relief Shelter Ready with 24/7 Medical Triage',
-        body: 'Indirapuram Community Center Shelter #3 is activated with 450 bed capacity, potable drinking water tanker, clean dry rations, and child care nursery.',
+        body:
+            'Indirapuram Community Center Shelter #3 is activated with 450 bed capacity, potable drinking water tanker, clean dry rations, and child care nursery.',
         channel: 'IN_APP',
         type: 'NGO_REPORT',
         isRead: true,
@@ -202,11 +228,13 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
       AppNotificationItem(
         id: 'NOTIF-SENT-201',
         title: '📢 Public Evacuation Route Advisory • Vaishali Sector 4',
-        body: 'Directed high-clearance SDRF trucks to Vaishali Metro station for low-lying civilian evacuation. Safe corridor along Link Road opened.',
+        body:
+            'Directed high-clearance SDRF trucks to Vaishali Metro station for low-lying civilian evacuation. Safe corridor along Link Road opened.',
         channel: 'BROADCAST',
         type: 'DISASTER_ALERT',
         isRead: true,
-        createdAt: DateTime.now().subtract(const Duration(hours: 2, minutes: 10)),
+        createdAt:
+            DateTime.now().subtract(const Duration(hours: 2, minutes: 10)),
         severity: 'HIGH',
         source: 'My Incident Command Station',
         location: 'Vaishali Sector 4 to 6',
@@ -221,7 +249,8 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
       AppNotificationItem(
         id: 'NOTIF-SENT-202',
         title: '🆘 Emergency Medical & Potable Water Requirement Dispatched',
-        body: 'Dispatched emergency requirement notice for 150 water purification kits and child rehydration salts for Hindon transit shelter.',
+        body:
+            'Dispatched emergency requirement notice for 150 water purification kits and child rehydration salts for Hindon transit shelter.',
         channel: 'IN_APP',
         type: 'REQUIREMENT',
         isRead: true,
@@ -241,7 +270,8 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
   }
 
   void _updateUnreadCount() {
-    final count = state.where((n) => n.direction == 'RECEIVED' && !n.isRead).length;
+    final count =
+        state.where((n) => n.direction == 'RECEIVED' && !n.isRead).length;
     ref.read(unreadNotificationCountProvider.notifier).state = count;
   }
 
@@ -358,10 +388,11 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
       severity: severity,
       source: source,
       location: location ?? 'NCR Region',
-      instructions: instructions ?? const [
-        'Heed official evacuation guidance immediately.',
-        'Keep emergency supplies in a portable go-bag.',
-      ],
+      instructions: instructions ??
+          const [
+            'Heed official evacuation guidance immediately.',
+            'Keep emergency supplies in a portable go-bag.',
+          ],
       direction: direction,
       status: status,
     );
@@ -387,7 +418,8 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
         final data = jsonDecode(res.body);
         final list = data['notifications'] as List? ?? [];
         if (list.isNotEmpty) {
-          final serverItems = list.map((item) => AppNotificationItem.fromJson(item)).toList();
+          final serverItems =
+              list.map((item) => AppNotificationItem.fromJson(item)).toList();
           state = serverItems;
           _updateUnreadCount();
         }
@@ -422,20 +454,23 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
     } catch (_) {}
   }
 
-  Future<bool> registerDeviceToken(String deviceToken, {String deviceType = 'FCM_MOBILE'}) async {
+  Future<bool> registerDeviceToken(String deviceToken,
+      {String deviceType = 'FCM_MOBILE'}) async {
     try {
       final user = ref.read(authProvider);
-      final resp = await http.post(
-        Uri.parse('$apiBaseUrl/notifications/register-device'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (user != null) 'x-user-id': user.id,
-        },
-        body: jsonEncode({
-          'deviceToken': deviceToken,
-          'deviceType': deviceType,
-        }),
-      ).timeout(const Duration(seconds: 4));
+      final resp = await http
+          .post(
+            Uri.parse('$apiBaseUrl/notifications/register-device'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (user != null) 'x-user-id': user.id,
+            },
+            body: jsonEncode({
+              'deviceToken': deviceToken,
+              'deviceType': deviceType,
+            }),
+          )
+          .timeout(const Duration(seconds: 4));
       return resp.statusCode == 200;
     } catch (_) {
       return false;
@@ -445,14 +480,16 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
   Future<bool> subscribeToTopic(String topic) async {
     try {
       final user = ref.read(authProvider);
-      final resp = await http.post(
-        Uri.parse('$apiBaseUrl/notifications/subscribe-topic'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (user != null) 'x-user-id': user.id,
-        },
-        body: jsonEncode({'topic': topic}),
-      ).timeout(const Duration(seconds: 4));
+      final resp = await http
+          .post(
+            Uri.parse('$apiBaseUrl/notifications/subscribe-topic'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (user != null) 'x-user-id': user.id,
+            },
+            body: jsonEncode({'topic': topic}),
+          )
+          .timeout(const Duration(seconds: 4));
       return resp.statusCode == 200;
     } catch (_) {
       return false;
@@ -472,6 +509,8 @@ class NotificationsNotifier extends StateNotifier<List<AppNotificationItem>> {
   }
 }
 
-final notificationsProvider = StateNotifierProvider<NotificationsNotifier, List<AppNotificationItem>>((ref) {
+final notificationsProvider =
+    StateNotifierProvider<NotificationsNotifier, List<AppNotificationItem>>(
+        (ref) {
   return NotificationsNotifier(ref);
 });

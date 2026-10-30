@@ -224,7 +224,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> with Sing
   Future<void> _sendTestNotification() async {
     setState(() => _isSendingTestNotification = true);
     try {
-      final uri = Uri.parse('http://localhost:5000/api/v1/notifications/test');
+      final uri = Uri.parse('${AppConstants.apiBaseUrl}/notifications/test');
       final response = await http.post(
         uri,
         headers: {'Content-Type': 'application/json'},
@@ -522,7 +522,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> with Sing
 
                         // Call backend delete account API
                         try {
-                          final uri = Uri.parse('http://localhost:5000/api/v1/auth/delete-account');
+                          final uri = Uri.parse('${AppConstants.apiBaseUrl}/auth/delete-account');
                           await http.post(
                             uri,
                             headers: {'Content-Type': 'application/json'},
